@@ -1,0 +1,2 @@
+INSERT INTO members(id, first_name, last_name, resource_id, user_id, user_name, user_type) VALUES (1, 'John', 'Doe','https://beta.felleskomponent.no/utdanning/elev/elevforhold/systemid/9411983', 9411983, 'johnd', 'STUDENT');
+INSERT INTO members(id, first_name, last_name, resource_id, user_id, user_name, user_type) VALUES (2, 'Jane', 'Doe','https://beta.felleskomponent.no/utdanning/elev/elevforhold/systemid/9412011', 9412011, 'janed', 'STUDENT');
