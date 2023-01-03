@@ -1,7 +1,10 @@
 package no.fintlabs.model;
 
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -10,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @Slf4j
@@ -20,9 +24,8 @@ import java.util.Set;
 
 public class Member {
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    //@GeneratedValue (strategy = GenerationType.IDENTITY)
+    private long id;
     private String resourceId;
     private String firstName;
     private String lastName;
@@ -32,9 +35,14 @@ public class Member {
 
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = {
-                    CascadeType.PERSIST,
-                    CascadeType.MERGE
+                    CascadeType.MERGE,
+                    CascadeType.PERSIST
             },
             mappedBy = "members")
+    @JsonIgnore
     private Set<Role> roles = new HashSet<>();
+
+    public long getId() {
+        return id;
+    }
 }

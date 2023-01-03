@@ -21,7 +21,7 @@ import java.util.HashSet;
 public class Role {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
     private String resourceId;
     private String roleName;
     private String roleType;
@@ -31,10 +31,9 @@ public class Role {
 
     @ManyToMany(fetch = FetchType.LAZY,
         cascade = {
-            CascadeType.PERSIST,
             CascadeType.MERGE
         })@JoinTable(name ="Role_Memberships",
     joinColumns = {@JoinColumn(name="role_id")},
-    inverseJoinColumns = {@JoinColumn(name="member_resource_id")})
+    inverseJoinColumns = {@JoinColumn(name="member_id")})
     private Set<Member> members = new HashSet<>();
 }
