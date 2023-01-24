@@ -32,3 +32,5 @@ spring:
             client-secret: ${fint.client-secret}
             provider: fint-idp
             scope: fint-client
+server:
+  port: 8090
