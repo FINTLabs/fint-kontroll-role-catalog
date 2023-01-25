@@ -23,6 +23,8 @@ public class Role {
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long id;
     @NonNull
+    private String roleId;
+    @NonNull
     private String resourceId;
     private String roleName;
     private String roleType;
