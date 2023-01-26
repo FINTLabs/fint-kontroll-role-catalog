@@ -34,6 +34,12 @@ public class RoleController {
         log.info("Fetching role info for : "+ id.toString());
         return  roleService.findRoleById(id);
     }
+
+    @GetMapping("/roleid/{roleId}")
+    public Mono<Role> getRoleByRoleId(@PathVariable String roleId){
+        log.info("Fetching role info for : "+ roleId);
+        return  roleService.findRoleByRoleId(roleId);
+    }
     // GET /api/role/resourceid/https://beta.felleskomponent.no.. gives error
     //  org.apache.http.client.ClientProtocolException: URI does not specify a valid host name
     //  ':' is the cause

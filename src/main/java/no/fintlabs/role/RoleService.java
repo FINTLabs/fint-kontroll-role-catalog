@@ -41,6 +41,10 @@ public class RoleService {
         Role role = roleRepository.findById(id).orElse(new Role());
         return Mono.just(role);
     }
+    public Mono<Role> findRoleByRoleId(String roleId) {
+        Role role = roleRepository.findByRoleId(roleId).orElse(new Role());
+        return Mono.just(role);
+    }
 
     public Mono<Role> findRoleByResourceId(String id) {
         Role role = roleRepository.findByResourceId(id).orElse(new Role());

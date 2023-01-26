@@ -2,6 +2,7 @@ package no.fintlabs.model;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.annotate.JsonIgnore;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
@@ -15,7 +16,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 @Entity
-@Table(name="Roles")
+@Table(name="Roles", indexes = @Index(name = "role_id_index",columnList = "roleId"))
 @AllArgsConstructor
 @NoArgsConstructor(access=AccessLevel.PUBLIC, force=true)
 public class Role {
@@ -40,6 +41,7 @@ public class Role {
     @JoinTable(name ="Role_Memberships",
         joinColumns = {@JoinColumn(name="role_id")},
         inverseJoinColumns = {@JoinColumn(name="member_id")})
+
     @ToString.Exclude
     private Set<Member> members = new HashSet<>();
 
