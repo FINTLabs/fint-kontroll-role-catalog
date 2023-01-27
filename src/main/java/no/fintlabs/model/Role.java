@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.annotate.JsonIgnore;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -23,7 +24,8 @@ public class Role {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long id;
-    @NonNull
+    @NaturalId
+    @Column(nullable = false, unique = true)
     private String roleId;
     @NonNull
     private String resourceId;
@@ -50,7 +52,8 @@ public class Role {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         Role role = (Role) o;
-        return id != null && Objects.equals(id, role.id);
+        return id != null && Objects.equals(id, role.id) || Objects.equals(roleId, role.roleId);
+
     }
 
     @Override
