@@ -16,6 +16,7 @@ public class SecurityConfiguration {
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
+                .csrf().disable()
                 .authorizeExchange((authorize) -> authorize
                         .pathMatchers("/**")
                         .permitAll()
