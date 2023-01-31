@@ -47,6 +47,24 @@ public class Role {
     @ToString.Exclude
     private Set<Member> members = new HashSet<>();
 
+    public void addMember(Member member) {
+        this.members.add(member);
+        member.getRoles().add(this);
+    }
+
+    public void removeMember(Long memberid) {
+        Member member = this.members
+                .stream()
+                .filter(m -> m.getId()==memberid)
+                .findFirst()
+                .orElse(null);
+
+        if (member != null)
+        {
+            this.members.remove(member);
+            member.getRoles().remove(this);
+        }
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
