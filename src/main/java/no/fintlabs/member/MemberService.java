@@ -1,10 +1,7 @@
 package no.fintlabs.member;
 
 
-import no.fintlabs.model.Member;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.model.Role;
-import no.fintlabs.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;

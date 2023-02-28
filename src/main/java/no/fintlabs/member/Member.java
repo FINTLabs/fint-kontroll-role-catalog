@@ -1,8 +1,9 @@
-package no.fintlabs.model;
+package no.fintlabs.member;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.role.Role;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;

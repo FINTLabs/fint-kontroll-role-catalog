@@ -1,9 +1,7 @@
-package no.fintlabs.repository;
+package no.fintlabs.role;
 
-import no.fintlabs.model.Role;
+import no.fintlabs.role.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

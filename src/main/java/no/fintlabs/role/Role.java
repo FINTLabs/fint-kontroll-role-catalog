@@ -1,8 +1,8 @@
-package no.fintlabs.model;
+package no.fintlabs.role;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.annotate.JsonIgnore;
+import no.fintlabs.member.Member;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.NaturalId;
 
@@ -34,6 +34,10 @@ public class Role {
     private String roleSubType;
     private boolean aggregatedRole;
     private String roleSource;
+    @Column
+    private String organisationUnitId;
+    @Column
+    private String organisationUnitName;
 
     @ManyToMany(fetch = FetchType.LAZY,
         cascade = {
@@ -77,5 +81,17 @@ public class Role {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+    public DetailedRole toDetailedRole(Role role) {
+        return DetailedRole
+                .builder()
+                .id(role.getId())
+                //.roleId(role.getRoleId())
+                .roleName(role.getRoleName())
+                .roleType(role.getRoleType())
+                .aggregatedRole(role.isAggregatedRole())
+                .organisationUnitId(role.getOrganisationUnitId())
+                .organisationUnitName(role.getOrganisationUnitName())
+                .build();
     }
 }

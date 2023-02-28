@@ -1,11 +1,7 @@
-package no.fintlabs.controller;
+package no.fintlabs.member;
 
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.dto.RoleDTO;
-import no.fintlabs.member.MemberService;
-import no.fintlabs.model.Member;
-import no.fintlabs.model.Role;
-import no.fintlabs.repository.RoleRepository;
+import no.fintlabs.role.RoleRepository;
 import no.fintlabs.role.RoleService;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -41,8 +37,8 @@ public class MemberController {
         log.info("Fetching member info for : "+ userName);
         return  memberService.findMemberByUserName(userName);
     }
-    @GetMapping("/id/{id}/roles")
-    public Flux<RoleDTO> getAllRolesForMemberById(@PathVariable Long id) {
-        return roleService.findRolesByMemberId(id);
-    }
+//    @GetMapping("/id/{id}/roles")
+//    public Flux<RoleDTO> getAllRolesForMemberById(@PathVariable Long id) {
+//        return roleService.findRolesByMemberId(id);
+//    }
 }
