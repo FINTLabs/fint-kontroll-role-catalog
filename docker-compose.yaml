@@ -44,22 +44,6 @@ services:
       - '5432:5432'
     volumes:
       - db:/var/lib/postgresql/data
-#  postgres-connector:
-#    image: debezium/connect:1.6
-#    container_name: postgres-debezium
-#    ports:
-#      - 9090:8083
-#    links:
-#      - kafka
-#    depends_on:
-#      - kafka
-#      - db
-#    environment:
-#      - BOOTSTRAP_SERVERS=kafka:9092
-#      - GROUP_ID=pg
-#      - CONFIG_STORAGE_TOPIC=pg_connect_configs
-#      - OFFSET_STORAGE_TOPIC=pg_connect_offsets
-#      - STATUS_STORAGE_TOPIC=pg_connect_statuses
 volumes:
   db:
     driver: local
