@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.role.Role;
+import no.fintlabs.role.SimpleRole;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
@@ -54,5 +55,17 @@ public class Member {
     @Override
     public int hashCode() {
         return getClass().hashCode();
+    }
+
+
+    public SimpleMember toSimpleMember() {
+        return SimpleMember
+                .builder()
+                .id(id)
+                .firstName(firstName)
+                .lastName(lastName)
+                .userType(userType)
+                .userName(userName)
+                .build();
     }
 }

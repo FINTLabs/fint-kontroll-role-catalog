@@ -28,8 +28,8 @@ public class MemberService {
         Member member = memberRepository.findById(id).orElse(new Member());
         return Mono.just(member);
     }
-    public Mono<Member> findMemberByUserName(String userName) {
-        Member member = memberRepository.findByUserName(userName).orElse(new Member());
-        return Mono.just(member);
-    }
+//    public Mono<Member> findMemberByUserName(String userName) {
+//        Member member = memberRepository.findByUserName(userName).orElse(new Member());
+//        return Mono.just(member);
+//    }
 }

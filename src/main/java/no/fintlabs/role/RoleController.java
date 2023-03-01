@@ -1,13 +1,10 @@
 package no.fintlabs.role;
 
 import lombok.extern.slf4j.Slf4j;
-import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
@@ -17,11 +14,11 @@ import java.util.Map;
 public class RoleController {
 
     private final RoleService roleService;
-    private final ResponseFactory responseFactory;
+    private final RoleResponseFactory roleResponseFactory;
 
-    public RoleController(RoleService roleService, ResponseFactory responseFactory) {
+    public RoleController(RoleService roleService, RoleResponseFactory roleResponseFactory) {
         this.roleService = roleService;
-        this.responseFactory = responseFactory;
+        this.roleResponseFactory = roleResponseFactory;
     }
     @GetMapping
     public ResponseEntity<Map<String, Object>> getRoles(@AuthenticationPrincipal Jwt jwt,
@@ -31,7 +28,7 @@ public class RoleController {
 
         log.info("Finding roles with filter: " + filter + " at page: " + page + " (first page = 0)" );
 
-        return responseFactory.toResponseEntity(
+        return roleResponseFactory.toResponseEntity(
                 //FintJwtEndUserPrincipal.from(jwt),
                 filter, page, size);
     }

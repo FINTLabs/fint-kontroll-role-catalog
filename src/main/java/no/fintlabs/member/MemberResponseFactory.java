@@ -1,4 +1,4 @@
-package no.fintlabs.role;
+package no.fintlabs.member;
 
 import no.fint.antlr.FintFilterService;
 import org.springframework.data.domain.Page;
@@ -16,31 +16,30 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 @Component
-public class ResponseFactory {
+public class MemberResponseFactory {
     private final FintFilterService fintFilterService;
-    private final RoleRepository roleRepository;
+    private final MemberRepository memberRepository;
 
-
-
-    public ResponseFactory(FintFilterService fintFilterService, RoleRepository roleRepository) {
+    public MemberResponseFactory(FintFilterService fintFilterService, MemberRepository memberRepository) {
         this.fintFilterService = fintFilterService;
-        this.roleRepository = roleRepository;
+        this.memberRepository = memberRepository;
     }
-
-
     public ResponseEntity<Map<String, Object>> toResponseEntity(
             //FintJwtEndRolePrincipal principal,
+            Long roleId,
             String filter,
             int page,
-            int size) {
-        Stream<Role> roleStream = roleRepository.findAll().stream();
+            int size
+    ) {
+        Stream<Member> memberStream = memberRepository.getAllByRolesId(roleId).stream();
+        //Stream<Member> memberStream = memberRepository.findAll().stream();
         ResponseEntity<Map<String, Object>> entity = toResponseEntity(
                 toPage(
                         StringUtils.hasText(filter)
                                 ? fintFilterService
-                                .from(roleStream, filter)
-                                .map(Role::toSimpleRole).toList()
-                                : roleStream.map(Role::toSimpleRole).toList(),
+                                .from(memberStream, filter)
+                                .map(Member::toSimpleMember).toList()
+                                : memberStream.map(Member::toSimpleMember).toList(),
                         PageRequest.of(page, size)
                 )
         );
@@ -48,7 +47,7 @@ public class ResponseFactory {
         return entity;
     }
 
-    private Page<SimpleRole> toPage(List<SimpleRole> list, Pageable paging) {
+    private Page<SimpleMember> toPage(List<SimpleMember> list, Pageable paging) {
         int start = (int) paging.getOffset();
         int end = Math.min((start + paging.getPageSize()), list.size());
 
@@ -57,15 +56,17 @@ public class ResponseFactory {
                 : new PageImpl<>(list.subList(start, end), paging, list.size());
     }
 
-    public ResponseEntity<Map<String, Object>> toResponseEntity(Page<SimpleRole> rolePage) {
+    public ResponseEntity<Map<String, Object>> toResponseEntity(Page<SimpleMember> memberPage) {
 
         return new ResponseEntity<>(
-                Map.of("totalItems", rolePage.getTotalElements(),
-                        "roles", rolePage.getContent(),
-                        "currentPage", rolePage.getNumber(),
-                        "totalPages", rolePage.getTotalPages()
+                Map.of( "members", memberPage.getContent(),
+                        "currentPage", memberPage.getNumber(),
+                        "totalPages", memberPage.getTotalPages(),
+                        "size", memberPage.getSize(),
+                        "totalItems", memberPage.getTotalElements()
                 ),
                 HttpStatus.OK
         );
     }
 }
+
