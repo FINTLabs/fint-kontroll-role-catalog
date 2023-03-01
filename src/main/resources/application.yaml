@@ -16,6 +16,9 @@ fint:
     username: ${fint.username}
     base-url: https://beta.felleskomponent.no
     registration-id: fint
+  kontroll:
+    role-catalog:
+      pagesize: 15
 spring:
   kafka:
     consumer:

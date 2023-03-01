@@ -1,15 +1,13 @@
-package no.fintlabs.controller;
+package no.fintlabs.role;
 
 import no.fint.antlr.FintFilterService;
-import no.fintlabs.repository.RoleRepository;
-import no.fintlabs.model.Role;
-import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -17,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+@Component
 public class ResponseFactory {
     private final FintFilterService fintFilterService;
     private final RoleRepository roleRepository;

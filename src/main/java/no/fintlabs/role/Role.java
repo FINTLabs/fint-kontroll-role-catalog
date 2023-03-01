@@ -82,16 +82,27 @@ public class Role {
     public int hashCode() {
         return getClass().hashCode();
     }
-    public DetailedRole toDetailedRole(Role role) {
+    public DetailedRole toDetailedRole() {
         return DetailedRole
                 .builder()
-                .id(role.getId())
-                //.roleId(role.getRoleId())
-                .roleName(role.getRoleName())
-                .roleType(role.getRoleType())
-                .aggregatedRole(role.isAggregatedRole())
-                .organisationUnitId(role.getOrganisationUnitId())
-                .organisationUnitName(role.getOrganisationUnitName())
+                .id(id)
+                //.roleId(roleId)
+                .roleName(roleName)
+                .roleType(roleType)
+                .aggregatedRole(aggregatedRole)
+                .organisationUnitId(organisationUnitId)
+                .organisationUnitName(organisationUnitName)
+                .build();
+    }
+    public SimpleRole toSimpleRole() {
+        return SimpleRole
+                .builder()
+                .id(id)
+                .roleName(roleName)
+                .roleType(roleType)
+                .aggregatedRole(aggregatedRole)
+                .organisationUnitId(organisationUnitId)
+                .organisationUnitName(organisationUnitName)
                 .build();
     }
 }
