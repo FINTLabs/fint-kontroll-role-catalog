@@ -49,4 +49,12 @@ public class RoleService {
         Role role = roleRepository.findByResourceId(id).orElse(new Role());
         return Mono.just(role);
     }
+
+    public Mono<DetailedRole> GetDetailedRoleById(Long id)
+    {
+        return Mono.just(roleRepository.findById(id)
+                .map(Role::toDetailedRole)
+                .orElse(new DetailedRole())
+        );
+    }
 }

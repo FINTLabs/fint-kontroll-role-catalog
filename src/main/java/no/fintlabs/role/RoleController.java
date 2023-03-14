@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
@@ -32,11 +33,11 @@ public class RoleController {
                 //FintJwtEndUserPrincipal.from(jwt),
                 filter, page, size);
     }
-//    @GetMapping("/id/{id}")
-//    public Mono<Role> getRoleById(@PathVariable Long id){
-//        log.info("Fetching role info for : "+ id.toString());
-//        return  roleService.findRoleById(id);
-//    }
+    @GetMapping("{id}")
+    public Mono<DetailedRole> getRoleById(@PathVariable Long id){
+        log.info("Fetching role info for : "+ id.toString());
+        return  roleService.GetDetailedRoleById(id);
+    }
 //    @PostMapping
 //    public Mono<Role> createRole(@RequestBody Role role) {
 //        log.info("Creating new role: " +role.getRoleName());
