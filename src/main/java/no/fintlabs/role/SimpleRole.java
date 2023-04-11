@@ -12,6 +12,7 @@ public class SimpleRole {
     //private String roleId;
     private String roleName;
     private String roleType;
+    private String roleSubType;
     private boolean aggregatedRole;
     private String organisationUnitId;
     private String organisationUnitName;
