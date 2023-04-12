@@ -6,7 +6,7 @@ fint:
   kafka:
     topic:
       org-id: ${fint.org-id}
-      domain-context: ressurs
+      domain-context: kontroll
     application-id: ${fint.application-id}
   integration:
     service:

@@ -1,5 +1,5 @@
 fint:
-  org-id: ${fint.org-id}
+  org-id: fintlabs.no
   flyt:
     resource-gateway:
       authorization:

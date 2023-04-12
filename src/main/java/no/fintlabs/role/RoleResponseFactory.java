@@ -1,6 +1,7 @@
 package no.fintlabs.role;
 
 import no.fint.antlr.FintFilterService;
+import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -19,12 +20,28 @@ import java.util.stream.Stream;
 public class RoleResponseFactory {
     private final FintFilterService fintFilterService;
     private final RoleRepository roleRepository;
+    private final RoleService roleService;
 
 
 
-    public RoleResponseFactory(FintFilterService fintFilterService, RoleRepository roleRepository) {
+    public RoleResponseFactory(FintFilterService fintFilterService, RoleRepository roleRepository, RoleService roleService) {
         this.fintFilterService = fintFilterService;
         this.roleRepository = roleRepository;
+        this.roleService = roleService;
+    }
+
+    public ResponseEntity<Map<String, Object>> toResponseEntity(FintJwtEndUserPrincipal principal,
+                                                                String search,
+                                                                List<String> orgUnits,
+                                                                String roleType,
+                                                                Boolean aggRoles,
+                                                                int page,
+                                                                int size
+    ){
+        List<SimpleRole> simpleRoles = roleService.getSimpleRoles(principal,search,orgUnits,roleType,aggRoles);
+        ResponseEntity<Map<String,Object>> entity = toResponseEntity(toPage(simpleRoles,PageRequest.of(page,size)));
+
+        return entity;
     }
 
 
@@ -70,4 +87,6 @@ public class RoleResponseFactory {
                 HttpStatus.OK
         );
     }
+
+
 }
