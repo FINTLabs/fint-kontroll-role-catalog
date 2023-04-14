@@ -1,6 +1,8 @@
 package no.fintlabs.member;
 
 import no.fint.antlr.FintFilterService;
+import no.fintlabs.role.RoleRepository;
+import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -19,10 +21,13 @@ import java.util.stream.Stream;
 public class MemberResponseFactory {
     private final FintFilterService fintFilterService;
     private final MemberRepository memberRepository;
+    private final RoleRepository roleRepository;
 
-    public MemberResponseFactory(FintFilterService fintFilterService, MemberRepository memberRepository) {
+    public MemberResponseFactory(FintFilterService fintFilterService, MemberRepository memberRepository,
+                                 RoleRepository roleRepository) {
         this.fintFilterService = fintFilterService;
         this.memberRepository = memberRepository;
+        this.roleRepository = roleRepository;
     }
     public ResponseEntity<Map<String, Object>> toResponseEntity(
             //FintJwtEndRolePrincipal principal,
@@ -44,6 +49,18 @@ public class MemberResponseFactory {
                 )
         );
 
+        return entity;
+    }
+
+    public ResponseEntity<Map<String ,Object>> toResponseEntity(
+            Long id,
+            int page,
+            int size){
+        List<Member> members = (List<Member>) memberRepository.getMembersByRoleId(id);
+        ResponseEntity<Map<String,Object>> entity = toResponseEntity(
+                toPage(members.stream().map(Member::toSimpleMember).toList(),PageRequest.of(page,size)
+                )
+        );
         return entity;
     }
 

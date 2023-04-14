@@ -1,6 +1,7 @@
 package no.fintlabs.role;
 
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.member.MemberResponseFactory;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,10 +19,12 @@ public class RoleController {
 
     private final RoleService roleService;
     private final RoleResponseFactory roleResponseFactory;
+    private  final MemberResponseFactory memberResponseFactory;
 
-    public RoleController(RoleService roleService, RoleResponseFactory roleResponseFactory) {
+    public RoleController(RoleService roleService, RoleResponseFactory roleResponseFactory, MemberResponseFactory memberResponseFactory) {
         this.roleService = roleService;
         this.roleResponseFactory = roleResponseFactory;
+        this.memberResponseFactory = memberResponseFactory;
     }
 
     public ResponseEntity<Map<String, Object>> getRoles(@AuthenticationPrincipal Jwt jwt,
@@ -59,7 +62,14 @@ public class RoleController {
 
 
     //ToDo: flyttes fra membercontroller
-    //@GetMapping("{roleid}/members")
+    @GetMapping("{id}/members")
+    public ResponseEntity<Map<String , Object>> getMembersByRoleId(@AuthenticationPrincipal Jwt jwt,
+                                                                   @PathVariable Long id,
+                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size){
+        log.info("Fetching members for roleId: " +id);
+        return memberResponseFactory.toResponseEntity(id,page,size);
+    }
 
 
 //    @PostMapping
