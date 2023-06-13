@@ -14,9 +14,9 @@ commonLabels:
 patches:
   - patch: |-
       - op: replace
-        path: "/spec/acls/0/topic"
+        path: "/spec/kafka/acls/0/topic"
         value: "fintlabs-no.kontroll.*"
     target:
-      kind: KafkaUserAndAcl
+      kind: Application
       name: fint-kontroll-role-catalog
 

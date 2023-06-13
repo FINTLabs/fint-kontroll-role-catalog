@@ -12,7 +12,7 @@ spec:
     basePath: /beta/fintlabs-no
   ingress:
     enabled: true
-    basePath: /beta/fintlabs-no/api/users
+    basePath: /beta/fintlabs-no/api/roles
     middlewares:
       - fint-kontroll-sso
   kafka:
