@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface MemberRepository extends JpaRepository<Member,Long> {
     List<Member> getAllByRolesId(Long roleId);
 
+    Member getMemberByResourceId(String resourceId);
+
     Collection<Member> findByRoles_RoleId(String roleId);
 
     @Query("select m from Member m inner join m.roles roles where roles.id = ?1")

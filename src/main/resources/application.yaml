@@ -32,13 +32,17 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         enable_lazy_load_no_trans: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     datasource:
       driver-class-name: org.postgresql.Driver
+    flyway:
+      locations: classpath:db/migration/
+      lock-retry-count: 300
+
 
 logging:
   level:
     root: INFO
     org.apache.kafka: INFO
-    org.hibernate.SQL: DEBUG
+    org.hibernate.SQL: INFO
 
