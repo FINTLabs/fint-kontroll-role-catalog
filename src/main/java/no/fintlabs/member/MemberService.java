@@ -17,7 +17,7 @@ public class MemberService {
     private MemberRepository memberRepository;
     public Member save (Member member) {
         Member savedMember = memberRepository.save(member);
-        log.info("saving member {}", member.getId());
+        log.debug("saving member {}", member.getId());
         return savedMember;
     }
     public Flux<Member> getAllMembers() {
