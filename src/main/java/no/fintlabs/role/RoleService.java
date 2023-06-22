@@ -11,6 +11,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -27,8 +28,17 @@ public class RoleService {
         Set<Member> members = role.getMembers();
         members.forEach(member -> memberService.save(member)
         );
-        log.info("Trying to save role {}", role.getResourceId());
-        return roleRepository.save(role);
+        String roleId = role.getRoleId();
+        Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
+
+        if (existingRole.isPresent()) {
+            log.info("Role {} already exists", roleId);
+            return existingRole.get();
+        }
+        else {
+            log.info("Trying to save role {}", roleId);
+            return roleRepository.save(role);
+        }
     }
 
     public Flux<Role> getAllRoles() {

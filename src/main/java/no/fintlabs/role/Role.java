@@ -74,7 +74,7 @@ public class Role {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         Role role = (Role) o;
-        return id != null && Objects.equals(id, role.id) || Objects.equals(roleId, role.roleId);
+        return (id != null && Objects.equals(id, role.id)) || (roleId != null && Objects.equals(roleId, role.roleId));
 
     }
 
