@@ -10,9 +10,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -81,53 +79,44 @@ public class RoleService {
             Boolean aggRoles
     ) {
         List<Role> roles;
+        List<String> orgUnitsInSearch;
+        HashSet<String> accessibleOrgUnits = getAccessibleOrgUnitsFromOPA();
 
-        if ((orgUnits == null) && !(roleType.equals("ALLTYPES"))) {
+        log.info("Accessible orgunits from OPA: {}",accessibleOrgUnits);
+
+        if (orgUnits==null) {
+            orgUnitsInSearch = accessibleOrgUnits.stream().toList();
+            log.info("OrgUnits parameter is empty, ");
+        }
+        else {
+            log.info("OrgUnits parameter list: {}", orgUnits);
+            orgUnitsInSearch = orgUnits.stream()
+                    .filter(accessibleOrgUnits::contains)
+                    .collect(Collectors.toList());
+            log.info("OrgUnits in search: {}", orgUnitsInSearch);
+        }
+
+        if (roleType.equals("ALLTYPES")) {
             if (aggRoles == null) {
-                roles = roleRepository.getRolesByNameTypeAggregated(search, roleType);
+                roles = roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnitsInSearch);
             } else {
-                roles = roleRepository.getRolesByNameTypeAggregated(search, roleType, aggRoles);
+                roles = roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnitsInSearch, aggRoles);
             }
-            return roles
-                    .stream()
-                    .map(Role::toSimpleRole)
-                    .toList();
         }
-
-        if ((orgUnits != null) && (roleType.equals("ALLTYPES"))) {
+        else {
             if (aggRoles == null) {
-                roles = roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnits);
+                roles = roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnitsInSearch);
             } else {
-                roles = roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnits, aggRoles);
+                roles = roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnitsInSearch, aggRoles);
             }
-            return roles
-                    .stream()
-                    .map(Role::toSimpleRole)
-                    .toList();
         }
-
-        if ((orgUnits == null) && (roleType.equals("ALLTYPES"))) {
-            if (aggRoles == null) {
-                roles = roleRepository.getRolesByNameAggregated(search);
-            } else {
-                roles = roleRepository.getRolesByNameAggregated(search, aggRoles);
-            }
-
-            return roles
-                    .stream()
-                    .map(Role::toSimpleRole)
-                    .toList();
-        }
-
-        if (aggRoles == null) {
-            roles = roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnits);
-        } else {
-            roles = roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnits, aggRoles);
-        }
-
         return roles
                 .stream()
                 .map(Role::toSimpleRole)
                 .toList();
+    }
+
+    private HashSet<String> getAccessibleOrgUnitsFromOPA() {
+        return new HashSet<>(Arrays.asList("198","205","211","218"));
     }
 }
