@@ -1,16 +1,18 @@
 package no.fintlabs.role;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.member.MemberResponseFactory;
+import no.fintlabs.opa.AuthorizationClient;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -20,42 +22,53 @@ public class RoleController {
     private final RoleService roleService;
     private final RoleResponseFactory roleResponseFactory;
     private  final MemberResponseFactory memberResponseFactory;
+    private final AuthorizationClient authorizationClient;
 
-    public RoleController(RoleService roleService, RoleResponseFactory roleResponseFactory, MemberResponseFactory memberResponseFactory) {
+    public RoleController(RoleService roleService,
+                          RoleResponseFactory roleResponseFactory,
+                          MemberResponseFactory memberResponseFactory,
+                          AuthorizationClient authorizationClient
+                          ) {
         this.roleService = roleService;
         this.roleResponseFactory = roleResponseFactory;
         this.memberResponseFactory = memberResponseFactory;
+        this.authorizationClient = authorizationClient;
     }
 
-    public ResponseEntity<Map<String, Object>> getRoles(@AuthenticationPrincipal Jwt jwt,
-                                                        @RequestParam(value = "$filter", required = false) String filter,
-                                                        @RequestParam(defaultValue = "0") int page,
-                                                        @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size) {
+    private List<String> getOrgUnitsInScope() {
 
-        log.info("Finding roles with filter: " + filter + " at page: " + page + " (first page = 0)" );
+        ObjectMapper objectMapper = new ObjectMapper();
+        LinkedHashMap userScopes = authorizationClient.getUserScopes();
+        log.info("User scopes from api: {}", userScopes);
+        Result result = objectMapper.convertValue(userScopes, new TypeReference<Result>() {});
 
-        return roleResponseFactory.toResponseEntity(
-                //FintJwtEndUserPrincipal.from(jwt),
-                filter, page, size);
+        return result.result.stream()
+                .filter(scope -> scope.getObjecttype().equals("role"))
+                .map(Scope::getOrgunits)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     @GetMapping()
-    public ResponseEntity<Map<String,Object>> getSimpleRoles(@AuthenticationPrincipal Jwt jwt,
-                                                             @RequestParam(value = "search", defaultValue = "%") String search,
-                                                             @RequestParam(value = "orgunits", required = false)List<String> orgUnits,
-                                                             @RequestParam(value = "roletype", defaultValue = "ALLTYPES") String roleType,
-                                                             @RequestParam(value = "aggroles",required = false) Boolean aggRoles,
-                                                             @RequestParam(defaultValue = "0") int page,
-                                                             @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size ){
-
+    public ResponseEntity<Map<String, Object>> getSimpleRoles(@AuthenticationPrincipal Jwt jwt,
+                                                                   @RequestParam(value = "search", defaultValue = "%") String search,
+                                                                   @RequestParam(value = "orgunits", required = false)List<String> orgUnits,
+                                                                   @RequestParam(value = "roletype", defaultValue = "ALLTYPES") String roleType,
+                                                                   @RequestParam(value = "aggroles",required = false) Boolean aggRoles,
+                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size ){
 
         log.info("search: " +search+ "showaggroles: " +aggRoles);
-        return roleResponseFactory.toResponseEntity(FintJwtEndUserPrincipal.from(jwt),search,orgUnits,roleType,aggRoles,page,size);
+
+        List<String> orgUnitsInScope = getOrgUnitsInScope();
+        log.info("Org units returned from scope: {}", orgUnitsInScope);
+
+        return roleResponseFactory.toResponseEntity(FintJwtEndUserPrincipal.from(jwt),search,orgUnits, orgUnitsInScope, roleType,aggRoles,page,size);
 
     }
 
     @GetMapping("{id}")
-    public Mono<DetailedRole> getRoleById(@PathVariable Long id){
+    public DetailedRole getRoleById(@PathVariable Long id){
         log.info("Fetching role info for : "+ id.toString());
         return  roleService.GetDetailedRoleById(id);
     }

@@ -5,13 +5,14 @@ import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberService;
 //import no.vigoiks.resourceserver.security.FintJwtEndRolePrincipal;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
+import no.fintlabs.opa.AuthorizationClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +22,11 @@ public class RoleService {
     private RoleRepository roleRepository;
     @Autowired
     private MemberService memberService;
+    private AuthorizationClient authorizationClient;
+
+    public RoleService(AuthorizationClient authorizationClient) {
+        this.authorizationClient = authorizationClient;
+    }
 
     public Role save(Role role) {
         Set<Member> members = role.getMembers();
@@ -39,9 +45,8 @@ public class RoleService {
         }
     }
 
-    public Flux<Role> getAllRoles() {
-        List<Role> allRoles = roleRepository.findAll().stream().collect(Collectors.toList());
-        return Flux.fromIterable(allRoles);
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll().stream().collect(Collectors.toList());
     }
 
     public Mono<Role> createNewRole(Role role) {
@@ -49,25 +54,23 @@ public class RoleService {
         return Mono.just(newRole);
     }
 
-    public Mono<Role> findRoleById(Long id) {
-        Role role = roleRepository.findById(id).orElse(new Role());
-        return Mono.just(role);
+    public Role findRoleById(Long id) {
+        return roleRepository.findById(id).orElse(new Role());
     }
 
-    public Mono<Role> findRoleByRoleId(String roleId) {
-        Role role = roleRepository.findByRoleId(roleId).orElse(new Role());
-        return Mono.just(role);
+    public Role findRoleByRoleId(String roleId) {
+        return roleRepository.findByRoleId(roleId).orElse(new Role());
     }
 
-    public Mono<Role> findRoleByResourceId(String id) {
-        Role role = roleRepository.findByResourceId(id).orElse(new Role());
-        return Mono.just(role);
+    public Role findRoleByResourceId(String id) {
+        return roleRepository.findByResourceId(id).orElse(new Role());
+
     }
 
-    public Mono<DetailedRole> GetDetailedRoleById(Long id) {
-        return Mono.just(roleRepository.findById(id)
+    public DetailedRole GetDetailedRoleById(Long id) {
+        return roleRepository.findById(id)
                 .map(Role::toDetailedRole)
-                .orElse(new DetailedRole())
+                .orElse(new DetailedRole()
         );
     }
 
@@ -75,23 +78,21 @@ public class RoleService {
             FintJwtEndUserPrincipal principal,
             String search,
             List<String> orgUnits,
+            List<String> orgUnitsInScope,
             String roleType,
             Boolean aggRoles
     ) {
         List<Role> roles;
         List<String> orgUnitsInSearch;
-        HashSet<String> accessibleOrgUnits = getAccessibleOrgUnitsFromOPA();
-
-        log.info("Accessible orgunits from OPA: {}",accessibleOrgUnits);
 
         if (orgUnits==null) {
-            orgUnitsInSearch = accessibleOrgUnits.stream().toList();
-            log.info("OrgUnits parameter is empty, ");
+            orgUnitsInSearch = orgUnitsInScope;
+            log.info("OrgUnits parameter is empty, using orgunits from scope {} in search", orgUnitsInScope);
         }
         else {
             log.info("OrgUnits parameter list: {}", orgUnits);
             orgUnitsInSearch = orgUnits.stream()
-                    .filter(accessibleOrgUnits::contains)
+                    .filter(orgUnitsInScope::contains)
                     .collect(Collectors.toList());
             log.info("OrgUnits in search: {}", orgUnitsInSearch);
         }
@@ -110,13 +111,9 @@ public class RoleService {
                 roles = roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnitsInSearch, aggRoles);
             }
         }
-        return roles
-                .stream()
+        List<SimpleRole> simpleRoles = roles.stream()
                 .map(Role::toSimpleRole)
                 .toList();
-    }
-
-    private HashSet<String> getAccessibleOrgUnitsFromOPA() {
-        return new HashSet<>(Arrays.asList("198","205","211","218"));
+        return simpleRoles;
     }
 }
