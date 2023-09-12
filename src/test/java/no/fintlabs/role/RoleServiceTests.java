@@ -10,7 +10,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -18,6 +21,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.mockito.Mockito.*;
+
+import no.fintlabs.opa.model.OrgUnitType;
 @ExtendWith(MockitoExtension.class)
 public class RoleServiceTests {
 
@@ -58,4 +63,15 @@ public class RoleServiceTests {
         assertThat(savedRole).isNotNull();
     }
 
+    @DisplayName("Test for getOrgUnitsInSearch method")
+    @Test
+    public void givenNoOrgUnitsInFilterAndALLORGUNITSInScope_thenReturnALLORGUNITS() {
+
+        List<String> orgUnitsInScope = new ArrayList<String>();
+        orgUnitsInScope.add(OrgUnitType.ALLORGUNITS.name());
+
+        List<String> returnedOrgUnits = roleService.getOrgUnitsInSearch(null, orgUnitsInScope);
+
+        assertThat(returnedOrgUnits.equals(OrgUnitType.ALLORGUNITS.name()));
+    }
 }

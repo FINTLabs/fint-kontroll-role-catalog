@@ -126,7 +126,7 @@ public class RoleService {
         return simpleRoles;
     }
 
-    private static List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
+    static List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
         List<String> orgUnitsInSearch;
 
         if (orgUnits ==null) {
