@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.member.MemberResponseFactory;
 import no.fintlabs.opa.AuthorizationClient;
+import no.fintlabs.opa.model.Scope;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,14 +38,12 @@ public class RoleController {
 
     private List<String> getOrgUnitsInScope() {
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        LinkedHashMap userScopes = authorizationClient.getUserScopes();
+        List<Scope> userScopes = authorizationClient.getUserScopes();
         log.info("User scopes from api: {}", userScopes);
-        Result result = objectMapper.convertValue(userScopes, new TypeReference<Result>() {});
 
-        return result.result.stream()
-                .filter(scope -> scope.getObjecttype().equals("role"))
-                .map(Scope::getOrgunits)
+        return userScopes.stream()
+                .filter(scope -> scope.getObjectType().equals("role"))
+                .map(Scope::getOrgUnits)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
