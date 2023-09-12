@@ -6,6 +6,7 @@ import no.fintlabs.member.MemberService;
 //import no.vigoiks.resourceserver.security.FintJwtEndRolePrincipal;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import no.fintlabs.opa.AuthorizationClient;
+import no.fintlabs.opa.model.OrgUnitType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -92,7 +93,7 @@ public class RoleService {
         else {
             log.info("OrgUnits parameter list: {}", orgUnits);
 
-            if (orgUnitsInScope.contains("ALLORGUNITS")) {
+            if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS)) {
                 orgUnitsInSearch = orgUnits;
             }
             else {
@@ -102,7 +103,7 @@ public class RoleService {
             }
             log.info("OrgUnits in search: {}", orgUnitsInSearch);
         }
-        if (orgUnitsInSearch.contains("ALLORGUNITS")) {
+        if (orgUnitsInSearch.contains(OrgUnitType.ALLORGUNITS.name())) {
             if (roleType.equals("ALLTYPES")) {
                 if (aggRoles==null) {
                     roles = roleRepository.getRolesByNameAggregated(search);
