@@ -20,6 +20,7 @@ import java.util.Set;
 @Table(name="Roles", indexes = @Index(name = "role_id_index",columnList = "roleId"))
 @AllArgsConstructor
 @NoArgsConstructor(access=AccessLevel.PUBLIC, force=true)
+@Builder
 public class Role {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
