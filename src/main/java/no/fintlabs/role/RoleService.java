@@ -7,10 +7,7 @@ import no.fintlabs.member.MemberService;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.OrgUnitType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
@@ -19,14 +16,16 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class RoleService {
-    @Autowired
+
     private RoleRepository roleRepository;
-    @Autowired
+
     private MemberService memberService;
     private AuthorizationClient authorizationClient;
 
-    public RoleService(AuthorizationClient authorizationClient) {
+    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository, MemberService memberService) {
         this.authorizationClient = authorizationClient;
+        this.roleRepository = roleRepository;
+        this.memberService = memberService;
     }
 
     public Role save(Role role) {
@@ -84,25 +83,8 @@ public class RoleService {
             Boolean aggRoles
     ) {
         List<Role> roles;
-        List<String> orgUnitsInSearch;
+        List<String> orgUnitsInSearch = getOrgUnitsInSearch(orgUnits, orgUnitsInScope);
 
-        if (orgUnits==null) {
-            orgUnitsInSearch = orgUnitsInScope;
-            log.info("OrgUnits parameter is empty, using orgunits from scope {} in search", orgUnitsInScope);
-        }
-        else {
-            log.info("OrgUnits parameter list: {}", orgUnits);
-
-            if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS)) {
-                orgUnitsInSearch = orgUnits;
-            }
-            else {
-                orgUnitsInSearch = orgUnits.stream()
-                        .filter(orgUnitsInScope::contains)
-                        .collect(Collectors.toList());
-            }
-            log.info("OrgUnits in search: {}", orgUnitsInSearch);
-        }
         if (orgUnitsInSearch.contains(OrgUnitType.ALLORGUNITS.name())) {
             if (roleType.equals("ALLTYPES")) {
                 if (aggRoles==null) {
@@ -142,5 +124,28 @@ public class RoleService {
                 .map(Role::toSimpleRole)
                 .toList();
         return simpleRoles;
+    }
+
+    private static List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
+        List<String> orgUnitsInSearch;
+
+        if (orgUnits ==null) {
+            orgUnitsInSearch = orgUnitsInScope;
+            log.info("OrgUnits parameter is empty, using orgunits from scope {} in search", orgUnitsInScope);
+        }
+        else {
+            log.info("OrgUnits parameter list: {}", orgUnits);
+
+            if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS.name())) {
+                orgUnitsInSearch = orgUnits;
+            }
+            else {
+                orgUnitsInSearch = orgUnits.stream()
+                        .filter(orgUnitsInScope::contains)
+                        .collect(Collectors.toList());
+            }
+            log.info("OrgUnits in search: {}", orgUnitsInSearch);
+        }
+        return orgUnitsInSearch;
     }
 }
