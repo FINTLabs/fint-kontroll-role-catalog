@@ -21,7 +21,7 @@ import java.util.Set;
 @Table(name="members", indexes = @Index(name = "resource_id_index",columnList = "resourceId"))
 @AllArgsConstructor
 @NoArgsConstructor(access=AccessLevel.PUBLIC, force=true)
-
+@Builder
 public class Member {
     @Id
     @NonNull
