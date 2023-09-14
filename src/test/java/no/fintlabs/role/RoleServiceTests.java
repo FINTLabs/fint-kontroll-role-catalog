@@ -48,7 +48,7 @@ public class RoleServiceTests {
     }
     @DisplayName("Test for saveRole - save existing role")
     @Test
-    public void givenRoleObject_whenSaveRole_thenReturnRoleObject() {
+    public void givenRoleObject_whenSaveExistingRole_thenReturnExistingRoleObject() {
         //given(roleRepository.save(role)).willReturn(role);
         given(roleRepository.findByRoleId("ansatt@digit")).willReturn(Optional.of(role));
 
@@ -60,7 +60,7 @@ public class RoleServiceTests {
 
         System.out.println(savedRole);
         // then - verify the output
-        assertThat(savedRole).isNotNull();
+        assertThat(savedRole).isEqualTo(role);
     }
 
 @DisplayName("Test for saveRole - save new role")
@@ -121,6 +121,7 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
         assertThat(savedRole).isEqualTo(newRole);
         assertThat(savedRole.getMembers()).isNotNull();
         assertThat(savedRole.getMembers().size()).isEqualTo(1);
+        assertThat(savedRole.getMembers().stream().findFirst().get()).isEqualTo(member);
     }
 
     @DisplayName("Test for getOrgUnitsInSearch method - no orgunits in filter all orgunits in scope")
