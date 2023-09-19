@@ -1,26 +1,20 @@
 package no.fintlabs.role;
 
 import no.fintlabs.member.Member;
-import no.fintlabs.member.MemberRepository;
 import no.fintlabs.member.MemberService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.willDoNothing;
-import static org.mockito.Mockito.*;
 
 import no.fintlabs.opa.model.OrgUnitType;
 @ExtendWith(MockitoExtension.class)
@@ -51,14 +45,8 @@ public class RoleServiceTests {
     public void givenRoleObject_whenSaveExistingRole_thenReturnExistingRoleObject() {
         //given(roleRepository.save(role)).willReturn(role);
         given(roleRepository.findByRoleId("ansatt@digit")).willReturn(Optional.of(role));
-
-        System.out.println(roleRepository);
-        System.out.println(roleService);
-
         // when -  action or the behaviour that we are going test
         Role savedRole = roleService.save(role);
-
-        System.out.println(savedRole);
         // then - verify the output
         assertThat(savedRole).isEqualTo(role);
     }
@@ -67,16 +55,7 @@ public class RoleServiceTests {
 @Test
 public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 
-    Role newRole =  Role.builder()
-            .id(2L)
-            .roleId("ansatt@digit-fagtj")
-            .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/47")
-            .roleName("Ansatt - DIGIT Fagtjenester")
-            .roleSource("fint")
-            .roleType("ansatt")
-            .aggregatedRole(false)
-            .members(new HashSet<>())
-            .build();
+    Role newRole = createNewRole(new HashSet<>());
 
     given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
     given(roleRepository.save(newRole)).willReturn(newRole);
@@ -101,16 +80,7 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
         HashSet<Member> members = new HashSet<>();
         members.add(member);
 
-        Role newRole =  Role.builder()
-                .id(2L)
-                .roleId("ansatt@digit-fagtj")
-                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/47")
-                .roleName("Ansatt - DIGIT Fagtjenester")
-                .roleSource("fint")
-                .roleType("ansatt")
-                .aggregatedRole(false)
-                .members(members)
-                .build();
+        Role newRole = createNewRole(members);
 
         given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
         given(roleRepository.save(newRole)).willReturn(newRole);
@@ -122,6 +92,20 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
         assertThat(savedRole.getMembers()).isNotNull();
         assertThat(savedRole.getMembers().size()).isEqualTo(1);
         assertThat(savedRole.getMembers().stream().findFirst().get()).isEqualTo(member);
+    }
+
+    private static Role createNewRole(HashSet<Member> members) {
+        Role newRole =  Role.builder()
+                .id(2L)
+                .roleId("ansatt@digit-fagtj")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/47")
+                .roleName("Ansatt - DIGIT Fagtjenester")
+                .roleSource("fint")
+                .roleType("ansatt")
+                .aggregatedRole(false)
+                .members(members)
+                .build();
+        return newRole;
     }
 
     @DisplayName("Test for getOrgUnitsInSearch method - no orgunits in filter all orgunits in scope")
