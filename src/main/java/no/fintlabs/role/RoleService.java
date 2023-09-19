@@ -70,8 +70,7 @@ public class RoleService {
     public DetailedRole GetDetailedRoleById(Long id) {
         return roleRepository.findById(id)
                 .map(Role::toDetailedRole)
-                .orElse(new DetailedRole()
-        );
+                .orElse(new DetailedRole());
     }
 
     public List<SimpleRole> getSimpleRoles(
@@ -82,70 +81,58 @@ public class RoleService {
             String roleType,
             Boolean aggRoles
     ) {
-        List<Role> roles;
         List<String> orgUnitsInSearch = getOrgUnitsInSearch(orgUnits, orgUnitsInScope);
+        List<Role> roles = getRoles(search, roleType, aggRoles, orgUnitsInSearch);
 
-        if (orgUnitsInSearch.contains(OrgUnitType.ALLORGUNITS.name())) {
-            if (roleType.equals("ALLTYPES")) {
-                if (aggRoles==null) {
-                    roles = roleRepository.getRolesByNameAggregated(search);
-                }
-                else {
-                    roles =roleRepository.getRolesByNameAggregated(search, aggRoles);
-                }
-            }
-            else {
-                if (aggRoles == null) {
-                    roles = roleRepository.getRolesByNameAndTypeAggregated(search, roleType);
-                }
-                else {
-                    roles = roleRepository.getRolesByNameAndTypeAggregated(search, roleType, aggRoles);
-                }
-            }
-        }
-        else {
-            if (roleType.equals("ALLTYPES")) {
-                if (aggRoles == null) {
-                    roles = roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnitsInSearch);
-                }
-                else {
-                    roles = roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnitsInSearch, aggRoles);
-                }
-            }
-            else {
-                if (aggRoles == null) {
-                    roles = roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnitsInSearch);
-                } else {
-                    roles = roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnitsInSearch, aggRoles);
-                }
-            }
-        }
-        List<SimpleRole> simpleRoles = roles.stream()
+        return roles.stream()
                 .map(Role::toSimpleRole)
                 .toList();
-        return simpleRoles;
     }
+
+    private List<Role> getRoles(String search, String roleType, Boolean aggRoles, List<String> orgUnitsInSearch) {
+        List<Role> roles;
+        if (orgUnitsInSearch.contains(OrgUnitType.ALLORGUNITS.name())) {
+            if (roleType.equals("ALLTYPES")) {
+                if (aggRoles == null) {
+                    return roleRepository.getRolesByNameAggregated(search);
+                }
+                return roleRepository.getRolesByNameAggregated(search, aggRoles);
+            }
+            if (aggRoles == null) {
+                return roleRepository.getRolesByNameAndTypeAggregated(search, roleType);
+            }
+            return roleRepository.getRolesByNameAndTypeAggregated(search, roleType, aggRoles);
+        }
+        if (roleType.equals("ALLTYPES")) {
+            if (aggRoles == null) {
+                return roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnitsInSearch);
+            }
+            return roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnitsInSearch, aggRoles);
+        }
+        if (aggRoles == null) {
+            return roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnitsInSearch);
+        }
+        return roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnitsInSearch, aggRoles);
+    }
+
 
     static List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
         List<String> orgUnitsInSearch;
 
-        if (orgUnits ==null) {
-            orgUnitsInSearch = orgUnitsInScope;
+        if (orgUnits == null) {
             log.info("OrgUnits parameter is empty, using orgunits from scope {} in search", orgUnitsInScope);
+            return orgUnitsInScope;
         }
-        else {
-            log.info("OrgUnits parameter list: {}", orgUnits);
+        log.info("OrgUnits parameter list: {}", orgUnits);
 
-            if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS.name())) {
-                orgUnitsInSearch = orgUnits;
-            }
-            else {
-                orgUnitsInSearch = orgUnits.stream()
-                        .filter(orgUnitsInScope::contains)
-                        .collect(Collectors.toList());
-            }
-            log.info("OrgUnits in search: {}", orgUnitsInSearch);
+        if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS.name())) {
+            return orgUnits;
         }
-        return orgUnitsInSearch;
+        List<String> filteredOrgUnits = orgUnits.stream()
+                .filter(orgUnitsInScope::contains)
+                .collect(Collectors.toList());
+
+        log.info("OrgUnits in search: {}", filteredOrgUnits);
+        return filteredOrgUnits;
     }
 }
