@@ -10,7 +10,9 @@ import no.fintlabs.opa.model.OrgUnitType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,9 +51,8 @@ public class RoleService {
         return roleRepository.findAll().stream().collect(Collectors.toList());
     }
 
-    public Mono<Role> createNewRole(Role role) {
-        Role newRole = roleRepository.save(role);
-        return Mono.just(newRole);
+    public Role createNewRole(Role role) {
+        return roleRepository.save(role);
     }
 
     public Role findRoleById(Long id) {
