@@ -133,10 +133,10 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
     public void givenNonScopeOrgUnitsInFilter_thenReturnOrgUnitsInBothInFilterAndScope() {
         List<String> orgUnitsInFilter = new ArrayList<String>(List.of("198", "205", "211","219"));
         List<String> orgUnitsInScope = new ArrayList<String>(List.of("198", "205", "211","218"));
-        List<String> expectedResturnedOrgUnits = new ArrayList<String>(List.of("198", "205", "211"));
+        List<String> expectedReturnedOrgUnits = new ArrayList<String>(List.of("198", "205", "211"));
 
         List<String> returnedOrgUnits = roleService.getOrgUnitsInSearch(orgUnitsInFilter, orgUnitsInScope);
 
-        assertThat(returnedOrgUnits.equals(expectedResturnedOrgUnits));
+        assertThat(returnedOrgUnits.equals(expectedReturnedOrgUnits));
     }
 }

@@ -9,15 +9,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @Component
 public class RoleResponseFactory {
@@ -44,27 +39,6 @@ public class RoleResponseFactory {
 
         return toResponseEntity(toPage(simpleRoles,PageRequest.of(page,size)));
     }
-
-
-//    public Mono<ResponseEntity<Map<String, Object>>> toResponseEntity(
-//            //FintJwtEndRolePrincipal principal,
-//            String filter,
-//            int page,
-//            int size) {
-//        Stream<Role> roleStream = roleRepository.findAll().stream();
-//        ResponseEntity<Map<String, Object>> entity = toResponseEntity(
-//                toPage(
-//                       StringUtils.hasText(filter)
-//                            ? fintFilterService
-//                            .from(roleStream, filter)
-//                            .map(Role::toSimpleRole).toList()
-//                            : roleStream.map(Role::toSimpleRole).toList(),
-//                        PageRequest.of(page, size)
-//                )
-//                );
-//
-//        return Mono.just(entity);
-//    }
 
     private Page<SimpleRole> toPage(List<SimpleRole> list, Pageable paging) {
         int start = (int) paging.getOffset();
