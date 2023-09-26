@@ -5,24 +5,30 @@ import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberService;
 //import no.vigoiks.resourceserver.security.FintJwtEndRolePrincipal;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
-import org.springframework.beans.factory.annotation.Autowired;
+import no.fintlabs.opa.AuthorizationClient;
+import no.fintlabs.opa.model.OrgUnitType;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class RoleService {
-    @Autowired
+
     private RoleRepository roleRepository;
-    @Autowired
+
     private MemberService memberService;
+    private AuthorizationClient authorizationClient;
+
+    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository, MemberService memberService) {
+        this.authorizationClient = authorizationClient;
+        this.roleRepository = roleRepository;
+        this.memberService = memberService;
+    }
 
     public Role save(Role role) {
         Set<Member> members = role.getMembers();
@@ -41,93 +47,93 @@ public class RoleService {
         }
     }
 
-    public Flux<Role> getAllRoles() {
-        List<Role> allRoles = roleRepository.findAll().stream().collect(Collectors.toList());
-        return Flux.fromIterable(allRoles);
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll().stream().collect(Collectors.toList());
     }
 
-    public Mono<Role> createNewRole(Role role) {
-        Role newRole = roleRepository.save(role);
-        return Mono.just(newRole);
+    public Role createNewRole(Role role) {
+        return roleRepository.save(role);
     }
 
-    public Mono<Role> findRoleById(Long id) {
-        Role role = roleRepository.findById(id).orElse(new Role());
-        return Mono.just(role);
+    public Role findRoleById(Long id) {
+        return roleRepository.findById(id).orElse(new Role());
     }
 
-    public Mono<Role> findRoleByRoleId(String roleId) {
-        Role role = roleRepository.findByRoleId(roleId).orElse(new Role());
-        return Mono.just(role);
+    public Role findRoleByRoleId(String roleId) {
+        return roleRepository.findByRoleId(roleId).orElse(new Role());
     }
 
-    public Mono<Role> findRoleByResourceId(String id) {
-        Role role = roleRepository.findByResourceId(id).orElse(new Role());
-        return Mono.just(role);
+    public Role findRoleByResourceId(String id) {
+        return roleRepository.findByResourceId(id).orElse(new Role());
+
     }
 
-    public Mono<DetailedRole> GetDetailedRoleById(Long id) {
-        return Mono.just(roleRepository.findById(id)
+    public DetailedRole GetDetailedRoleById(Long id) {
+        return roleRepository.findById(id)
                 .map(Role::toDetailedRole)
-                .orElse(new DetailedRole())
-        );
+                .orElse(new DetailedRole());
     }
 
     public List<SimpleRole> getSimpleRoles(
             FintJwtEndUserPrincipal principal,
             String search,
             List<String> orgUnits,
+            List<String> orgUnitsInScope,
             String roleType,
             Boolean aggRoles
     ) {
-        List<Role> roles;
+        List<String> orgUnitsInSearch = getOrgUnitsInSearch(orgUnits, orgUnitsInScope);
+        List<Role> roles = getRoles(search, roleType, aggRoles, orgUnitsInSearch);
 
-        if ((orgUnits == null) && !(roleType.equals("ALLTYPES"))) {
-            if (aggRoles == null) {
-                roles = roleRepository.getRolesByNameTypeAggregated(search, roleType);
-            } else {
-                roles = roleRepository.getRolesByNameTypeAggregated(search, roleType, aggRoles);
-            }
-            return roles
-                    .stream()
-                    .map(Role::toSimpleRole)
-                    .toList();
-        }
-
-        if ((orgUnits != null) && (roleType.equals("ALLTYPES"))) {
-            if (aggRoles == null) {
-                roles = roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnits);
-            } else {
-                roles = roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnits, aggRoles);
-            }
-            return roles
-                    .stream()
-                    .map(Role::toSimpleRole)
-                    .toList();
-        }
-
-        if ((orgUnits == null) && (roleType.equals("ALLTYPES"))) {
-            if (aggRoles == null) {
-                roles = roleRepository.getRolesByNameAggregated(search);
-            } else {
-                roles = roleRepository.getRolesByNameAggregated(search, aggRoles);
-            }
-
-            return roles
-                    .stream()
-                    .map(Role::toSimpleRole)
-                    .toList();
-        }
-
-        if (aggRoles == null) {
-            roles = roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnits);
-        } else {
-            roles = roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnits, aggRoles);
-        }
-
-        return roles
-                .stream()
+        return roles.stream()
                 .map(Role::toSimpleRole)
                 .toList();
+    }
+
+    private List<Role> getRoles(String search, String roleType, Boolean aggRoles, List<String> orgUnitsInSearch) {
+        List<Role> roles;
+        if (orgUnitsInSearch.contains(OrgUnitType.ALLORGUNITS.name())) {
+            if (roleType.equals("ALLTYPES")) {
+                if (aggRoles == null) {
+                    return roleRepository.getRolesByNameAggregated(search);
+                }
+                return roleRepository.getRolesByNameAggregated(search, aggRoles);
+            }
+            if (aggRoles == null) {
+                return roleRepository.getRolesByNameAndTypeAggregated(search, roleType);
+            }
+            return roleRepository.getRolesByNameAndTypeAggregated(search, roleType, aggRoles);
+        }
+        if (roleType.equals("ALLTYPES")) {
+            if (aggRoles == null) {
+                return roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnitsInSearch);
+            }
+            return roleRepository.getRolesByNameOrgunitsAggregated(search, orgUnitsInSearch, aggRoles);
+        }
+        if (aggRoles == null) {
+            return roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnitsInSearch);
+        }
+        return roleRepository.getRolesByNameTypeOrgunitsAggregated(search, roleType, orgUnitsInSearch, aggRoles);
+    }
+
+
+    static List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
+        List<String> orgUnitsInSearch;
+
+        if (orgUnits == null) {
+            log.info("OrgUnits parameter is empty, using orgunits from scope {} in search", orgUnitsInScope);
+            return orgUnitsInScope;
+        }
+        log.info("OrgUnits parameter list: {}", orgUnits);
+
+        if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS.name())) {
+            return orgUnits;
+        }
+        List<String> filteredOrgUnits = orgUnits.stream()
+                .filter(orgUnitsInScope::contains)
+                .collect(Collectors.toList());
+
+        log.info("OrgUnits in search: {}", filteredOrgUnits);
+        return filteredOrgUnits;
     }
 }

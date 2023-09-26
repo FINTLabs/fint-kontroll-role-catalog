@@ -20,13 +20,11 @@ public class MemberService {
         log.debug("saving member {}", member.getId());
         return savedMember;
     }
-    public Flux<Member> getAllMembers() {
-        List<Member> allMembers  = memberRepository.findAll().stream().collect(Collectors.toList());
-        return Flux.fromIterable(allMembers);
+    public List<Member> getAllMembers() {
+        return memberRepository.findAll().stream().collect(Collectors.toList());
     }
-    public Mono<Member> findMemberById(Long id) {
-        Member member = memberRepository.findById(id).orElse(new Member());
-        return Mono.just(member);
+    public Member findMemberById(Long id) {
+        return memberRepository.findById(id).orElse(new Member());
     }
 //    public Mono<Member> findMemberByUserName(String userName) {
 //        Member member = memberRepository.findByUserName(userName).orElse(new Member());

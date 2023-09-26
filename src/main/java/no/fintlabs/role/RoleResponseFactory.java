@@ -9,20 +9,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @Component
 public class RoleResponseFactory {
     private final FintFilterService fintFilterService;
     private final RoleRepository roleRepository;
     private final RoleService roleService;
-
-
 
     public RoleResponseFactory(FintFilterService fintFilterService, RoleRepository roleRepository, RoleService roleService) {
         this.fintFilterService = fintFilterService;
@@ -33,36 +29,15 @@ public class RoleResponseFactory {
     public ResponseEntity<Map<String, Object>> toResponseEntity(FintJwtEndUserPrincipal principal,
                                                                 String search,
                                                                 List<String> orgUnits,
+                                                                List<String> orgUnitsInScope,
                                                                 String roleType,
                                                                 Boolean aggRoles,
                                                                 int page,
                                                                 int size
     ){
-        List<SimpleRole> simpleRoles = roleService.getSimpleRoles(principal,search,orgUnits,roleType,aggRoles);
-        ResponseEntity<Map<String,Object>> entity = toResponseEntity(toPage(simpleRoles,PageRequest.of(page,size)));
+        List<SimpleRole> simpleRoles = roleService.getSimpleRoles(principal,search,orgUnits,orgUnitsInScope, roleType,aggRoles);
 
-        return entity;
-    }
-
-
-    public ResponseEntity<Map<String, Object>> toResponseEntity(
-            //FintJwtEndRolePrincipal principal,
-            String filter,
-            int page,
-            int size) {
-        Stream<Role> roleStream = roleRepository.findAll().stream();
-        ResponseEntity<Map<String, Object>> entity = toResponseEntity(
-                toPage(
-                        StringUtils.hasText(filter)
-                                ? fintFilterService
-                                .from(roleStream, filter)
-                                .map(Role::toSimpleRole).toList()
-                                : roleStream.map(Role::toSimpleRole).toList(),
-                        PageRequest.of(page, size)
-                )
-        );
-
-        return entity;
+        return toResponseEntity(toPage(simpleRoles,PageRequest.of(page,size)));
     }
 
     private Page<SimpleRole> toPage(List<SimpleRole> list, Pageable paging) {

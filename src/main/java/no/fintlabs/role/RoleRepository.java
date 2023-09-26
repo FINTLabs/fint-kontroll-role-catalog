@@ -1,7 +1,5 @@
 package no.fintlabs.role;
 
-import no.fintlabs.member.Member;
-import no.fintlabs.role.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -9,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role,Long> {
@@ -48,7 +45,7 @@ public interface RoleRepository extends JpaRepository<Role,Long> {
             where upper(r.roleName) like upper(concat('%', ?1, '%')) 
             and upper(r.roleType) = upper(?2) 
             and r.aggregatedRole = ?3""")
-    List<Role> getRolesByNameTypeAggregated(
+    List<Role> getRolesByNameAndTypeAggregated(
             String roleName,
             String roleType,
             boolean aggregatedRole);
@@ -57,7 +54,7 @@ public interface RoleRepository extends JpaRepository<Role,Long> {
             select r from Role r
             where upper(r.roleName) like upper(concat('%', ?1, '%')) 
             and upper(r.roleType) = upper(?2)""")
-    List<Role> getRolesByNameTypeAggregated(
+    List<Role> getRolesByNameAndTypeAggregated(
             String roleName,
             String roleType);
 

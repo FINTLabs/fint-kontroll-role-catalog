@@ -9,6 +9,8 @@ fint:
   kontroll:
     role-catalog:
       pagesize: 50
+    opa:
+      url: http://localhost:8181/v1/data/accessmanagement
 spring:
   security:
     oauth2:
@@ -23,4 +25,9 @@ logging:
   level:
     root: INFO
     org.apache.kafka: INFO
-
+springdoc:
+  swagger-ui:
+    path: /api/swagger/
+    enabled: true
+  api-docs:
+    path: /api/api-docs/
