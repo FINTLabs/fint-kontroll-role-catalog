@@ -4,11 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberService;
 //import no.vigoiks.resourceserver.security.FintJwtEndRolePrincipal;
+import no.fintlabs.roleCatalogRole.RoleCatalogRoleService;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.OrgUnitType;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,12 +22,14 @@ public class RoleService {
     private RoleRepository roleRepository;
 
     private MemberService memberService;
+    private RoleCatalogRoleService roleCatalogRoleService;
     private AuthorizationClient authorizationClient;
 
-    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository, MemberService memberService) {
+    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository, MemberService memberService, RoleCatalogRoleService roleCatalogRoleService) {
         this.authorizationClient = authorizationClient;
         this.roleRepository = roleRepository;
         this.memberService = memberService;
+        this.roleCatalogRoleService = roleCatalogRoleService;
     }
 
     public Role save(Role role) {
@@ -37,14 +39,17 @@ public class RoleService {
         String roleId = role.getRoleId();
         Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
+        Role persistedRole = new Role();
         if (existingRole.isPresent()) {
             log.info("Role {} already exists", roleId);
-            return existingRole.get();
+            persistedRole =  existingRole.get();
         }
         else {
             log.info("Trying to save role {}", roleId);
-            return roleRepository.save(role);
+            persistedRole =  roleRepository.save(role);
         }
+        roleCatalogRoleService.process(roleCatalogRoleService.create(persistedRole));
+        return persistedRole;
     }
 
     public List<Role> getAllRoles() {
