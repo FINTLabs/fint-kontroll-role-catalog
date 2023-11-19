@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberService;
 //import no.vigoiks.resourceserver.security.FintJwtEndRolePrincipal;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
 import no.fintlabs.roleCatalogRole.RoleCatalogRoleService;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import no.fintlabs.opa.AuthorizationClient;
@@ -23,13 +24,15 @@ public class RoleService {
 
     private MemberService memberService;
     private RoleCatalogRoleService roleCatalogRoleService;
+    private RoleCatalogMembershipService roleCatalogMembershipService;
     private AuthorizationClient authorizationClient;
 
-    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository, MemberService memberService, RoleCatalogRoleService roleCatalogRoleService) {
+    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository, MemberService memberService, RoleCatalogRoleService roleCatalogRoleService, RoleCatalogMembershipService roleCatalogMembershipService) {
         this.authorizationClient = authorizationClient;
         this.roleRepository = roleRepository;
         this.memberService = memberService;
         this.roleCatalogRoleService = roleCatalogRoleService;
+        this.roleCatalogMembershipService = roleCatalogMembershipService;
     }
 
     public Role save(Role role) {
@@ -39,7 +42,7 @@ public class RoleService {
         String roleId = role.getRoleId();
         Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
-        Role persistedRole = new Role();
+        Role persistedRole;
         if (existingRole.isPresent()) {
             log.info("Role {} already exists", roleId);
             persistedRole =  existingRole.get();
@@ -49,6 +52,7 @@ public class RoleService {
             persistedRole =  roleRepository.save(role);
         }
         roleCatalogRoleService.process(roleCatalogRoleService.create(persistedRole));
+        members.forEach(member -> roleCatalogMembershipService.process(roleCatalogMembershipService.create(persistedRole, member)));
         return persistedRole;
     }
 
@@ -123,7 +127,6 @@ public class RoleService {
 
 
     static List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
-        List<String> orgUnitsInSearch;
 
         if (orgUnits == null) {
             log.info("OrgUnits parameter is empty, using orgunits from scope {} in search", orgUnitsInScope);
