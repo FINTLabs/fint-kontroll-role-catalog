@@ -24,3 +24,9 @@ spec:
         permission: admin
   database:
     database: fint-kontroll
+
+  envFrom:
+    - configMapRef:
+        name: fint-environment
+    - configMapRef:
+        name: fint-kontroll-rolecatalog-config
