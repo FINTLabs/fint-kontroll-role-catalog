@@ -33,4 +33,4 @@ patches:
         value: "ofk.no"
     target:
       kind: Application
-      name: fint-kontroll-access-mngmnt-catalog
+      name: fint-kontroll-role-catalog
