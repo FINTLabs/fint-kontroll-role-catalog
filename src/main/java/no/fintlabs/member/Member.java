@@ -24,6 +24,7 @@ import org.hibernate.Hibernate;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -45,7 +46,9 @@ public class Member {
     private String lastName;
     private String userType;
     private String userName;
-    private String userId;
+    private UUID identityProviderUserObjectId;
+    private String organisationUnitName;
+    private String organisationUnitId;
 
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = {
