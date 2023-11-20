@@ -2,6 +2,7 @@ package no.fintlabs.role;
 
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberService;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
 import no.fintlabs.roleCatalogRole.RoleCatalogRoleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +28,8 @@ public class RoleServiceTests {
     private  MemberService memberService;
     @Mock
     private RoleCatalogRoleService roleCatalogRoleService;
+    @Mock
+    private roleCatalogMembershipService roleCatalogMembershipService;
     @InjectMocks
     private RoleService roleService;
     private Role role;
