@@ -29,7 +29,7 @@ public class RoleServiceTests {
     @Mock
     private RoleCatalogRoleService roleCatalogRoleService;
     @Mock
-    private roleCatalogMembershipService roleCatalogMembershipService;
+    private RoleCatalogMembershipService roleCatalogMembershipService;
     @InjectMocks
     private RoleService roleService;
     private Role role;
