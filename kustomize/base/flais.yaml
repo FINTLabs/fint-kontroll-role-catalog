@@ -24,3 +24,13 @@ spec:
         permission: admin
   database:
     database: fint-kontroll
+
+  env:
+    - name: fint.kontroll.authorization.authorized-org-id
+      value: 'vigo.no'
+
+  envFrom:
+    - configMapRef:
+        name: fint-environment
+    - configMapRef:
+        name: fint-kontroll-rolecatalog-config

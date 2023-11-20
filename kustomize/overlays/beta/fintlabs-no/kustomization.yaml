@@ -11,12 +11,3 @@ commonLabels:
   app.kubernetes.io/part-of: fint-kontroll
   fintlabs.no/team: bas
   fintlabs.no/org-id: fintlabs.no
-patches:
-  - patch: |-
-      - op: replace
-        path: "/spec/kafka/acls/0/topic"
-        value: "fintlabs-no.kontroll.*"
-    target:
-      kind: Application
-      name: fint-kontroll-role-catalog
-

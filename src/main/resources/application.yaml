@@ -11,6 +11,10 @@ fint:
       pagesize: 50
     opa:
       url: http://fint-kontroll-opa:8181/v1/data/accessmanagement
+    authorization:
+      authorized-role: 'https://role-catalog.vigoiks.no/vigo/kontroll/user'
+      authorized-admin-role: 'https://role-catalog.vigoiks.no/vigo/kontroll/admin'
+      authorized-org-id: 'vigo.no'
 spring:
   security:
     oauth2:
@@ -31,3 +35,9 @@ springdoc:
     enabled: true
   api-docs:
     path: /api/api-docs/
+
+  envFrom:
+    - configMapRef:
+        name: fint-environment
+    - configMapRef:
+        name: fint-kontroll-rolecatalog-config
