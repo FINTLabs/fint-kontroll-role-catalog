@@ -52,7 +52,7 @@ public class RoleCatalogRoleEntityProducerService {
                             .value(roleCatalogRole)
                             .build()
             );
-            roleCatalogRoleCache.put(key, roleCatalogRoleOptional.get());
+            roleCatalogRoleCache.put(key, roleCatalogRole);
         }
         else {
             log.info("role-catalog-role : " + key +" already published");
