@@ -43,13 +43,13 @@ public class RoleCatalogRoleEntityProducerService {
         String key = roleCatalogRole.getRoleId();
         Optional<RoleCatalogRole> roleCatalogRoleOptional = roleCatalogRoleCache.getOptional(key);
 
-        if (roleCatalogRoleOptional.isEmpty() && !roleCatalogRole.equals(roleCatalogRoleOptional)) {
+        if (roleCatalogRoleOptional.isEmpty() || !roleCatalogRole.equals(roleCatalogRoleOptional)) {
             log.info("Publish role-catalog-role : " + key);
             entityProducer.send(
                     EntityProducerRecord.<RoleCatalogRole>builder()
                             .topicNameParameters(entityTopicNameParameters)
                             .key(key)
-                            .value(roleCatalogRoleOptional.get())
+                            .value(roleCatalogRole)
                             .build()
             );
             roleCatalogRoleCache.put(key, roleCatalogRoleOptional.get());
