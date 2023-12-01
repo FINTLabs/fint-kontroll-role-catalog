@@ -32,7 +32,7 @@ public class RoleServiceTests {
     private RoleCatalogMembershipService roleCatalogMembershipService;
     @InjectMocks
     private RoleService roleService;
-    private Role role;
+    private Role role, aggrole;
     @BeforeEach
     public void setUp() {
         role = Role.builder()
@@ -45,16 +45,54 @@ public class RoleServiceTests {
                 .aggregatedRole(false)
                 .members(new HashSet<>())
                 .build();
+
+        aggrole = Role.builder()
+                .id(3L)
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleName("Ansatt - DIGIT Digitaliseringsavdeling -aggregert")
+                .roleSource("fint")
+                .roleType("ansatt")
+                .aggregatedRole(false)
+                .members(new HashSet<>())
+                .build();
+
     }
     @DisplayName("Test for saveRole - save existing role")
     @Test
-    public void givenRoleObject_whenSaveExistingRole_thenReturnExistingRoleObject() {
+    public void givenRoleObject_whenSaveExistingRole_thenReturnUpdatedRoleObject() {
+
+        Role roleFromKafka = Role.builder()
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleName("Ansatt - DIGIT Digitaliseringsavdeling -inkludert underenheter")
+                .roleSource("fint")
+                .roleType("ansatt")
+                .aggregatedRole(false)
+                .members(new HashSet<>())
+                .build();
+
+        Role roleFromDb = Role.builder()
+                .id(3L)
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleName("Ansatt - DIGIT Digitaliseringsavdeling -inkludert underenheter")
+                .roleSource("fint")
+                .roleType("ansatt")
+                .aggregatedRole(false)
+                .members(new HashSet<>())
+                .build();
+
         //given(roleRepository.save(role)).willReturn(role);
-        given(roleRepository.findByRoleId("ansatt@digit")).willReturn(Optional.of(role));
+        given(roleRepository.findByRoleId("ansatt@digit-aggr")).willReturn(Optional.of(aggrole));
+        given(roleRepository.save(roleFromKafka)).willReturn(roleFromDb);
         // when -  action or the behaviour that we are going test
-        Role savedRole = roleService.save(role);
+        String roleId = roleFromKafka.getRoleId();
+        Long id = roleRepository.findByRoleId(roleId).get().getId();
+        roleFromKafka.setId(id);
+        Role savedRole = roleService.save(roleFromKafka);
         // then - verify the output
-        assertThat(savedRole).isEqualTo(role);
+        assertThat(savedRole).isEqualTo(roleFromDb);
     }
 
 @DisplayName("Test for saveRole - save new role")

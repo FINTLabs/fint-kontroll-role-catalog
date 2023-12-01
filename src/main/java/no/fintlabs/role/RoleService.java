@@ -45,7 +45,9 @@ public class RoleService {
         Role persistedRole;
         if (existingRole.isPresent()) {
             log.info("Role {} already exists", roleId);
-            persistedRole =  existingRole.get();
+            role.setId(existingRole.get().getId());
+            log.info("Updating existing role {}", roleId);
+            persistedRole =  roleRepository.save(role);
         }
         else {
             log.info("Trying to save role {}", roleId);
