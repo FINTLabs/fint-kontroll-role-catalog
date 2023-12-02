@@ -43,16 +43,14 @@ public class RoleService {
         Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
         Role persistedRole;
-        if (existingRole.isPresent()) {
+        if (existingRole.isEmpty()) {
+            log.info("Role {} not found. Saving new role", roleId);
+        } else {
             log.info("Role {} already exists", roleId);
             role.setId(existingRole.get().getId());
             log.info("Updating existing role {}", roleId);
-            persistedRole =  roleRepository.save(role);
         }
-        else {
-            log.info("Trying to save role {}", roleId);
-            persistedRole =  roleRepository.save(role);
-        }
+        persistedRole =  roleRepository.save(role);
         roleCatalogRoleService.process(roleCatalogRoleService.create(persistedRole));
         members.forEach(member -> roleCatalogMembershipService.process(roleCatalogMembershipService.create(persistedRole, member)));
         return persistedRole;
