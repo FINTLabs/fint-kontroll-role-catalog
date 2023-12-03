@@ -38,7 +38,7 @@ public class RoleController {
 
     private List<String> getOrgUnitsInScope() {
 
-        List<Scope> userScopes = authorizationClient.getUserScopes();
+        List<Scope> userScopes = authorizationClient.getUserScopesList();
         log.info("User scopes from api: {}", userScopes);
 
         return userScopes.stream()
