@@ -126,7 +126,7 @@ public class RoleService {
     }
 
 
-    static List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
+    public List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
 
         if (orgUnits == null) {
             log.info("OrgUnits parameter is empty, using orgunits from scope {} in search", orgUnitsInScope);
