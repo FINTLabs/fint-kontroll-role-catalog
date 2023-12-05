@@ -29,7 +29,8 @@ spec:
       value: 'vigo.no'
     - name: spring.kafka.consumer.group-id
       value: 'fint-kontroll-role-catalog'
-
+    - name: JAVA_TOOL_OPTIONS
+      value: "-XX:+ExitOnOutOfMemoryError -Xmx1024m -verbose:gc"
   envFrom:
     - configMapRef:
         name: fint-environment

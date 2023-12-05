@@ -2,6 +2,7 @@ package no.fintlabs.cache;
 
 import no.fintlabs.cache.FintCache;
 import no.fintlabs.cache.FintCacheManager;
+import no.fintlabs.role.Role;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembership;
 import no.fintlabs.roleCatalogRole.RoleCatalogRole;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,10 @@ public class CacheConfiguration {
     public CacheConfiguration(FintCacheManager fintCacheManager) {
         this.fintCacheManager = fintCacheManager;
     }
+
+    @Bean
+    FintCache<String, Role> roleCache () {
+        return createResourceCache((Role.class));}
     @Bean
     FintCache<String , RoleCatalogRole> roleCatalogRoleCache() {
         return createResourceCache(RoleCatalogRole.class);
