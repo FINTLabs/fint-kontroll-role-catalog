@@ -1,0 +1,1 @@
+alter table roles ADD no_of_members INTEGER;

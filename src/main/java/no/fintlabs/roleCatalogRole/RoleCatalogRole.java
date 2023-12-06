@@ -14,6 +14,7 @@ public class RoleCatalogRole {
     private Long id;
     private String roleId;
     private String roleName;
+    private Integer noOfMembers;
     private String roleType;
     private String roleSubType;
     private boolean aggregatedRole;

@@ -58,6 +58,7 @@ public class Role {
     private String organisationUnitId;
     @Column
     private String organisationUnitName;
+    private Integer noOfMembers;
 
     @ManyToMany(fetch = FetchType.LAZY,
         cascade = {
