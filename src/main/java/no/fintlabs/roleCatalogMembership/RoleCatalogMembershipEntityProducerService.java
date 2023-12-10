@@ -43,7 +43,7 @@ public class RoleCatalogMembershipEntityProducerService {
         String key = roleCatalogMembership.getId();
         Optional<RoleCatalogMembership> roleCatalogMembershipOptional = roleCatalogMembershipCache.getOptional(key);
 
-        if (roleCatalogMembershipOptional.isEmpty() || !roleCatalogMembership.equals(roleCatalogMembershipOptional)) {
+        if (roleCatalogMembershipOptional.isEmpty() || !roleCatalogMembership.equals(roleCatalogMembershipOptional.get())) {
             log.info("Publish role-catalog-membership : " + key);
             entityProducer.send(
                     EntityProducerRecord.<RoleCatalogMembership>builder()
