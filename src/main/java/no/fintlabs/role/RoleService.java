@@ -1,6 +1,7 @@
 package no.fintlabs.role;
 
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.cache.FintCache;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberService;
 //import no.vigoiks.resourceserver.security.FintJwtEndRolePrincipal;
@@ -22,14 +23,17 @@ public class RoleService {
 
     private RoleRepository roleRepository;
 
+    private FintCache<String, Role> roleCache;
+
     private MemberService memberService;
     private RoleCatalogRoleService roleCatalogRoleService;
     private RoleCatalogMembershipService roleCatalogMembershipService;
     private AuthorizationClient authorizationClient;
 
-    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository, MemberService memberService, RoleCatalogRoleService roleCatalogRoleService, RoleCatalogMembershipService roleCatalogMembershipService) {
+    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository, FintCache<String, Role> roleCache, MemberService memberService, RoleCatalogRoleService roleCatalogRoleService, RoleCatalogMembershipService roleCatalogMembershipService) {
         this.authorizationClient = authorizationClient;
         this.roleRepository = roleRepository;
+        this.roleCache = roleCache;
         this.memberService = memberService;
         this.roleCatalogRoleService = roleCatalogRoleService;
         this.roleCatalogMembershipService = roleCatalogMembershipService;
@@ -51,15 +55,16 @@ public class RoleService {
             log.info("Updating existing role {}", roleId);
         }
         persistedRole =  roleRepository.save(role);
-        roleCatalogRoleService.process(roleCatalogRoleService.create(persistedRole));
-        members.forEach(member -> roleCatalogMembershipService.process(roleCatalogMembershipService.create(persistedRole, member)));
+
         return persistedRole;
     }
 
     public List<Role> getAllRoles() {
         return roleRepository.findAll().stream().collect(Collectors.toList());
     }
-
+    public List<Role> getAllRolesFromCache() {
+        return roleCache.getAllDistinct();
+    }
     public Role createNewRole(Role role) {
         return roleRepository.save(role);
     }

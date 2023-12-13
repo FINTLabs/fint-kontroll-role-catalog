@@ -1,6 +1,7 @@
 package no.fintlabs.role;
 
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.cache.FintCache;
 import no.fintlabs.kafka.entity.EntityConsumerFactoryService;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -13,7 +14,7 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 public class RoleConsumerConfiguration {
     @Bean
     public ConcurrentMessageListenerContainer<String, Role> roleConsumer(
-            RoleService roleService,
+            FintCache<String, Role> roleCache,
             EntityConsumerFactoryService entityConsumerFactoryService
     ){
         EntityTopicNameParameters entityTopicNameParameters = EntityTopicNameParameters
@@ -24,9 +25,10 @@ public class RoleConsumerConfiguration {
         return entityConsumerFactoryService.createFactory(
                         Role.class,
                         (ConsumerRecord<String,Role> consumerRecord) -> {
-                            log.info("Got role message update from Kafka with key: "
-                                    +  consumerRecord.value().getRoleId());
-                            roleService.save(consumerRecord.value());})
+                            log.info(" Role message from Kafka with key: {} is saved to role cache"
+                                    ,consumerRecord.value().getRoleId());
+                            roleCache.put(consumerRecord.value().getRoleId(),consumerRecord.value());}
+                )
                 .createContainer(entityTopicNameParameters);
     }
 }

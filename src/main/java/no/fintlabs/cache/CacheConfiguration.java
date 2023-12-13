@@ -23,8 +23,8 @@ public class CacheConfiguration {
     FintCache<String, Role> roleCache () {
         return createResourceCache((Role.class));}
     @Bean
-    FintCache<String , RoleCatalogRole> roleCatalogRoleCache() {
-        return createResourceCache(RoleCatalogRole.class);
+    FintCache<String, Integer> roleCatalogRoleCache() {
+        return createResourceCache(Integer.class);
     }
     @Bean
     FintCache<String , RoleCatalogMembership> roleCatalogMembershipCache() {
