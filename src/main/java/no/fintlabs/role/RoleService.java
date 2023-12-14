@@ -42,11 +42,11 @@ public class RoleService {
     public Role save(Role role) {
 
         String roleId = role.getRoleId();
-        log.info("Save all members for role {} started", roleId);
         Set<Member> members = role.getMembers();
+        log.info("Save  members for role {} started", members.size(), roleId);
         members.forEach(member -> memberService.save(member)
         );
-        log.info("Save all members for role {} finished", roleId);
+        log.info("Save {} members for role {} finished", members.size(), roleId);
         Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
         Role persistedRole;
