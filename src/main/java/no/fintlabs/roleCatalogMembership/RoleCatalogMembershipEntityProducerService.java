@@ -7,9 +7,11 @@ import no.fintlabs.kafka.entity.EntityProducerFactory;
 import no.fintlabs.kafka.entity.EntityProducerRecord;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.kafka.entity.topic.EntityTopicService;
+import no.fintlabs.member.Member;
 import no.fintlabs.roleCatalogRole.RoleCatalogRole;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 //import jakarta.annotation.PostConstruct;
@@ -34,17 +36,13 @@ public class RoleCatalogMembershipEntityProducerService {
                 .build();
         entityTopicService.ensureTopic(entityTopicNameParameters, 0);
     }
-//    @PostConstruct
-//    public void init() {
-//        entityTopicService.ensureTopic(entityTopicNameParameters, 0);
-//    }
 
     public void publish(RoleCatalogMembership roleCatalogMembership) {
         String key = roleCatalogMembership.getId();
         Optional<RoleCatalogMembership> roleCatalogMembershipOptional = roleCatalogMembershipCache.getOptional(key);
 
         if (roleCatalogMembershipOptional.isEmpty() || !roleCatalogMembership.equals(roleCatalogMembershipOptional.get())) {
-            log.info("Publish role-catalog-membership : " + key);
+            log.debug("Publish role-catalog-membership : " + key);
             entityProducer.send(
                     EntityProducerRecord.<RoleCatalogMembership>builder()
                             .topicNameParameters(entityTopicNameParameters)
@@ -55,7 +53,7 @@ public class RoleCatalogMembershipEntityProducerService {
             roleCatalogMembershipCache.put(key, roleCatalogMembership);
         }
         else {
-            log.info("role-catalog-membership : " + key +" already published");
+            log.debug("role-catalog-membership : " + key +" already published");
         }
     }
 }

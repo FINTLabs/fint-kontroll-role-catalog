@@ -19,12 +19,12 @@ public class RoleCatalogRoleEntityProducerService {
     private final EntityProducer<RoleCatalogRole> entityProducer;
     private final EntityTopicNameParameters entityTopicNameParameters;
     private final EntityTopicService entityTopicService;
-    private final FintCache<String, RoleCatalogRole> roleCatalogRoleCache;
+    private final FintCache<String, Integer> roleCatalogRoleCache;
 
     public RoleCatalogRoleEntityProducerService(
             EntityProducerFactory entityProducerFactory,
             EntityTopicService entityTopicService,
-            FintCache<String, RoleCatalogRole> roleCatalogRoleCache) {
+            FintCache<String, Integer> roleCatalogRoleCache) {
         entityProducer = entityProducerFactory.createProducer(RoleCatalogRole.class);
         this.entityTopicService = entityTopicService;
         this.roleCatalogRoleCache = roleCatalogRoleCache;
@@ -41,9 +41,9 @@ public class RoleCatalogRoleEntityProducerService {
 
     public void publish(RoleCatalogRole roleCatalogRole) {
         String key = roleCatalogRole.getRoleId();
-        Optional<RoleCatalogRole> roleCatalogRoleOptional = roleCatalogRoleCache.getOptional(key);
+        Optional<Integer> roleHashOptional = roleCatalogRoleCache.getOptional(key);
 
-        if (roleCatalogRoleOptional.isEmpty() || !roleCatalogRole.equals(roleCatalogRoleOptional.get())) {
+        if (roleHashOptional.isEmpty() || !(roleCatalogRole.hashCode()==(roleHashOptional.get()))) {
             log.info("Publish role-catalog-role : " + key);
             entityProducer.send(
                     EntityProducerRecord.<RoleCatalogRole>builder()
@@ -52,7 +52,7 @@ public class RoleCatalogRoleEntityProducerService {
                             .value(roleCatalogRole)
                             .build()
             );
-            roleCatalogRoleCache.put(key, roleCatalogRole);
+            roleCatalogRoleCache.put(key, roleCatalogRole.hashCode());
         }
         else {
             log.info("role-catalog-role : " + key +" already published");
