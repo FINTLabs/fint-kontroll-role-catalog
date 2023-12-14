@@ -40,10 +40,13 @@ public class RoleService {
     }
 
     public Role save(Role role) {
+
+        String roleId = role.getRoleId();
+        log.info("Save all members for role {} started", roleId);
         Set<Member> members = role.getMembers();
         members.forEach(member -> memberService.save(member)
         );
-        String roleId = role.getRoleId();
+        log.info("Save all members for role {} finished", roleId);
         Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
         Role persistedRole;
@@ -55,7 +58,7 @@ public class RoleService {
             log.info("Updating existing role {}", roleId);
         }
         persistedRole =  roleRepository.save(role);
-
+        log.info("Save/update role {} finished", roleId);
         return persistedRole;
     }
 
