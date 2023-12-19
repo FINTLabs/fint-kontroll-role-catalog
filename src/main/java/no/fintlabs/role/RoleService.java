@@ -43,9 +43,8 @@ public class RoleService {
 
         String roleId = role.getRoleId();
         Set<Member> members = role.getMembers();
-        log.info("Save  members for role {} started", members.size(), roleId);
-        members.forEach(member -> memberService.save(member)
-        );
+        log.info("Save {} members for role {} started", members.size(), roleId);
+        memberService.saveAll(members);
         log.info("Save {} members for role {} finished", members.size(), roleId);
         Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
@@ -59,6 +58,10 @@ public class RoleService {
         }
         persistedRole =  roleRepository.save(role);
         log.info("Save/update role {} finished", roleId);
+        if (roleCache.containsKey(roleId)) {
+            roleCache.remove(roleId);
+            log.info("Role {} removed from roleCache", roleId);
+        }
         return persistedRole;
     }
 
