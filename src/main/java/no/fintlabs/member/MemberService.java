@@ -8,6 +8,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +20,11 @@ public class MemberService {
         Member savedMember = memberRepository.save(member);
         log.debug("saving member {}", member.getId());
         return savedMember;
+    }
+    public List<Member> saveAll(Set<Member> members) {
+        List<Member> savedMembers = memberRepository.saveAll(members);
+        log.debug("Saving members list {}", getAllMembers().stream().map(Member::getId).collect(Collectors.toList()));
+        return savedMembers;
     }
     public List<Member> getAllMembers() {
         return memberRepository.findAll().stream().collect(Collectors.toList());

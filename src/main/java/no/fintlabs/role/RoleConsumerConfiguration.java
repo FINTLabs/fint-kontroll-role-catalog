@@ -25,7 +25,7 @@ public class RoleConsumerConfiguration {
         return entityConsumerFactoryService.createFactory(
                         Role.class,
                         (ConsumerRecord<String,Role> consumerRecord) -> {
-                            log.info(" Role message from Kafka with key: {} is saved to role cache"
+                            log.info("Role message from Kafka with key: {} is saved to role cache"
                                     ,consumerRecord.value().getRoleId());
                             roleCache.put(consumerRecord.value().getRoleId(),consumerRecord.value());}
                 )

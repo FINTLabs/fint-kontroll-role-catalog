@@ -1,5 +1,6 @@
 package no.fintlabs.role;
 
+import no.fintlabs.cache.FintCache;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberService;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
@@ -24,6 +25,8 @@ public class RoleServiceTests {
 
     @Mock
     private RoleRepository roleRepository;
+    @Mock
+    FintCache<String, Role> roleCache;
     @Mock
     private  MemberService memberService;
     @Mock
@@ -86,6 +89,8 @@ public class RoleServiceTests {
         //given(roleRepository.save(role)).willReturn(role);
         given(roleRepository.findByRoleId("ansatt@digit-aggr")).willReturn(Optional.of(aggrole));
         given(roleRepository.save(roleFromKafka)).willReturn(roleFromDb);
+        given(roleCache.containsKey("ansatt@digit-aggr")).willReturn(true);
+        //given(roleCache.remove("ansatt@digit-aggr")).willReturn(void);
         // when -  action or the behaviour that we are going test
         String roleId = roleFromKafka.getRoleId();
         Long id = roleRepository.findByRoleId(roleId).get().getId();
@@ -103,6 +108,7 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 
     given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
     given(roleRepository.save(newRole)).willReturn(newRole);
+    given(roleCache.containsKey("ansatt@digit-fagtj")).willReturn(true);
 
     Role savedRole = roleService.save(newRole);
 
@@ -112,30 +118,40 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 }
     @DisplayName("Test for saveRole - save new role with non empty member list")
     @Test
-    public void givenRoleObject_whenSaveNewRoleWithNoMembers_thenReturnNewSavedObjectWithEmptyMembersList() {
+    public void givenRoleObject_whenSaveNewRoleWithMembers_thenReturnNewSavedObjectWithMembersList() {
 
-        Member member = Member.builder()
+        Member member1 = Member.builder()
                 .id(1L)
                 .firstName("Jens")
                 .lastName("Nilsen")
                 .userType("EMPLOYEE")
                 .build();
 
-        HashSet<Member> members = new HashSet<>();
-        members.add(member);
+        Member member2 = Member.builder()
+                .id(2L)
+                .firstName("Anne")
+                .lastName("Jensen")
+                .userType("EMPLOYEE")
+                .build();
 
-        Role newRole = createNewRole(members);
+        HashSet<Member> membersSet = new HashSet<>();
+        membersSet.add(member1);
+        membersSet.add(member2);
+        List<Member> membersList = membersSet.stream().toList();
+
+        Role newRole = createNewRole(membersSet);
 
         given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
         given(roleRepository.save(newRole)).willReturn(newRole);
-        given(memberService.save(member)).willReturn(member);
+        given(roleCache.containsKey("ansatt@digit-fagtj")).willReturn(true);
+        given(memberService.saveAll(membersSet)).willReturn(membersList);
 
         Role savedRole = roleService.save(newRole);
 
         assertThat(savedRole).isEqualTo(newRole);
         assertThat(savedRole.getMembers()).isNotNull();
-        assertThat(savedRole.getMembers().size()).isEqualTo(1);
-        assertThat(savedRole.getMembers().stream().findFirst().get()).isEqualTo(member);
+        assertThat(savedRole.getMembers().size()).isEqualTo(2);
+        assertThat(savedRole.getMembers().stream().findFirst().get()).isEqualTo(member1);
     }
 
     private static Role createNewRole(HashSet<Member> members) {

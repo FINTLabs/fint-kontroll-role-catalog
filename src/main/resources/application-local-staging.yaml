@@ -11,6 +11,14 @@ fint:
   kontroll:
     opa:
       url: http://localhost:8181/v1/data/accessmanagement
+    role-catalog:
+      pagesize: 50
+#      publishing:
+#        initial-delay: 30000
+#        fixed-delay: 60000
+      persisting:
+        initial-delay: 10000
+        fixed-delay: 60000
 spring:
   kafka:
     bootstrap-servers: localhost:9092
@@ -39,3 +47,8 @@ spring:
             scope: fint-client
 server:
   port: 8090
+logging:
+  level:
+    root: INFO
+    #org.apache.kafka: INFO
+    #org.hibernate.SQL: DEBUG
