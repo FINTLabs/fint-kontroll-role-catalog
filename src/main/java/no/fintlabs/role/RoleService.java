@@ -42,11 +42,13 @@ public class RoleService {
     public Role save(Role role) {
 
         String roleId = role.getRoleId();
-        Set<Member> members = role.getMembers();
-        log.info("Save {} members for role {} started", members.size(), roleId);
-        memberService.saveAll(members);
-        log.info("Save {} members for role {} finished", members.size(), roleId);
-        Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
+        //TODO: Change this to getMemberships and then saveAll(memberships)
+        // Members should be obtained by consuming the kontrolluser topic and saved separately
+//        Set<Member> members = role.getMembers();
+//        log.info("Save {} members for role {} started", members.size(), roleId);
+//        memberService.saveAll(members);
+//        log.info("Save {} members for role {} finished", members.size(), roleId);
+       Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
         Role persistedRole;
         if (existingRole.isEmpty()) {

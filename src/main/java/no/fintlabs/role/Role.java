@@ -1,17 +1,6 @@
 package no.fintlabs.role;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +12,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.member.Member;
+import no.fintlabs.membership.Membership;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.NaturalId;
 
@@ -59,50 +49,34 @@ public class Role {
     @Column
     private String organisationUnitName;
     private Integer noOfMembers;
-
-    @ManyToMany(fetch = FetchType.LAZY,
-        cascade = {
-            CascadeType.MERGE
-//                CascadeType.PERSIST
-        })
-    @JoinTable(name ="Role_Memberships",
-        joinColumns = {@JoinColumn(name="role_id")},
-        inverseJoinColumns = {@JoinColumn(name="member_id")})
-
     @ToString.Exclude
-    private Set<Member> members = new HashSet<>();
+    private Set<Membership> memberships = new HashSet<>();
 
-    public void addMember(Member member) {
-        this.members.add(member);
-        member.getRoles().add(this);
+    @OneToMany(mappedBy ="primaryKey.role", cascade = CascadeType.ALL)
+    public Set<Membership> getMemberships() {
+        return memberships;
+    }
+    public void addMembership(Membership membership) {
+        this.memberships.add(membership);
     }
 
-    public void removeMember(Long memberid) {
-        Member member = this.members
-                .stream()
-                .filter(m -> m.getId()==memberid)
-                .findFirst()
-                .orElse(null);
+//    @ManyToMany(fetch = FetchType.LAZY,
+//        cascade = {
+//            CascadeType.MERGE
+////                CascadeType.PERSIST
+//        })
+//    @JoinTable(name ="Role_Memberships",
+//        joinColumns = {@JoinColumn(name="role_id")},
+//        inverseJoinColumns = {@JoinColumn(name="member_id")})
+//
+//    @ToString.Exclude
+//    private Set<Member> members = new HashSet<>();
+//
+//    public void addMember(Member member) {
+//        this.members.add(member);
+//        member.getRoles().add(this);
 
-        if (member != null)
-        {
-            this.members.remove(member);
-            member.getRoles().remove(this);
-        }
-    }
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Role role = (Role) o;
-        return (id != null && Objects.equals(id, role.id)) || (roleId != null && Objects.equals(roleId, role.roleId));
 
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
     public DetailedRole toDetailedRole() {
         return DetailedRole
                 .builder()

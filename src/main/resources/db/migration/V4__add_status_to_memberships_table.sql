@@ -1,0 +1,1 @@
+alter table role_memberships add membership_status boolean;

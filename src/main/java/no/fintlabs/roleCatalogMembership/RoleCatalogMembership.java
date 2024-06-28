@@ -15,4 +15,5 @@ public class RoleCatalogMembership {
     private Long roleId;
     private Long memberId;
     private UUID identityProviderUserObjectId;
+    private String memberStatus;
 }

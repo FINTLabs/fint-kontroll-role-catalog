@@ -1,13 +1,7 @@
 package no.fintlabs.member;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.membership.Membership;
 import no.fintlabs.role.Role;
 import org.hibernate.Hibernate;
 
@@ -50,38 +45,48 @@ public class Member {
     private String organisationUnitName;
     private String organisationUnitId;
 
-    @ManyToMany(fetch = FetchType.LAZY,
-            cascade = {
-                CascadeType.PERSIST,
-                CascadeType.MERGE
-            },
-            mappedBy = "members")
-    @JsonIgnore
-    @ToString.Exclude
-    private Set<Role> roles = new HashSet<>();
+    private Set<Membership> memberships = new HashSet<>();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Member member = (Member) o;
-        return id != null && Objects.equals(id, member.id);
+    @OneToMany(mappedBy ="primaryKey.member", cascade = CascadeType.ALL)
+    public Set<Membership> getMemberships() {
+        return memberships;
+    }
+    public void addMembership(Membership membership) {
+        this.memberships.add(membership);
     }
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
-
-    public SimpleMember toSimpleMember() {
-        return SimpleMember
-                .builder()
-                .id(id)
-                .firstName(firstName)
-                .lastName(lastName)
-                .userType(userType)
-                .userName(userName)
-                .build();
-    }
+//    @ManyToMany(fetch = FetchType.LAZY,
+//            cascade = {
+//                CascadeType.PERSIST,
+//                CascadeType.MERGE
+//            },
+//            mappedBy = "members")
+//    @JsonIgnore
+//    @ToString.Exclude
+//    private Set<Role> roles = new HashSet<>();
+//
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+//        Member member = (Member) o;
+//        return id != null && Objects.equals(id, member.id);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return getClass().hashCode();
+//    }
+//
+//
+//    public SimpleMember toSimpleMember() {
+//        return SimpleMember
+//                .builder()
+//                .id(id)
+//                .firstName(firstName)
+//                .lastName(lastName)
+//                .userType(userType)
+//                .userName(userName)
+//                .build();
+//    }
 }
