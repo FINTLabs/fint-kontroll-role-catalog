@@ -3,6 +3,8 @@ package no.fintlabs.role;
 import no.fintlabs.cache.FintCache;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberService;
+import no.fintlabs.membership.Membership;
+import no.fintlabs.membership.MembershipId;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
 import no.fintlabs.roleCatalogRole.RoleCatalogRoleService;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +48,7 @@ public class RoleServiceTests {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(new HashSet<>())
+                .memberships(new HashSet<>())
                 .build();
 
         aggrole = Role.builder()
@@ -57,7 +59,7 @@ public class RoleServiceTests {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(new HashSet<>())
+                .memberships(new HashSet<>())
                 .build();
 
     }
@@ -72,7 +74,7 @@ public class RoleServiceTests {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(new HashSet<>())
+                .memberships(new HashSet<>())
                 .build();
 
         Role roleFromDb = Role.builder()
@@ -83,7 +85,7 @@ public class RoleServiceTests {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(new HashSet<>())
+                .memberships(new HashSet<>())
                 .build();
 
         //given(roleRepository.save(role)).willReturn(role);
@@ -113,8 +115,8 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
     Role savedRole = roleService.save(newRole);
 
     assertThat(savedRole).isEqualTo(newRole);
-    assertThat(savedRole.getMembers()).isNotNull();
-    assertThat(savedRole.getMembers().size()).isEqualTo(0);
+    assertThat(savedRole.getMemberships()).isNotNull();
+    assertThat(savedRole.getMemberships().size()).isEqualTo(0);
 }
     @DisplayName("Test for saveRole - save new role with non empty member list")
     @Test
@@ -134,24 +136,41 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
                 .userType("EMPLOYEE")
                 .build();
 
-        HashSet<Member> membersSet = new HashSet<>();
-        membersSet.add(member1);
-        membersSet.add(member2);
-        List<Member> membersList = membersSet.stream().toList();
+        List<Member> members = new ArrayList<>();
+        members.add(member1);
+        members.add(member2);
 
-        Role newRole = createNewRole(membersSet);
+        Role newRole = createNewRole(new HashSet<>());
+
+        MembershipId membershipId1 = new MembershipId(newRole, member1);
+        Membership membership1 = Membership.builder()
+                .primaryKey(membershipId1)
+                .membershipStatus(true)
+                .build();
+
+        MembershipId membershipId2 = new MembershipId(newRole, member2);
+        Membership membership2 = Membership.builder()
+                .primaryKey(membershipId2)
+                .membershipStatus(true)
+                .build();
+
+        List<Membership> memberships = new ArrayList<>();
+        memberships.add(membership1);
+        memberships.add(membership2);
+
+        newRole.setMemberships(new HashSet<>(memberships));
 
         given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
         given(roleRepository.save(newRole)).willReturn(newRole);
         given(roleCache.containsKey("ansatt@digit-fagtj")).willReturn(true);
-        given(memberService.saveAll(membersSet)).willReturn(membersList);
+        given(memberService.saveAll(new HashSet<>(members))).willReturn(members);
 
         Role savedRole = roleService.save(newRole);
 
         assertThat(savedRole).isEqualTo(newRole);
-        assertThat(savedRole.getMembers()).isNotNull();
-        assertThat(savedRole.getMembers().size()).isEqualTo(2);
-        assertThat(savedRole.getMembers().stream().findFirst().get()).isEqualTo(member1);
+        assertThat(savedRole.getMemberships()).isNotNull();
+        assertThat(savedRole.getMemberships().size()).isEqualTo(2);
+        assertThat(savedRole.getMemberships().stream().findFirst().get()).isEqualTo(membership1);
     }
 
     private static Role createNewRole(HashSet<Member> members) {
@@ -163,7 +182,7 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(members)
+                //.memberships(members)
                 .build();
         return newRole;
     }

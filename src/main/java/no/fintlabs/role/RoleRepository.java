@@ -32,8 +32,8 @@ public interface RoleRepository extends JpaRepository<Role,Long> {
 
     @Query("""
             select r from Role r
-            where upper(r.roleName) like upper(concat('%', ?1, '%')) 
-            and upper(r.roleType) = upper(?2) 
+            where upper(r.roleName) like upper(concat('%', ?1, '%'))
+            and upper(r.roleType) = upper(?2)
             and r.organisationUnitId in ?3""")
     List<Role> getRolesByNameTypeOrgunitsAggregated(
             String roleName,
@@ -42,8 +42,8 @@ public interface RoleRepository extends JpaRepository<Role,Long> {
 
     @Query("""
             select r from Role r
-            where upper(r.roleName) like upper(concat('%', ?1, '%')) 
-            and upper(r.roleType) = upper(?2) 
+            where upper(r.roleName) like upper(concat('%', ?1, '%'))
+            and upper(r.roleType) = upper(?2)
             and r.aggregatedRole = ?3""")
     List<Role> getRolesByNameAndTypeAggregated(
             String roleName,
@@ -52,7 +52,7 @@ public interface RoleRepository extends JpaRepository<Role,Long> {
 
     @Query("""
             select r from Role r
-            where upper(r.roleName) like upper(concat('%', ?1, '%')) 
+            where upper(r.roleName) like upper(concat('%', ?1, '%'))
             and upper(r.roleType) = upper(?2)""")
     List<Role> getRolesByNameAndTypeAggregated(
             String roleName,

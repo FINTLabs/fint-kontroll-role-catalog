@@ -17,7 +17,7 @@ public interface MemberRepository extends JpaRepository<Member,Long> {
 
     Collection<Member> findByRoles_RoleId(String roleId);
 
-    @Query("select m from Member m inner join m.roles roles where roles.id = ?1")
+    @Query("select m from Member m inner join m.memberships memberships where memberships.primaryKey.role = ?1")
     List<Member> getMembersByRoleId(Long id);
 
 

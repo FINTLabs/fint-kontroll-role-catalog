@@ -1,8 +1,7 @@
 package no.fintlabs.membership;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import no.fintlabs.member.Member;
 import no.fintlabs.role.Role;
 
@@ -14,6 +13,9 @@ import no.fintlabs.role.Role;
         @AssociationOverride(name = "primaryKey.member",
                 joinColumns = @JoinColumn(name = "id"))
 })
+@AllArgsConstructor
+@NoArgsConstructor(access=AccessLevel.PUBLIC, force=true)
+@Builder
 public class Membership {
     private MembershipId primaryKey = new MembershipId();
     @Setter
@@ -24,9 +26,10 @@ public class Membership {
     public MembershipId getPrimaryKey() {
         return primaryKey;
     }
-//    public void setPrimaryKey(MembershipId primaryKey) {
-//        this.primaryKey = primaryKey;
-//    }
+
+    public void setPrimaryKey(MembershipId primaryKey) {
+        this.primaryKey = primaryKey;
+    }
     @Transient
     public Role getRole() {
         return getPrimaryKey().getRole();
