@@ -34,6 +34,19 @@ patches:
       - op: replace
         path: "/spec/env/1/value"
         value: "afk-no-fint-kontroll-role-catalog"
+      - op: replace
+        path: "/spec/env/2/value"
+        value: "-XX:+ExitOnOutOfMemoryError -Xms512m -Xmx1408m -verbose:gc"
+      - op: replace
+        path: "/spec/resources"
+        value: 
+          limits:
+            cpu: "2000m"
+            memory: "1512Mi"
+          requests:
+            cpu: "1000m"
+            memory: "1024Mi"
+
     target:
       kind: Application
       name: fint-kontroll-role-catalog
