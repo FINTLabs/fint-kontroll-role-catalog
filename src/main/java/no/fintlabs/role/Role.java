@@ -26,6 +26,7 @@ import no.fintlabs.member.Member;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.NaturalId;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -51,6 +52,8 @@ public class Role {
     private String resourceId;
     private String roleName;
     private String roleType;
+    private String roleStatus;
+    private Date roleStatusChanged;
     private String roleSubType;
     private boolean aggregatedRole;
     private String roleSource;
