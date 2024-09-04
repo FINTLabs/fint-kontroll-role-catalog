@@ -52,18 +52,6 @@ public class MemberResponseFactory {
         return entity;
     }
 
-    public ResponseEntity<Map<String ,Object>> toResponseEntity(
-            Long id,
-            int page,
-            int size){
-        List<Member> members = (List<Member>) memberRepository.getMembersByRoleId(id);
-        ResponseEntity<Map<String,Object>> entity = toResponseEntity(
-                toPage(members.stream().map(Member::toSimpleMember).toList(),PageRequest.of(page,size)
-                )
-        );
-        return entity;
-    }
-
     private Page<SimpleMember> toPage(List<SimpleMember> list, Pageable paging) {
         int start = (int) paging.getOffset();
         int end = Math.min((start + paging.getPageSize()), list.size());

@@ -1,6 +1,8 @@
 package no.fintlabs.member;
 
 import no.fintlabs.member.Member;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -17,8 +19,14 @@ public interface MemberRepository extends JpaRepository<Member,Long> {
 
     Collection<Member> findByRoles_RoleId(String roleId);
 
-    @Query("select m from Member m inner join m.roles roles where roles.id = ?1")
-    List<Member> getMembersByRoleId(Long id);
+    @Query("SELECT m from Member m " +
+           "INNER JOIN m.roles roles " +
+           "WHERE roles.id = :id " +
+           "AND (:name IS NULL OR :name = '' OR " +
+           "CONCAT(UPPER(m.firstName), ' ', UPPER(m.lastName)) LIKE UPPER(CONCAT('%', :name, '%'))) " +
+           "ORDER BY m.firstName, m.lastName"
+    )
+    Page<Member> getMembersByRoleId(Long id, String name, Pageable pageable);
 
 
 

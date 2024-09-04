@@ -52,23 +52,4 @@ public class MemberController {
                 //FintJwtEndUserPrincipal.from(jwt),
                 roleId, filter, page, size);
     }
-//    @GetMapping
-//    public Flux<Member> getAllMembers(){
-//        log.info("Fetching all members");
-//        return memberService.getAllMembers();
-//    }
-//    @GetMapping("/id/{id}")
-//    public Mono<Member> getMemberById(@PathVariable Long id){
-//        log.info("Fetching member info for : "+ id.toString());
-//        return  memberService.findMemberById(id);
-//    }
-//    @GetMapping("/username/{userName}")
-//    public Mono<Member> getMemberByUserName(@PathVariable String userName){
-//        log.info("Fetching member info for : "+ userName);
-//        return  memberService.findMemberByUserName(userName);
-//    }
-//    @GetMapping("/id/{id}/roles")
-//    public Flux<RoleDTO> getAllRolesForMemberById(@PathVariable Long id) {
-//        return roleService.findRolesByMemberId(id);
-//    }
 }

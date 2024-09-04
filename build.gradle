@@ -51,8 +51,7 @@ dependencies {
     implementation 'no.fint:fint-model-resource:0.4.1'
     implementation 'io.projectreactor:reactor-core'
 
-    implementation 'org.springdoc:springdoc-openapi-ui:1.6.15'
-    implementation 'org.springdoc:springdoc-openapi-security:1.6.15'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 
     implementation 'javax.servlet:javax.servlet-api:4.0.1'
 
