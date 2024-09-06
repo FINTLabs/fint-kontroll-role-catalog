@@ -12,9 +12,14 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 @Slf4j
 @Configuration
 public class RoleConsumerConfiguration {
+    private final RoleService roleService;
+
+    public RoleConsumerConfiguration(RoleService roleService) {
+        this.roleService = roleService;
+    }
+
     @Bean
     public ConcurrentMessageListenerContainer<String, Role> roleConsumer(
-            FintCache<String, Role> roleCache,
             EntityConsumerFactoryService entityConsumerFactoryService
     ){
         EntityTopicNameParameters entityTopicNameParameters = EntityTopicNameParameters
@@ -25,9 +30,14 @@ public class RoleConsumerConfiguration {
         return entityConsumerFactoryService.createFactory(
                         Role.class,
                         (ConsumerRecord<String,Role> consumerRecord) -> {
-                            log.info("Role message from Kafka with key: {} is saved to role cache"
-                                    ,consumerRecord.value().getRoleId());
-                            roleCache.put(consumerRecord.value().getRoleId(),consumerRecord.value());}
+                            log.info("Role consumed from Kafka with roleid: {}, members: {}, resourceid: {}"
+                                    ,consumerRecord.value().getRoleId(), consumerRecord.value().getMembers(), consumerRecord.value().getResourceId());
+
+                            roleService.save(consumerRecord.value());
+
+                            log.info("Role saved to database with roleid: {}, members: {}, resourceid: {}"
+                                    ,consumerRecord.value().getRoleId(), consumerRecord.value().getMembers(), consumerRecord.value().getResourceId());
+                        }
                 )
                 .createContainer(entityTopicNameParameters);
     }

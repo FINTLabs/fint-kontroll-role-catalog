@@ -19,9 +19,7 @@ public class CacheConfiguration {
         this.fintCacheManager = fintCacheManager;
     }
 
-    @Bean
-    FintCache<String, Role> roleCache () {
-        return createResourceCache((Role.class));}
+
     @Bean
     FintCache<String, Integer> roleCatalogRoleCache() {
         return createResourceCache(Integer.class);

@@ -80,7 +80,7 @@ public class Role {
     public void removeMember(Long memberid) {
         Member member = this.members
                 .stream()
-                .filter(m -> m.getId()==memberid)
+                .filter(m -> m.getId().equals(memberid))
                 .findFirst()
                 .orElse(null);
 

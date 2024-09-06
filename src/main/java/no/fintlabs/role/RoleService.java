@@ -1,5 +1,6 @@
 package no.fintlabs.role;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.cache.FintCache;
 import no.fintlabs.member.Member;
@@ -23,56 +24,53 @@ public class RoleService {
 
     private RoleRepository roleRepository;
 
-    private FintCache<String, Role> roleCache;
-
     private MemberService memberService;
     private RoleCatalogRoleService roleCatalogRoleService;
     private RoleCatalogMembershipService roleCatalogMembershipService;
     private AuthorizationClient authorizationClient;
 
-    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository, FintCache<String, Role> roleCache, MemberService memberService, RoleCatalogRoleService roleCatalogRoleService, RoleCatalogMembershipService roleCatalogMembershipService) {
+    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository,MemberService memberService, RoleCatalogRoleService roleCatalogRoleService, RoleCatalogMembershipService roleCatalogMembershipService) {
         this.authorizationClient = authorizationClient;
         this.roleRepository = roleRepository;
-        this.roleCache = roleCache;
         this.memberService = memberService;
         this.roleCatalogRoleService = roleCatalogRoleService;
         this.roleCatalogMembershipService = roleCatalogMembershipService;
     }
 
+    @Transactional
     public Role save(Role role) {
 
         String roleId = role.getRoleId();
         Set<Member> members = role.getMembers();
+
         log.info("Save {} members for role {} started", members.size(), roleId);
+
         memberService.saveAll(members);
-        log.info("Save {} members for role {} finished", members.size(), roleId);
+
         Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
         Role persistedRole;
+
         if (existingRole.isEmpty()) {
             log.info("Role {} not found. Saving new role", roleId);
+            persistedRole =  roleRepository.save(role);
         } else {
-            log.info("Existing role members size: {}", existingRole.get().getMembers().size());
-
             log.info("Role {} already exists", roleId);
+            log.info("Existing role members size: {}", existingRole.get().getMembers().size());
             role.setId(existingRole.get().getId());
             log.info("Updating existing role {}", roleId);
+            persistedRole =  roleRepository.save(role);
         }
-        persistedRole =  roleRepository.save(role);
+
         log.info("Save/update role {} finished", roleId);
-        if (roleCache.containsKey(roleId)) {
-            roleCache.remove(roleId);
-            log.info("Role {} removed from roleCache", roleId);
-        }
+
         return persistedRole;
     }
 
     public List<Role> getAllRoles() {
         return roleRepository.findAll().stream().collect(Collectors.toList());
     }
-    public List<Role> getAllRolesFromCache() {
-        return roleCache.getAllDistinct();
-    }
+
     public Role createNewRole(Role role) {
         return roleRepository.save(role);
     }
