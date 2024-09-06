@@ -14,9 +14,11 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 @Component
 public class RoleCatalogPublishingComponent {
+
     private final RoleService roleService;
     private final RoleCatalogRoleService roleCatalogRoleService;
     private final RoleCatalogMembershipService roleCatalogMembershipService;
+
     public RoleCatalogPublishingComponent(
             RoleService roleService,
             RoleCatalogRoleService roleCatalogRoleService,
@@ -26,6 +28,7 @@ public class RoleCatalogPublishingComponent {
         this.roleCatalogRoleService = roleCatalogRoleService;
         this.roleCatalogMembershipService = roleCatalogMembershipService;
     }
+
     @Scheduled(
             initialDelayString = "${fint.kontroll.role-catalog.publishing.initial-delay}",
             fixedDelayString = "${fint.kontroll.role-catalog.publishing.fixed-delay}"
@@ -35,13 +38,13 @@ public class RoleCatalogPublishingComponent {
         AtomicReference<Integer> totalNoOfMembers = new AtomicReference<>(0);
         log.info("Publishing {} roles and memberships started", allRoles.size());
         allRoles.forEach(role -> {
-                    roleCatalogRoleService.process(roleCatalogRoleService.create(role));
-                    List<Member> members = role.getMembers().stream().toList();
-                    log.info("Publishing {} memberships for role {}",members.size(), role.getRoleName());
-                    totalNoOfMembers.updateAndGet(v -> v + members.size());
-                    members.forEach(member -> roleCatalogMembershipService
-                            .process(roleCatalogMembershipService.create(role, member)));
-                });
+            roleCatalogRoleService.process(roleCatalogRoleService.create(role));
+            List<Member> members = role.getMembers().stream().toList();
+            log.info("Publishing {} memberships for role {}, id: {}, resourceid: {}", members.size(), role.getRoleName(), role.getId(), role.getResourceId());
+            totalNoOfMembers.updateAndGet(v -> v + members.size());
+            members.forEach(member -> roleCatalogMembershipService
+                    .process(roleCatalogMembershipService.create(role, member)));
+        });
         log.info("Publishing {} roles and {} memberships finished", allRoles.size(), totalNoOfMembers);
     }
 }

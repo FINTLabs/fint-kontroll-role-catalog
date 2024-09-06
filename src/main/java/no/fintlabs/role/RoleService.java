@@ -52,6 +52,8 @@ public class RoleService {
         if (existingRole.isEmpty()) {
             log.info("Role {} not found. Saving new role", roleId);
         } else {
+            log.info("Existing role members size: {}", existingRole.get().getMembers().size());
+
             log.info("Role {} already exists", roleId);
             role.setId(existingRole.get().getId());
             log.info("Updating existing role {}", roleId);
