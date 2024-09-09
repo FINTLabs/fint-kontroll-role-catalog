@@ -35,17 +35,17 @@ public class RoleConsumerConfiguration {
         return entityConsumerFactoryService.createFactory(
                         Role.class,
                         (ConsumerRecord<String, Role> consumerRecord) -> {
-                            List<Long> memberIds = consumerRecord.value().getMembers().stream().map(Member::getId).collect(Collectors.toList());
+                            List<Long> memberIds = consumerRecord.value().getMembers().stream().map(Member::getId).toList();
 
                             log.info("Role consumed from Kafka with roleid: {}, members: {}, resourceid: {}"
-                                    , consumerRecord.value().getRoleId(), memberIds, consumerRecord.value().getResourceId());
+                                    , consumerRecord.value().getRoleId(), memberIds.size(), consumerRecord.value().getResourceId());
 
                             Role savedRole = roleService.save(consumerRecord.value());
 
-                            List<Long> savedMemberIds = savedRole.getMembers().stream().map(Member::getId).collect(Collectors.toList());
+                            List<Long> savedMemberIds = savedRole.getMembers().stream().map(Member::getId).toList();
 
                             log.info("Role saved to database with roleid: {}, members: {}, resourceid: {}"
-                                    , savedRole.getRoleId(), savedMemberIds, savedRole.getResourceId());
+                                    , savedRole.getRoleId(), savedMemberIds.size(), savedRole.getResourceId());
                         }
                 )
                 .createContainer(entityTopicNameParameters);
