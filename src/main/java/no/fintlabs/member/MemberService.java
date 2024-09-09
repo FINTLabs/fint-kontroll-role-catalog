@@ -23,7 +23,7 @@ public class MemberService {
     }
     public List<Member> saveAll(Set<Member> members) {
         List<Member> savedMembers = memberRepository.saveAllAndFlush(members);
-        log.info("Saved members {}", savedMembers.stream().map(Member::getId).collect(Collectors.toList()));
+        log.info("Saved {} members", savedMembers.size());
         return savedMembers;
     }
     public List<Member> getAllMembers() {
