@@ -40,7 +40,7 @@ public class RoleCatalogPublishingComponent {
         allRoles.forEach(role -> {
             roleCatalogRoleService.process(roleCatalogRoleService.create(role));
             List<Member> members = role.getMembers().stream().toList();
-            log.info("Publishing {} memberships for role {}, id: {}, resourceid: {}", members.size(), role.getRoleName(), role.getId(), role.getResourceId());
+            log.info("Publishing {} memberships for role {}, roleid: {}, resourceid: {}", members.size(), role.getRoleName(), role.getRoleId(), role.getResourceId());
             totalNoOfMembers.updateAndGet(v -> v + members.size());
             members.forEach(member -> roleCatalogMembershipService
                     .process(roleCatalogMembershipService.create(role, member)));
