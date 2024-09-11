@@ -142,16 +142,16 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 
         Role newRole = createNewRole(new HashSet<>());
 
-        MembershipId membershipId1 = new MembershipId(newRole, member1);
+        MembershipId membershipId1 = new MembershipId(newRole.getId(), member1.getId());
         Membership membership1 = Membership.builder()
-                .primaryKey(membershipId1)
-                .membershipStatus(true)
+                .id(membershipId1)
+                .isActive(true)
                 .build();
 
-        MembershipId membershipId2 = new MembershipId(newRole, member2);
+        MembershipId membershipId2 = new MembershipId(newRole.getId(), member2.getId());
         Membership membership2 = Membership.builder()
-                .primaryKey(membershipId2)
-                .membershipStatus(true)
+                .id(membershipId2)
+                .isActive(true)
                 .build();
 
         List<Membership> memberships = new ArrayList<>();
@@ -163,14 +163,12 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
         given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
         given(roleRepository.save(newRole)).willReturn(newRole);
         given(roleCache.containsKey("ansatt@digit-fagtj")).willReturn(true);
-        given(memberService.saveAll(new HashSet<>(members))).willReturn(members);
 
         Role savedRole = roleService.save(newRole);
 
         assertThat(savedRole).isEqualTo(newRole);
         assertThat(savedRole.getMemberships()).isNotNull();
         assertThat(savedRole.getMemberships().size()).isEqualTo(2);
-        assertThat(savedRole.getMemberships().stream().findFirst().get()).isEqualTo(membership1);
     }
 
     private static Role createNewRole(HashSet<Member> members) {

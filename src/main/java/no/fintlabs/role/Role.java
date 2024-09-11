@@ -26,13 +26,14 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 @Entity
-@Table(name="Roles", indexes = @Index(name = "role_id_index",columnList = "roleId"))
+@Table(name = "Roles", indexes = @Index(name = "role_id_index", columnList = "roleId"))
 @AllArgsConstructor
-@NoArgsConstructor(access=AccessLevel.PUBLIC, force=true)
+@NoArgsConstructor(access = AccessLevel.PUBLIC, force = true)
 @Builder
 public class Role {
+
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NaturalId
     @Column(nullable = false, unique = true)
@@ -49,33 +50,10 @@ public class Role {
     @Column
     private String organisationUnitName;
     private Integer noOfMembers;
+
     @ToString.Exclude
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     private Set<Membership> memberships = new HashSet<>();
-
-    @OneToMany(mappedBy ="primaryKey.role", cascade = CascadeType.ALL)
-    public Set<Membership> getMemberships() {
-        return memberships;
-    }
-    public void addMembership(Membership membership) {
-        this.memberships.add(membership);
-    }
-
-//    @ManyToMany(fetch = FetchType.LAZY,
-//        cascade = {
-//            CascadeType.MERGE
-////                CascadeType.PERSIST
-//        })
-//    @JoinTable(name ="Role_Memberships",
-//        joinColumns = {@JoinColumn(name="role_id")},
-//        inverseJoinColumns = {@JoinColumn(name="member_id")})
-//
-//    @ToString.Exclude
-//    private Set<Member> members = new HashSet<>();
-//
-//    public void addMember(Member member) {
-//        this.members.add(member);
-//        member.getRoles().add(this);
-
 
     public DetailedRole toDetailedRole() {
         return DetailedRole
@@ -91,6 +69,7 @@ public class Role {
                 .organisationUnitName(organisationUnitName)
                 .build();
     }
+
     public SimpleRole toSimpleRole() {
         return SimpleRole
                 .builder()

@@ -1,6 +1,7 @@
 package no.fintlabs.member;
 
 import no.fint.antlr.FintFilterService;
+import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.role.RoleRepository;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.data.domain.Page;
@@ -21,13 +22,15 @@ import java.util.stream.Stream;
 public class MemberResponseFactory {
     private final FintFilterService fintFilterService;
     private final MemberRepository memberRepository;
+    private final MembershipRepository membershipRepository;
     private final RoleRepository roleRepository;
 
-    public MemberResponseFactory(FintFilterService fintFilterService, MemberRepository memberRepository,
+    public MemberResponseFactory(FintFilterService fintFilterService, MemberRepository memberRepository, MembershipRepository membershipRepository,
                                  RoleRepository roleRepository) {
         this.fintFilterService = fintFilterService;
         this.memberRepository = memberRepository;
         this.roleRepository = roleRepository;
+        this.membershipRepository = membershipRepository;
     }
     public ResponseEntity<Map<String, Object>> toResponseEntity(
             //FintJwtEndRolePrincipal principal,
@@ -36,8 +39,8 @@ public class MemberResponseFactory {
             int page,
             int size
     ) {
-        Stream<Member> memberStream = memberRepository.getAllByRolesId(roleId).stream();
-        //Stream<Member> memberStream = memberRepository.findAll().stream();
+        Stream<Member> memberStream = membershipRepository.findAllMembersByRoleId(roleId).stream();
+
         ResponseEntity<Map<String, Object>> entity = toResponseEntity(
                 toPage(
                         StringUtils.hasText(filter)
@@ -56,7 +59,7 @@ public class MemberResponseFactory {
             Long id,
             int page,
             int size){
-        List<Member> members = (List<Member>) memberRepository.getMembersByRoleId(id);
+        List<Member> members = membershipRepository.findAllMembersByRoleId(id);
         ResponseEntity<Map<String,Object>> entity = toResponseEntity(
                 toPage(members.stream().map(Member::toSimpleMember).toList(),PageRequest.of(page,size)
                 )

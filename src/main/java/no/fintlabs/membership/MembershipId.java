@@ -12,19 +12,9 @@ import no.fintlabs.role.Role;
 @Setter
 @Embeddable
 @AllArgsConstructor
-@NoArgsConstructor(access= AccessLevel.PUBLIC, force=true)
+@NoArgsConstructor(access = AccessLevel.PUBLIC, force = true)
 @Builder
-public class MembershipId implements Serializable{
-    private Role role;
-    private Member member;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    public Role getRole() {
-        return role;
-    }
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    public Member getMember() {
-        return member;
-    }
+public class MembershipId implements Serializable {
+    private Long roleId;
+    private Long memberId;
 }

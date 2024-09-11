@@ -15,9 +15,6 @@ public interface RoleRepository extends JpaRepository<Role,Long> {
 
     Optional<Role> findByRoleId (String roleId);
 
-    Optional<List<Role>> findRolesByMembersId (Long id);
-
-
     @Query("""
             select r from Role r
             where upper(r.roleName) like upper(concat('%', ?1, '%')) 

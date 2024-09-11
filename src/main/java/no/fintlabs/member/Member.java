@@ -27,11 +27,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @Entity
-@Table(name="members", indexes = @Index(name = "resource_id_index",columnList = "resourceId"))
+@Table(name = "members", indexes = @Index(name = "resource_id_index", columnList = "resourceId"))
 @AllArgsConstructor
-@NoArgsConstructor(access=AccessLevel.PUBLIC, force=true)
+@NoArgsConstructor(access = AccessLevel.PUBLIC, force = true)
 @Builder
 public class Member {
+
     @Id
     @NonNull
     //@GeneratedValue (strategy = GenerationType.IDENTITY)
@@ -45,48 +46,19 @@ public class Member {
     private String organisationUnitName;
     private String organisationUnitId;
 
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private Set<Membership> memberships = new HashSet<>();
 
-    @OneToMany(mappedBy ="primaryKey.member", cascade = CascadeType.ALL)
-    public Set<Membership> getMemberships() {
-        return memberships;
+    public SimpleMember toSimpleMember() {
+        return SimpleMember
+                .builder()
+                .id(id)
+                .firstName(firstName)
+                .lastName(lastName)
+                .userType(userType)
+                .userName(userName)
+                .build();
     }
-    public void addMembership(Membership membership) {
-        this.memberships.add(membership);
-    }
-
-//    @ManyToMany(fetch = FetchType.LAZY,
-//            cascade = {
-//                CascadeType.PERSIST,
-//                CascadeType.MERGE
-//            },
-//            mappedBy = "members")
-//    @JsonIgnore
-//    @ToString.Exclude
-//    private Set<Role> roles = new HashSet<>();
-//
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-//        Member member = (Member) o;
-//        return id != null && Objects.equals(id, member.id);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return getClass().hashCode();
-//    }
-//
-//
-//    public SimpleMember toSimpleMember() {
-//        return SimpleMember
-//                .builder()
-//                .id(id)
-//                .firstName(firstName)
-//                .lastName(lastName)
-//                .userType(userType)
-//                .userName(userName)
-//                .build();
-//    }
 }

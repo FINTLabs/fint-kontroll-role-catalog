@@ -2,6 +2,7 @@ package no.fintlabs.roleCatalogRole;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.member.Member;
+import no.fintlabs.membership.Membership;
 import no.fintlabs.role.Role;
 import no.fintlabs.role.RoleService;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
@@ -36,7 +37,7 @@ public class RoleCatalogPublishingComponent {
         log.info("Publishing {} roles and memberships started", allRoles.size());
         allRoles.forEach(role -> {
                     roleCatalogRoleService.process(roleCatalogRoleService.create(role));
-                    List<Member> members = role.getMembers().stream().toList();
+                    List<Membership> members = role.getMemberships().stream().toList();
                     log.info("Publishing {} memberships for role {}",members.size(), role.getRoleName());
                     totalNoOfMembers.updateAndGet(v -> v + members.size());
                     members.forEach(member -> roleCatalogMembershipService
