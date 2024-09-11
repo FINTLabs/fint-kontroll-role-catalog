@@ -22,8 +22,8 @@ public class MemberService {
         return savedMember;
     }
     public List<Member> saveAll(Set<Member> members) {
-        List<Member> savedMembers = memberRepository.saveAll(members);
-        log.debug("Saving members list {}", getAllMembers().stream().map(Member::getId).collect(Collectors.toList()));
+        List<Member> savedMembers = memberRepository.saveAllAndFlush(members);
+        log.info("Saved {} members", savedMembers.size());
         return savedMembers;
     }
     public List<Member> getAllMembers() {

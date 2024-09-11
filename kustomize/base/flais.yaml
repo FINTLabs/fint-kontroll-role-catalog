@@ -30,7 +30,7 @@ spec:
     - name: spring.kafka.consumer.group-id
       value: 'fint-kontroll-role-catalog'
     - name: JAVA_TOOL_OPTIONS
-      value: "-XX:+ExitOnOutOfMemoryError -Xms768m -Xmx768m -verbose:gc"
+      value: "-XX:+ExitOnOutOfMemoryError -Xms512m -Xmx912m -verbose:gc"
   envFrom:
     - configMapRef:
         name: fint-environment
@@ -38,8 +38,8 @@ spec:
         name: fint-kontroll-rolecatalog-config
   resources:
     limits:
-      cpu: 2000m
+      cpu: 1000m
       memory: 1024Mi
     requests:
-      memory: 1024Mi
-      cpu: 1000m
+      memory: 648Mi
+      cpu: 500m

@@ -52,6 +52,7 @@ public class Role {
     private Integer noOfMembers;
 
     @ToString.Exclude
+    @Builder.Default
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     private Set<Membership> memberships = new HashSet<>();
 

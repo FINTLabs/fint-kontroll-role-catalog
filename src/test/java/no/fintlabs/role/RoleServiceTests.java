@@ -20,6 +20,7 @@ import java.util.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 import no.fintlabs.opa.model.OrgUnitType;
 @ExtendWith(MockitoExtension.class)
@@ -27,8 +28,6 @@ public class RoleServiceTests {
 
     @Mock
     private RoleRepository roleRepository;
-    @Mock
-    FintCache<String, Role> roleCache;
     @Mock
     private  MemberService memberService;
     @Mock
@@ -91,14 +90,16 @@ public class RoleServiceTests {
         //given(roleRepository.save(role)).willReturn(role);
         given(roleRepository.findByRoleId("ansatt@digit-aggr")).willReturn(Optional.of(aggrole));
         given(roleRepository.save(roleFromKafka)).willReturn(roleFromDb);
-        given(roleCache.containsKey("ansatt@digit-aggr")).willReturn(true);
-        //given(roleCache.remove("ansatt@digit-aggr")).willReturn(void);
+
         // when -  action or the behaviour that we are going test
         String roleId = roleFromKafka.getRoleId();
         Long id = roleRepository.findByRoleId(roleId).get().getId();
         roleFromKafka.setId(id);
         Role savedRole = roleService.save(roleFromKafka);
         // then - verify the output
+
+        verify(roleRepository).save(roleFromKafka);
+
         assertThat(savedRole).isEqualTo(roleFromDb);
     }
 
@@ -110,9 +111,10 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 
     given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
     given(roleRepository.save(newRole)).willReturn(newRole);
-    given(roleCache.containsKey("ansatt@digit-fagtj")).willReturn(true);
 
     Role savedRole = roleService.save(newRole);
+
+    verify(roleRepository).save(newRole);
 
     assertThat(savedRole).isEqualTo(newRole);
     assertThat(savedRole.getMemberships()).isNotNull();
@@ -162,9 +164,10 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 
         given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
         given(roleRepository.save(newRole)).willReturn(newRole);
-        given(roleCache.containsKey("ansatt@digit-fagtj")).willReturn(true);
 
         Role savedRole = roleService.save(newRole);
+
+        verify(roleRepository).save(newRole);
 
         assertThat(savedRole).isEqualTo(newRole);
         assertThat(savedRole.getMemberships()).isNotNull();

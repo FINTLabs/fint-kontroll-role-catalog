@@ -13,6 +13,7 @@ import no.fintlabs.role.Role;
 @Setter
 @Builder
 public class Membership {
+    @Builder.Default
     @EmbeddedId
     private MembershipId id = new MembershipId();
 
@@ -28,5 +29,6 @@ public class Membership {
 
     @Setter
     @Getter
+    @Builder.Default
     private boolean isActive = true;
 }

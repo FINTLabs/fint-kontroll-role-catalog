@@ -15,9 +15,11 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 @Component
 public class RoleCatalogPublishingComponent {
+
     private final RoleService roleService;
     private final RoleCatalogRoleService roleCatalogRoleService;
     private final RoleCatalogMembershipService roleCatalogMembershipService;
+
     public RoleCatalogPublishingComponent(
             RoleService roleService,
             RoleCatalogRoleService roleCatalogRoleService,
@@ -27,6 +29,7 @@ public class RoleCatalogPublishingComponent {
         this.roleCatalogRoleService = roleCatalogRoleService;
         this.roleCatalogMembershipService = roleCatalogMembershipService;
     }
+
     @Scheduled(
             initialDelayString = "${fint.kontroll.role-catalog.publishing.initial-delay}",
             fixedDelayString = "${fint.kontroll.role-catalog.publishing.fixed-delay}"
@@ -38,7 +41,7 @@ public class RoleCatalogPublishingComponent {
         allRoles.forEach(role -> {
                     roleCatalogRoleService.process(roleCatalogRoleService.create(role));
                     List<Membership> members = role.getMemberships().stream().toList();
-                    log.info("Publishing {} memberships for role {}",members.size(), role.getRoleName());
+                    log.info("Publishing {} memberships for role {}, roleid: {}, resourceid: {}", members.size(), role.getRoleName(), role.getRoleId(), role.getResourceId());
                     totalNoOfMembers.updateAndGet(v -> v + members.size());
                     members.forEach(member -> roleCatalogMembershipService
                             .process(roleCatalogMembershipService.create(role, member)));

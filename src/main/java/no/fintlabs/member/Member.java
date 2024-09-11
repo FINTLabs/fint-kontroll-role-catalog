@@ -48,6 +48,7 @@ public class Member {
 
     @JsonIgnore
     @ToString.Exclude
+    @Builder.Default
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private Set<Membership> memberships = new HashSet<>();
 
