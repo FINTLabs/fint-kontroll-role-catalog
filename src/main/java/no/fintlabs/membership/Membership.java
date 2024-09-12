@@ -13,9 +13,8 @@ import no.fintlabs.role.Role;
 @Setter
 @Builder
 public class Membership {
-    @Builder.Default
     @EmbeddedId
-    private MembershipId id = new MembershipId();
+    private MembershipId id;
 
     @ManyToOne
     @MapsId("roleId")

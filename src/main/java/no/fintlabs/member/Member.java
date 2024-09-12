@@ -48,9 +48,8 @@ public class Member {
 
     @JsonIgnore
     @ToString.Exclude
-    @Builder.Default
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private Set<Membership> memberships = new HashSet<>();
+    @OneToMany(mappedBy = "member", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    private Set<Membership> memberships;
 
     public SimpleMember toSimpleMember() {
         return SimpleMember

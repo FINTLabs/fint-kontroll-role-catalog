@@ -16,6 +16,7 @@ import no.fintlabs.membership.Membership;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.NaturalId;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -35,9 +36,11 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NaturalId
     @Column(nullable = false, unique = true)
     private String roleId;
+
     @NonNull
     private String resourceId;
     private String roleName;
@@ -51,10 +54,12 @@ public class Role {
     private String organisationUnitName;
     private Integer noOfMembers;
 
+    private String roleStatus;
+    private Date roleStatusChanged;
+
     @ToString.Exclude
-    @Builder.Default
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    private Set<Membership> memberships = new HashSet<>();
+    @OneToMany(mappedBy = "role", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    private Set<Membership> memberships;
 
     public DetailedRole toDetailedRole() {
         return DetailedRole
