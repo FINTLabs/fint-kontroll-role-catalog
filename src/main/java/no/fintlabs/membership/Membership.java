@@ -5,6 +5,8 @@ import lombok.*;
 import no.fintlabs.member.Member;
 import no.fintlabs.role.Role;
 
+import java.util.Date;
+
 @Entity
 @Table(name= "role_memberships")
 @AllArgsConstructor
@@ -26,8 +28,6 @@ public class Membership {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Setter
-    @Getter
-    @Builder.Default
-    private boolean isActive = true;
+    private String membershipStatus;
+    private Date membershipStatusChanged;
 }

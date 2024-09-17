@@ -27,6 +27,7 @@ public class MemberService {
     public List<Member> getAllMembers() {
         return memberRepository.findAll().stream().collect(Collectors.toList());
     }
+
     public Member findMemberById(Long id) {
         return memberRepository.findById(id).orElse(new Member());
     }

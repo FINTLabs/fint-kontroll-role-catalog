@@ -15,12 +15,6 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         enable_lazy_load_no_trans: true
 
-  datasource:
-    hikari:
-      schema: roles
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgres
-
   flyway:
     locations: classpath:db/migration/
     lock-retry-count: 300
@@ -31,3 +25,16 @@ spring:
       auto-offset-reset: earliest
       group-id: testGroup
       bootstrap-servers: localhost:9092
+
+fint:
+  application-id: fint-kontroll-role-catalog
+  cache:
+    defaultCacheEntryTimeToLiveMillis: 518400000
+    defaultCacheHeapSize: 1000000
+
+  kontroll:
+    opa:
+      url:
+
+  kafka:
+    application-id: fint-kontroll-role-catalog

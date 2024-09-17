@@ -143,13 +143,13 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
         MembershipId membershipId1 = new MembershipId(newRole.getId(), member1.getId());
         Membership membership1 = Membership.builder()
                 .id(membershipId1)
-                .isActive(true)
+                .membershipStatus("ACTIVE")
                 .build();
 
         MembershipId membershipId2 = new MembershipId(newRole.getId(), member2.getId());
         Membership membership2 = Membership.builder()
                 .id(membershipId2)
-                .isActive(true)
+                .membershipStatus("ACTIVE")
                 .build();
 
         List<Membership> memberships = new ArrayList<>();

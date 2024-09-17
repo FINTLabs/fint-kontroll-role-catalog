@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import({RoleService.class})
 @Testcontainers
 public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
+
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
@@ -42,7 +43,7 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
         Membership membership = new Membership();
         membership.setRole(role);
         membership.setMember(member);
-        membership.setActive(true);
+        membership.setMembershipStatus("ACTIVE");
 
         MembershipId membershipId = new MembershipId();
         membershipId.setMemberId(member.getId());
@@ -63,7 +64,7 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
         assertThat(fetchedRole.getMemberships()).hasSize(1);
         assertThat(foundMemberships.get(0).getMember().getFirstName()).isEqualTo(member.getFirstName());
         assertThat(foundMemberships.get(0).getRole().getRoleName()).isEqualTo(role.getRoleName());
-        assertThat(foundMemberships.get(0).isActive()).isTrue();
+        assertThat(foundMemberships.get(0).getMembershipStatus()).isEqualTo("ACTIVE");
     }
 
     @Test
@@ -106,7 +107,7 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
 
         assertThat(foundMemberships.get(0).getMember().getFirstName()).isEqualTo(member.getFirstName());
         assertThat(foundMemberships.get(0).getRole().getRoleName()).isEqualTo(role.getRoleName());
-        assertThat(foundMemberships.get(0).isActive()).isTrue();
+        assertThat(foundMemberships.get(0).getMembershipStatus()).isEqualTo("ACTIVE");
     }
 
     @NotNull
@@ -114,7 +115,7 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
         Membership membership = new Membership();
         membership.setRole(role);
         membership.setMember(member);
-        membership.setActive(true);
+        membership.setMembershipStatus("ACTIVE");
 
         MembershipId membershipId = new MembershipId();
         membershipId.setMemberId(member.getId());
