@@ -37,13 +37,13 @@ public class RoleConsumerConfiguration {
                         Role.class,
                         (ConsumerRecord<String, Role> consumerRecord) -> {
 
-                            log.info("Role consumed from Kafka with roleid: {}, members: {}, resourceid: {}"
-                                    , consumerRecord.value().getRoleId(), consumerRecord.value().getMemberships().size(), consumerRecord.value().getResourceId());
+                            log.info("Role consumed from Kafka with roleid: {},  resourceid: {}"
+                                    , consumerRecord.value().getRoleId(),  consumerRecord.value().getResourceId());
 
                             Role savedRole = roleService.save(consumerRecord.value());
 
-                            log.info("Role saved to database with roleid: {}, members: {}, resourceid: {}"
-                                    , savedRole.getRoleId(), savedRole.getMemberships().size(), savedRole.getResourceId());
+                            log.info("Role saved to database with roleid: {},  resourceid: {}"
+                                    , savedRole.getRoleId(),  savedRole.getResourceId());
                         }
                 )
                 .createContainer(entityTopicNameParameters);
