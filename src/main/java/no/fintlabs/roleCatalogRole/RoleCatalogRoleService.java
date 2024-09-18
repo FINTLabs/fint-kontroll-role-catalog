@@ -24,6 +24,8 @@ public class RoleCatalogRoleService {
                 .roleName(role.getRoleName())
                 .organisationUnitId(role.getOrganisationUnitId())
                 .organisationUnitName(role.getOrganisationUnitName())
+                .roleStatus(role.getRoleStatus())
+                .roleStatusChanged(role.getRoleStatusChanged())
                 .build();
     }
 }

@@ -1,6 +1,6 @@
 package no.fintlabs.roleCatalogRole;
 
-
+import java.util.Date;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,6 +20,7 @@ public class RoleCatalogRole {
     private boolean aggregatedRole;
     private String roleSource;
     private String organisationUnitId;
-
     private String organisationUnitName;
+    private String roleStatus;
+    private Date roleStatusChanged;
 }
