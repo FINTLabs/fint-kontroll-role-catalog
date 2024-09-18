@@ -1,79 +1,129 @@
 package no.fintlabs.member;
 
+import no.fintlabs.DatabaseIntegrationTest;
+import no.fintlabs.membership.KafkaMembership;
+import no.fintlabs.membership.Membership;
+import no.fintlabs.membership.MembershipId;
+import no.fintlabs.membership.MembershipRepository;
+import no.fintlabs.role.Role;
+import no.fintlabs.role.RoleRepository;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
+import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
+import no.fintlabs.roleCatalogRole.RoleCatalogRoleEntityProducerService;
+import no.fintlabs.securityconfig.FintKontrollSecurityConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.testcontainers.utility.DockerImageName;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 @Testcontainers
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
-public class MemberConsumerIntegrationTest {
-    /*private static final String applicationId = "fint-kontroll-role-cat";
+@EmbeddedKafka(partitions = 1)
+@TestPropertySource(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}")
+public class MemberConsumerIntegrationTest extends DatabaseIntegrationTest {
+
+    @Autowired
+    private MembershipRepository membershipRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private EmbeddedKafkaBroker embeddedKafkaBroker;
+
+    @MockBean
+    private RoleCatalogMembershipEntityProducerService roleCatalogMembershipEntityProducerService;
+
+    @MockBean
+    private RoleCatalogRoleEntityProducerService roleCatalogRoleEntityProducerService;
+
+    @MockBean
+    private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
+
+    @MockBean
+    private FintKontrollSecurityConfig fintKontrollSecurityConfig;
+
+    private static final String applicationId = "fint-kontroll-role-cat";
     private static final String topicOrgId = "testorg";
     private static final String topicDomainContext = "testdomain";
 
-    @Container
-    public static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:latest"));
-
-    @MockBean
-    private OrgUnitRepository orgUnitRepositoryMock;
-
-    @MockBean
-    private SubOrgUnitRepository subOrgUnitRepositoryMock;
-
     @DynamicPropertySource
-    static void registerKafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.kafka.bootstrap-servers", () -> kafka.getBootstrapServers());
+    static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("fint.kafka.topic.org-id", () -> topicOrgId);
         registry.add("fint.kafka.topic.domain-context", () -> topicDomainContext);
         registry.add("fint.kafka.application-id", () -> applicationId);
-        registry.add("opa.jsonexport.filename", () -> "");
-        registry.add("fint.kontroll.opa.url", () -> "");
     }
 
     @Test
-    public void shouldConsumeMembersAndSave() {
-        OrgUnitKafka orgUnitKafka = OrgUnitKafka.builder()
-                .organisationUnitId("123")
-                .allSubOrgUnitsRef(List.of())
+    public void testMembershipConsumer() {
+        String kafkaTopic = topicOrgId + "." + topicDomainContext + ".entity.kontrolluser";
+
+        // Define kafka message object
+        KontrollUser kontrollUser = KontrollUser.builder()
+                .id(1L)
                 .build();
 
-        KafkaTemplate<String, OrgUnitKafka> kafkaTemplate = createKafkaTemplate(kafka.getBootstrapServers());
-        kafkaTemplate.send(topicOrgId + "." + topicDomainContext + ".entity.orgunit", "testKey", orgUnitKafka);
+        // Send message to Kafka
+        KafkaTemplate<String, KontrollUser> kafkaTemplate = createKafkaProducerForTest();
+        kafkaTemplate.setDefaultTopic(kafkaTopic);
+        kafkaTemplate.sendDefault(kontrollUser.getId().toString(), kontrollUser);
 
-        verify(subOrgUnitRepositoryMock, timeout(5000)).saveAll(ArgumentMatchers.argThat(
-                subOrgUnits -> !subOrgUnits.iterator().hasNext())
-        );
-
-        verify(orgUnitRepositoryMock, timeout(5000)).save(ArgumentMatchers.argThat(
-                orgUnit -> orgUnit.getOrgUnitId().equals(orgUnitKafka.getOrganisationUnitId())
-        ));
+        // Verify that the message was consumed and the member was saved
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    Optional<Member> dbMember = memberRepository.findById(kontrollUser.getId());
+                    assertTrue(dbMember.isPresent(), "Membership should be present in the database");
+                });
     }
 
-    private KafkaTemplate<String, OrgUnitKafka> createKafkaTemplate(String bootstrapServers) {
-        Map<String, Object> producerConfig = new HashMap<>();
-        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        ProducerFactory<String, OrgUnitKafka> producerFactory = new DefaultKafkaProducerFactory<>(producerConfig);
-        return new KafkaTemplate<>(producerFactory);
-    }*/
+    @NotNull
+    private KafkaTemplate<String, KontrollUser> createKafkaProducerForTest() {
+        Map<String, Object> producerProps = new HashMap<>();
+        producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaBroker.getBrokersAsString());
+        producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        producerProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
+        DefaultKafkaProducerFactory<String, KontrollUser> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
+        return new KafkaTemplate<>(producerFactory, true);
+    }
 }
