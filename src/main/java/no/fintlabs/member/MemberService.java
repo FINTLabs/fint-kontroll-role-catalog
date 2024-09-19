@@ -22,7 +22,7 @@ public class MemberService {
         return savedMember;
     }
     public List<Member> saveAll(Set<Member> members) {
-        List<Member> savedMembers = memberRepository.saveAllAndFlush(members);
+        List<Member> savedMembers = memberRepository.saveAll(members);
         log.info("Saved {} members", savedMembers.size());
         return savedMembers;
     }
