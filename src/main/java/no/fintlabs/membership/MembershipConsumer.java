@@ -12,6 +12,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Slf4j
 @Component
 public class MembershipConsumer {
@@ -47,13 +49,17 @@ public class MembershipConsumer {
         KafkaMembership kafkaMembership = membershipRecord.value();
         log.info("Processing membership: {}", kafkaMembership.getRoleId());
 
-        Role role = roleRepository.getReferenceById(kafkaMembership.getRoleId());
-        Member member = memberRepository.getReferenceById(kafkaMembership.getMemberId());
+        Optional<Role> roleOptional = roleRepository.findById(kafkaMembership.getRoleId());
+        Optional<Member> memberOptional = memberRepository.findById(kafkaMembership.getMemberId());
 
-        if(role == null || member == null) {
+        if (roleOptional.isEmpty() || memberOptional.isEmpty()) {
+            //TODO: What to do if role or member is not found? Retry?
             log.error("Role or member not found for membership: {} {}", kafkaMembership.getRoleId(), kafkaMembership.getMemberId());
             return;
         }
+
+        Role role = roleOptional.get();
+        Member member = memberOptional.get();
 
         Membership membership = new Membership();
         membership.setRole(role);
