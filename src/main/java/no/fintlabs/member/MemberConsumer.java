@@ -38,7 +38,8 @@ public class MemberConsumer {
 
     void process(ConsumerRecord<String, KontrollUser> consumerRecord) {
         KontrollUser kontrollUser = consumerRecord.value();
-        log.info("Processing member: {}", kontrollUser.getId());
+        log.info("Processing member: {}, username: {}, status: {}, identityProviderUserObjectId: {}", kontrollUser.getId(), kontrollUser.getUserName(), kontrollUser.getStatus(),
+                 kontrollUser.getIdentityProviderUserObjectId());
 
         Member convertedMember = MemberMapper.fromKontrollUser(kontrollUser);
 
@@ -53,7 +54,7 @@ public class MemberConsumer {
         if (!cachedMember.equals(convertedMember)) {
             updateMemberInCache(convertedMember, "Member found in cache, but not equal, updating member: {}");
         } else {
-            log.info("Member in cache is up-to-date: {}", cachedMember.getId());
+            log.debug("Member in cache is up-to-date: {}", cachedMember.getId());
         }
     }
 
@@ -72,7 +73,7 @@ public class MemberConsumer {
     }
 
     private void updateMember(Member member, Member updatedMember) {
-        if(!member.equals(updatedMember)) {
+        if (!member.equals(updatedMember)) {
             Member savedmember = memberRepository.save(updatedMember);
             memberCache.put(savedmember.getId(), savedmember);
         }

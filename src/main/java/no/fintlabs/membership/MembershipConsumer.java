@@ -47,7 +47,8 @@ public class MembershipConsumer {
     private void process(ConsumerRecord<String, KafkaMembership> membershipRecord) {
 
         KafkaMembership kafkaMembership = membershipRecord.value();
-        log.info("Processing membership: {}", kafkaMembership.getRoleId());
+        log.info("Processing membership. Role: {}, member {}, status: {}, changed: {}", kafkaMembership.getRoleId(), kafkaMembership.getMemberId(), kafkaMembership.getMemberStatus(),
+                 kafkaMembership.getMemberStatusChanged());
 
         Optional<Role> roleOptional = roleRepository.findById(kafkaMembership.getRoleId());
         Optional<Member> memberOptional = memberRepository.findById(kafkaMembership.getMemberId());
