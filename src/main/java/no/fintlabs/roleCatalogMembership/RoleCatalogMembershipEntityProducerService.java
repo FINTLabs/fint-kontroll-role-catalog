@@ -42,7 +42,7 @@ public class RoleCatalogMembershipEntityProducerService {
         Optional<RoleCatalogMembership> roleCatalogMembershipOptional = roleCatalogMembershipCache.getOptional(key);
 
         if (roleCatalogMembershipOptional.isEmpty() || !roleCatalogMembership.equals(roleCatalogMembershipOptional.get())) {
-            log.debug("Publish role-catalog-membership : " + key);
+            log.info("Publish role-catalog-membership: {}", key);
             entityProducer.send(
                     EntityProducerRecord.<RoleCatalogMembership>builder()
                             .topicNameParameters(entityTopicNameParameters)
@@ -53,7 +53,7 @@ public class RoleCatalogMembershipEntityProducerService {
             roleCatalogMembershipCache.put(key, roleCatalogMembership);
         }
         else {
-            log.debug("role-catalog-membership : " + key +" already published");
+            log.info("role-catalog-membership: {} already published", key);
         }
     }
 }
