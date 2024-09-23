@@ -19,6 +19,7 @@ public interface MembershipRepository extends JpaRepository<Membership, Membersh
            "WHERE m.role.id = :id " +
            "AND (:name IS NULL OR :name = '' OR " +
            "CONCAT(UPPER(m.member.firstName), ' ', UPPER(m.member.lastName)) LIKE UPPER(CONCAT('%', :name, '%'))) " +
+           "AND (m.membershipStatus IS NULL OR m.membershipStatus = 'ACTIVE') " +
            "ORDER BY m.member.firstName, m.member.lastName"
     )
     Page<Member> getMembersByRoleId(@Param("id") Long id,
