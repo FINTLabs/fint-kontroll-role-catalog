@@ -7,6 +7,8 @@ import no.fintlabs.roleCatalogRole.RoleCatalogRole;
 import no.fintlabs.roleCatalogRole.RoleCatalogRoleEntityProducerService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class RoleCatalogMembershipService {
     private final RoleCatalogMembershipEntityProducerService roleCatalogMembershipEntityProducerService;
