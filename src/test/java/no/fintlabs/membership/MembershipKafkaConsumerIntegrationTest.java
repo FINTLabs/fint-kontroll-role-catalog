@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.isA;
@@ -95,14 +96,14 @@ public class MembershipKafkaConsumerIntegrationTest {
 
         Member member = Member.builder().id(976L).build();
 
-        when(roleRepositoryMock.getReferenceById(anyLong())).thenReturn(role);
-        when(memberRepositoryMock.getReferenceById(anyLong())).thenReturn(member);
+        when(roleRepositoryMock.findById(anyLong())).thenReturn(Optional.of(role));
+        when(memberRepositoryMock.findById(anyLong())).thenReturn(Optional.of(member));
 
         KafkaTemplate<String, KafkaMembership> kafkaTemplate = createKafkaTemplate();
         kafkaTemplate.send(topicOrgId + "." + topicDomainContext + ".entity.role-membership", "testKey", kafkaMembership);
 
-        verify(roleRepositoryMock, timeout(5000)).getReferenceById(1775L);
-        verify(memberRepositoryMock, timeout(5000)).getReferenceById(976L);
+        verify(roleRepositoryMock, timeout(5000)).findById(1775L);
+        verify(memberRepositoryMock, timeout(5000)).findById(976L);
         verify(membershipRepositoryMock, timeout(5000)).save(isA(Membership.class));
     }
 
