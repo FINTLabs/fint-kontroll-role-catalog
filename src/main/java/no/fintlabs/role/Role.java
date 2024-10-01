@@ -86,6 +86,7 @@ public class Role {
                 .aggregatedRole(aggregatedRole)
                 .organisationUnitId(organisationUnitId)
                 .organisationUnitName(organisationUnitName)
+                .memberships(memberships != null ? memberships.size() : 0)
                 .build();
     }
 }
