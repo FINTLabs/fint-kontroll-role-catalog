@@ -38,7 +38,7 @@ public class RoleConsumerConfiguration {
                         (ConsumerRecord<String, Role> consumerRecord) -> {
 
                             log.info("Role consumed from Kafka with offset {}, roleid: {}, members: {}, resourceid: {}",
-                                    consumerRecord.offset() , consumerRecord.value().getRoleId(), memberIds.size(), consumerRecord.value().getResourceId());
+                                     consumerRecord.offset() , consumerRecord.value().getRoleId(), consumerRecord.value().getNoOfMembers(), consumerRecord.value().getResourceId());
 
                             Role savedRole = roleService.save(consumerRecord.value());
 
