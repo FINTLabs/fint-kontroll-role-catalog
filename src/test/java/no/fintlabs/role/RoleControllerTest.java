@@ -1,16 +1,14 @@
 package no.fintlabs.role;
 
-import jakarta.servlet.ServletException;
 import no.fintlabs.member.Member;
-import no.fintlabs.member.MemberRepository;
 import no.fintlabs.member.MemberResponseFactory;
+import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -44,7 +42,7 @@ public class RoleControllerTest {
     private AuthorizationClient authorizationClient;
 
     @MockBean
-    private MemberRepository memberRepository;
+    private MembershipRepository membershipRepository;
 
     private MockMvc mockMvc;
 
@@ -61,7 +59,7 @@ public class RoleControllerTest {
     void shouldGetMembersByRoleId() throws Exception {
         List<Member> members = List.of(Member.builder().id(1L).build());
 
-        when(memberRepository.getMembersByRoleId(anyLong(), anyString(), isA(Pageable.class)))
+        when(membershipRepository.getMembersByRoleId(anyLong(), anyString(), isA(Pageable.class)))
                 .thenReturn(new PageImpl<>(members));
 
         mockMvc.perform(get("/api/roles/1/members")

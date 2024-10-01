@@ -1,8 +1,10 @@
 package no.fintlabs.role;
 
-import no.fintlabs.cache.FintCache;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberService;
+import no.fintlabs.membership.Membership;
+import no.fintlabs.membership.MembershipId;
+import no.fintlabs.opa.model.OrgUnitType;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
 import no.fintlabs.roleCatalogRole.RoleCatalogRoleService;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,14 +15,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-
-import no.fintlabs.opa.model.OrgUnitType;
 @ExtendWith(MockitoExtension.class)
 public class RoleServiceTests {
 
@@ -45,7 +47,7 @@ public class RoleServiceTests {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(new HashSet<>())
+                .memberships(new HashSet<>())
                 .build();
 
         aggrole = Role.builder()
@@ -56,7 +58,7 @@ public class RoleServiceTests {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(new HashSet<>())
+                .memberships(new HashSet<>())
                 .build();
 
     }
@@ -71,7 +73,7 @@ public class RoleServiceTests {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(new HashSet<>())
+                .memberships(new HashSet<>())
                 .build();
 
         Role roleFromDb = Role.builder()
@@ -82,22 +84,18 @@ public class RoleServiceTests {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(new HashSet<>())
+                .memberships(new HashSet<>())
                 .build();
 
         //given(roleRepository.save(role)).willReturn(role);
-        given(roleRepository.findByRoleId("ansatt@digit-aggr")).willReturn(Optional.of(aggrole));
-        given(roleRepository.save(roleFromKafka)).willReturn(roleFromDb);
+        given(roleRepository.findByRoleId("ansatt@digit-aggr")).willReturn(Optional.of(roleFromDb));
+        given(roleRepository.save(roleFromDb)).willReturn(roleFromDb);
 
         // when -  action or the behaviour that we are going test
-        String roleId = roleFromKafka.getRoleId();
-        Long id = roleRepository.findByRoleId(roleId).get().getId();
-        roleFromKafka.setId(id);
         Role savedRole = roleService.save(roleFromKafka);
         // then - verify the output
 
-        verify(memberService).saveAll(roleFromKafka.getMembers());
-        verify(roleRepository).save(roleFromKafka);
+        verify(roleRepository).save(roleFromDb);
 
         assertThat(savedRole).isEqualTo(roleFromDb);
     }
@@ -106,19 +104,17 @@ public class RoleServiceTests {
 @Test
 public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 
-    Role newRole = createNewRole(new HashSet<>());
+    Role newRole = createNewRole();
 
     given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
     given(roleRepository.save(newRole)).willReturn(newRole);
 
     Role savedRole = roleService.save(newRole);
 
-    verify(memberService).saveAll(newRole.getMembers());
     verify(roleRepository).save(newRole);
 
     assertThat(savedRole).isEqualTo(newRole);
-    assertThat(savedRole.getMembers()).isNotNull();
-    assertThat(savedRole.getMembers().size()).isEqualTo(0);
+    assertThat(savedRole.getMemberships()).isNull();
 }
     @DisplayName("Test for saveRole - save new role with non empty member list")
     @Test
@@ -138,30 +134,44 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
                 .userType("EMPLOYEE")
                 .build();
 
-        HashSet<Member> membersSet = new HashSet<>();
-        membersSet.add(member1);
-        membersSet.add(member2);
-        List<Member> membersList = membersSet.stream().toList();
+        List<Member> members = new ArrayList<>();
+        members.add(member1);
+        members.add(member2);
 
-        Role newRole = createNewRole(membersSet);
+        Role newRole = createNewRole();
+
+        MembershipId membershipId1 = new MembershipId(newRole.getId(), member1.getId());
+        Membership membership1 = Membership.builder()
+                .id(membershipId1)
+                .membershipStatus("ACTIVE")
+                .build();
+
+        MembershipId membershipId2 = new MembershipId(newRole.getId(), member2.getId());
+        Membership membership2 = Membership.builder()
+                .id(membershipId2)
+                .membershipStatus("ACTIVE")
+                .build();
+
+        List<Membership> memberships = new ArrayList<>();
+        memberships.add(membership1);
+        memberships.add(membership2);
+
+        newRole.setMemberships(new HashSet<>(memberships));
 
         given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
         given(roleRepository.save(newRole)).willReturn(newRole);
-        given(memberService.saveAll(membersSet)).willReturn(membersList);
 
         Role savedRole = roleService.save(newRole);
 
-        verify(memberService).saveAll(newRole.getMembers());
         verify(roleRepository).save(newRole);
 
         assertThat(savedRole).isEqualTo(newRole);
-        assertThat(savedRole.getMembers()).isNotNull();
-        assertThat(savedRole.getMembers().size()).isEqualTo(2);
-        assertThat(savedRole.getMembers().stream().findFirst().get()).isEqualTo(member1);
+        assertThat(savedRole.getMemberships()).isNotNull();
+        assertThat(savedRole.getMemberships().size()).isEqualTo(2);
     }
 
-    private static Role createNewRole(HashSet<Member> members) {
-        Role newRole =  Role.builder()
+    private static Role createNewRole() {
+        return Role.builder()
                 .id(2L)
                 .roleId("ansatt@digit-fagtj")
                 .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/47")
@@ -169,40 +179,38 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
                 .roleSource("fint")
                 .roleType("ansatt")
                 .aggregatedRole(false)
-                .members(members)
                 .build();
-        return newRole;
     }
 
     @DisplayName("Test for getOrgUnitsInSearch method - no orgunits in filter all orgunits in scope")
     @Test
     public void givenNoOrgUnitsInFilterAndALLORGUNITSInScope_thenReturnALLORGUNITS() {
-        List<String> orgUnitsInScope = new ArrayList<String>(List.of(OrgUnitType.ALLORGUNITS.name()));
+        List<String> orgUnitsInScope = new ArrayList<>(List.of(OrgUnitType.ALLORGUNITS.name()));
 
         List<String> returnedOrgUnits = roleService.getOrgUnitsInSearch(null, orgUnitsInScope);
 
-        assertThat(returnedOrgUnits.equals(OrgUnitType.ALLORGUNITS.name()));
+        assertThat(returnedOrgUnits.get(0)).isEqualTo(OrgUnitType.ALLORGUNITS.name());
     }
     @DisplayName("Test for getOrgUnitsInSearch method - subset of orgunits in filter all orgunits in scope")
     @Test
     public void givenScopeOrgUnitsInFilterAndALLORGUNITSInScope_thenReturnOrgUnitsInFilter() {
-        List<String> orgUnitsInFilter = new ArrayList<String>(List.of("198", "205", "211"));
-        List<String> orgUnitsInScope = new ArrayList<String>(List.of(OrgUnitType.ALLORGUNITS.name()));
+        List<String> orgUnitsInFilter = new ArrayList<>(List.of("198", "205", "211"));
+        List<String> orgUnitsInScope = new ArrayList<>(List.of(OrgUnitType.ALLORGUNITS.name()));
 
         List<String> returnedOrgUnits = roleService.getOrgUnitsInSearch(orgUnitsInFilter, orgUnitsInScope);
 
-        assertThat(returnedOrgUnits.equals(orgUnitsInFilter));
+        assertThat(returnedOrgUnits).isEqualTo(orgUnitsInFilter);
     }
 
     @DisplayName("Test for getOrgUnitsInSearch method - subset of orgunits in filter and scope")
     @Test
     public void givenNonScopeOrgUnitsInFilter_thenReturnOrgUnitsInBothInFilterAndScope() {
-        List<String> orgUnitsInFilter = new ArrayList<String>(List.of("198", "205", "211","219"));
-        List<String> orgUnitsInScope = new ArrayList<String>(List.of("198", "205", "211","218"));
-        List<String> expectedReturnedOrgUnits = new ArrayList<String>(List.of("198", "205", "211"));
+        List<String> orgUnitsInFilter = new ArrayList<>(List.of("198", "205", "211", "219"));
+        List<String> orgUnitsInScope = new ArrayList<>(List.of("198", "205", "211", "218"));
+        List<String> expectedReturnedOrgUnits = new ArrayList<>(List.of("198", "205", "211"));
 
         List<String> returnedOrgUnits = roleService.getOrgUnitsInSearch(orgUnitsInFilter, orgUnitsInScope);
 
-        assertThat(returnedOrgUnits.equals(expectedReturnedOrgUnits));
+        assertThat(returnedOrgUnits).isEqualTo(expectedReturnedOrgUnits);
     }
 }

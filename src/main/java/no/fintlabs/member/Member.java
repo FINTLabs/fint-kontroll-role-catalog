@@ -1,16 +1,11 @@
 package no.fintlabs.member;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -18,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.membership.Membership;
 import no.fintlabs.role.Role;
 import org.hibernate.Hibernate;
 
@@ -32,11 +28,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @Entity
-@Table(name="members", indexes = @Index(name = "resource_id_index",columnList = "resourceId"))
+@Table(name = "members", indexes = @Index(name = "resource_id_index", columnList = "resourceId"))
 @AllArgsConstructor
-@NoArgsConstructor(access=AccessLevel.PUBLIC, force=true)
+@NoArgsConstructor(access = AccessLevel.PUBLIC, force = true)
 @Builder
+@EqualsAndHashCode
 public class Member {
+
     @Id
     @NonNull
     //@GeneratedValue (strategy = GenerationType.IDENTITY)
@@ -50,29 +48,10 @@ public class Member {
     private String organisationUnitName;
     private String organisationUnitId;
 
-    @ManyToMany(fetch = FetchType.LAZY,
-            cascade = {
-                CascadeType.PERSIST,
-                CascadeType.MERGE
-            },
-            mappedBy = "members")
     @JsonIgnore
     @ToString.Exclude
-    private Set<Role> roles = new HashSet<>();
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Member member = (Member) o;
-        return id != null && Objects.equals(id, member.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
-
+    @OneToMany(mappedBy = "member", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    private Set<Membership> memberships;
 
     public SimpleMember toSimpleMember() {
         return SimpleMember

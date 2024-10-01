@@ -7,6 +7,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -15,4 +16,5 @@ public class RoleCatalogMembership {
     private Long roleId;
     private Long memberId;
     private UUID identityProviderUserObjectId;
+    private String memberStatus;
 }

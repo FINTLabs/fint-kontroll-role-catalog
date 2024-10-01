@@ -1,17 +1,6 @@
 package no.fintlabs.role;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,9 +12,11 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.member.Member;
+import no.fintlabs.membership.Membership;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.NaturalId;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -36,17 +27,20 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 @Entity
-@Table(name="Roles", indexes = @Index(name = "role_id_index",columnList = "roleId"))
+@Table(name = "Roles", indexes = @Index(name = "role_id_index", columnList = "roleId"))
 @AllArgsConstructor
-@NoArgsConstructor(access=AccessLevel.PUBLIC, force=true)
+@NoArgsConstructor(access = AccessLevel.PUBLIC, force = true)
 @Builder
 public class Role {
+
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NaturalId
     @Column(nullable = false, unique = true)
     private String roleId;
+
     @NonNull
     private String resourceId;
     private String roleName;
@@ -60,49 +54,13 @@ public class Role {
     private String organisationUnitName;
     private Integer noOfMembers;
 
-    @ManyToMany(fetch = FetchType.LAZY,
-        cascade = {
-            CascadeType.MERGE
-//                CascadeType.PERSIST
-        })
-    @JoinTable(name ="Role_Memberships",
-        joinColumns = {@JoinColumn(name="role_id")},
-        inverseJoinColumns = {@JoinColumn(name="member_id")})
+    private String roleStatus;
+    private Date roleStatusChanged;
 
     @ToString.Exclude
-    private Set<Member> members = new HashSet<>();
+    @OneToMany(mappedBy = "role", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    private Set<Membership> memberships;
 
-    public void addMember(Member member) {
-        this.members.add(member);
-        member.getRoles().add(this);
-    }
-
-    public void removeMember(Long memberid) {
-        Member member = this.members
-                .stream()
-                .filter(m -> m.getId().equals(memberid))
-                .findFirst()
-                .orElse(null);
-
-        if (member != null)
-        {
-            this.members.remove(member);
-            member.getRoles().remove(this);
-        }
-    }
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Role role = (Role) o;
-        return (id != null && Objects.equals(id, role.id)) || (roleId != null && Objects.equals(roleId, role.roleId));
-
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
     public DetailedRole toDetailedRole() {
         return DetailedRole
                 .builder()
@@ -117,6 +75,7 @@ public class Role {
                 .organisationUnitName(organisationUnitName)
                 .build();
     }
+
     public SimpleRole toSimpleRole() {
         return SimpleRole
                 .builder()

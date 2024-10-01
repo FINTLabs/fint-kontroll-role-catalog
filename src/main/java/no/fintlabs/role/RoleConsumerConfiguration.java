@@ -5,6 +5,7 @@ import no.fintlabs.cache.FintCache;
 import no.fintlabs.kafka.entity.EntityConsumerFactoryService;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.member.Member;
+import no.fintlabs.membership.Membership;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,17 +36,14 @@ public class RoleConsumerConfiguration {
         return entityConsumerFactoryService.createFactory(
                         Role.class,
                         (ConsumerRecord<String, Role> consumerRecord) -> {
-                            List<Long> memberIds = consumerRecord.value().getMembers().stream().map(Member::getId).toList();
 
                             log.info("Role consumed from Kafka with offset {}, roleid: {}, members: {}, resourceid: {}",
                                     consumerRecord.offset() , consumerRecord.value().getRoleId(), memberIds.size(), consumerRecord.value().getResourceId());
 
                             Role savedRole = roleService.save(consumerRecord.value());
 
-                            List<Long> savedMemberIds = savedRole.getMembers().stream().map(Member::getId).toList();
-
-                            log.info("Role saved to database with roleid: {}, members: {}, resourceid: {}"
-                                    , savedRole.getRoleId(), savedMemberIds.size(), savedRole.getResourceId());
+                            log.info("Role saved to database with roleid: {},  resourceid: {}"
+                                    , savedRole.getRoleId(),  savedRole.getResourceId());
                         }
                 )
                 .createContainer(entityTopicNameParameters);

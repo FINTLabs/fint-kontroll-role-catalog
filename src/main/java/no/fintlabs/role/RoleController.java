@@ -2,8 +2,8 @@ package no.fintlabs.role;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.member.Member;
-import no.fintlabs.member.MemberRepository;
 import no.fintlabs.member.MemberResponseFactory;
+import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.Scope;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
@@ -32,19 +32,19 @@ public class RoleController {
     private final RoleResponseFactory roleResponseFactory;
     private final MemberResponseFactory memberResponseFactory;
     private final AuthorizationClient authorizationClient;
-    private final MemberRepository memberRepository;
+    private final MembershipRepository membershipRepository;
 
     public RoleController(RoleService roleService,
                           RoleResponseFactory roleResponseFactory,
                           MemberResponseFactory memberResponseFactory,
                           AuthorizationClient authorizationClient,
-                          MemberRepository memberRepository
+                          MembershipRepository membershipRepository
     ) {
         this.roleService = roleService;
         this.roleResponseFactory = roleResponseFactory;
         this.memberResponseFactory = memberResponseFactory;
         this.authorizationClient = authorizationClient;
-        this.memberRepository = memberRepository;
+        this.membershipRepository = membershipRepository;
     }
 
     private List<String> getOrgUnitsInScope() {
@@ -93,7 +93,7 @@ public class RoleController {
 
         Pageable pageable = Pageable.ofSize(size).withPage(page);
 
-        Page<Member> members = memberRepository.getMembersByRoleId(id, name, pageable);
+        Page<Member> members = membershipRepository.getMembersByRoleId(id, name, pageable);
 
         RoleMemberDto mappedMembers = RoleMemberDto.builder()
                 .members(members.getContent().stream().map(Member::toSimpleMember).collect(Collectors.toList()))

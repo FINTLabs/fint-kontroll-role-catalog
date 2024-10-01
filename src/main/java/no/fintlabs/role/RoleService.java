@@ -2,52 +2,36 @@ package no.fintlabs.role;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.cache.FintCache;
-import no.fintlabs.member.Member;
-import no.fintlabs.member.MemberService;
-//import no.vigoiks.resourceserver.security.FintJwtEndRolePrincipal;
-import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
-import no.fintlabs.roleCatalogRole.RoleCatalogRoleService;
-import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
-import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.OrgUnitType;
+import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class RoleService {
 
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    private MemberService memberService;
-    private RoleCatalogRoleService roleCatalogRoleService;
-    private RoleCatalogMembershipService roleCatalogMembershipService;
-    private AuthorizationClient authorizationClient;
-
-    public RoleService(AuthorizationClient authorizationClient, RoleRepository roleRepository,MemberService memberService, RoleCatalogRoleService roleCatalogRoleService, RoleCatalogMembershipService roleCatalogMembershipService) {
-        this.authorizationClient = authorizationClient;
+    public RoleService(RoleRepository roleRepository) {
         this.roleRepository = roleRepository;
-        this.memberService = memberService;
-        this.roleCatalogRoleService = roleCatalogRoleService;
-        this.roleCatalogMembershipService = roleCatalogMembershipService;
     }
 
     @Transactional
     public Role save(Role role) {
 
         String roleId = role.getRoleId();
-        Set<Member> members = role.getMembers();
 
-        log.info("Save {} members for role {} started", members.size(), roleId);
-
-        memberService.saveAll(members);
-
-        Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
+        //TODO: Change this to getMemberships and then saveAll(memberships)
+        // Members should be obtained by consuming the kontrolluser topic and saved separately
+//        Set<Member> members = role.getMembers();
+//        log.info("Save {} members for role {} started", members.size(), roleId);
+//        memberService.saveAll(members);
+//        log.info("Save {} members for role {} finished", members.size(), roleId);
+       Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
         Role persistedRole;
 
@@ -56,15 +40,30 @@ public class RoleService {
             persistedRole =  roleRepository.save(role);
         } else {
             log.info("Role {} already exists", roleId);
-            log.info("Existing role members size: {}", existingRole.get().getMembers().size());
             role.setId(existingRole.get().getId());
+            Role mappedRole = mapChangesToExistingRole(role, existingRole.get());
             log.info("Updating existing role {}", roleId);
-            persistedRole =  roleRepository.save(role);
+            persistedRole =  roleRepository.save(mappedRole);
         }
 
         log.info("Save/update role {} finished", roleId);
 
         return persistedRole;
+    }
+
+    private Role mapChangesToExistingRole(Role incomingRole, Role existingRole) {
+        existingRole.setResourceId(incomingRole.getResourceId());
+        existingRole.setRoleId(incomingRole.getRoleId());
+        existingRole.setRoleStatus(incomingRole.getRoleStatus());
+        existingRole.setRoleStatusChanged(incomingRole.getRoleStatusChanged());
+        existingRole.setRoleName(incomingRole.getRoleName());
+        existingRole.setRoleType(incomingRole.getRoleType());
+        existingRole.setRoleSubType(incomingRole.getRoleSubType());
+        existingRole.setAggregatedRole(incomingRole.isAggregatedRole());
+        existingRole.setRoleSource(incomingRole.getRoleSource());
+        existingRole.setOrganisationUnitId(incomingRole.getOrganisationUnitId());
+        existingRole.setOrganisationUnitName(incomingRole.getOrganisationUnitName());
+        return existingRole;
     }
 
     public List<Role> getAllRoles() {

@@ -1,0 +1,40 @@
+logging:
+  level:
+    org.flywaydb.core.internal.command.DbMigrate: DEBUG
+    org.springframework.security: DEBUG
+    org.testcontainers: DEBUG
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+          lob:
+            non_contextual_creation: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        enable_lazy_load_no_trans: true
+
+  flyway:
+    locations: classpath:db/migration/
+    lock-retry-count: 300
+    enabled: false
+
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+      group-id: testGroup
+      bootstrap-servers: localhost:9092
+
+fint:
+  application-id: fint-kontroll-role-catalog
+  cache:
+    defaultCacheEntryTimeToLiveMillis: 518400000
+    defaultCacheHeapSize: 1000000
+
+  kontroll:
+    opa:
+      url:
+
+  kafka:
+    application-id: fint-kontroll-role-catalog
