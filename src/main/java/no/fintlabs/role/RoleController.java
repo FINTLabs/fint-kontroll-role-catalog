@@ -8,6 +8,7 @@ import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.Scope;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,51 +30,44 @@ import java.util.stream.Collectors;
 public class RoleController {
 
     private final RoleService roleService;
-    private final RoleResponseFactory roleResponseFactory;
     private final MemberResponseFactory memberResponseFactory;
     private final AuthorizationClient authorizationClient;
     private final MembershipRepository membershipRepository;
 
     public RoleController(RoleService roleService,
-                          RoleResponseFactory roleResponseFactory,
                           MemberResponseFactory memberResponseFactory,
                           AuthorizationClient authorizationClient,
                           MembershipRepository membershipRepository
     ) {
         this.roleService = roleService;
-        this.roleResponseFactory = roleResponseFactory;
         this.memberResponseFactory = memberResponseFactory;
         this.authorizationClient = authorizationClient;
         this.membershipRepository = membershipRepository;
     }
 
-    private List<String> getOrgUnitsInScope() {
-
-        List<Scope> userScopes = authorizationClient.getUserScopesList();
-        log.info("User scopes from api: {}", userScopes);
-
-        return userScopes.stream()
-                .filter(scope -> scope.getObjectType().equals("role"))
-                .map(Scope::getOrgUnits)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-    }
-
     @GetMapping()
-    public ResponseEntity<Map<String, Object>> getSimpleRoles(@AuthenticationPrincipal Jwt jwt,
-                                                              @RequestParam(value = "search", defaultValue = "%") String search,
-                                                              @RequestParam(value = "orgunits", required = false) List<String> orgUnits,
-                                                              @RequestParam(value = "roletype", defaultValue = "ALLTYPES") String roleType,
-                                                              @RequestParam(value = "aggroles", required = false) Boolean aggRoles,
-                                                              @RequestParam(defaultValue = "0") int page,
-                                                              @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size) {
+    public ResponseEntity<Map<String, Object>> getRoles(@AuthenticationPrincipal Jwt jwt,
+                                                        @RequestParam(value = "search", defaultValue = "%") String search,
+                                                        @RequestParam(value = "orgunits", required = false) List<String> orgUnits,
+                                                        @RequestParam(value = "roletype", defaultValue = "ALLTYPES") String roleType,
+                                                        @RequestParam(value = "aggroles", required = false) Boolean aggRoles,
+                                                        @RequestParam(defaultValue = "0") int page,
+                                                        @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size) {
 
         log.info("search: " + search + "showaggroles: " + aggRoles);
 
         List<String> orgUnitsInScope = getOrgUnitsInScope();
         log.info("Org units returned from scope: {}", orgUnitsInScope);
 
-        return roleResponseFactory.toResponseEntity(FintJwtEndUserPrincipal.from(jwt), search, orgUnits, orgUnitsInScope, roleType, aggRoles, page, size);
+        PageRequest pageRequest = PageRequest.of(page, size);
+
+        List<Role> rolesByParams = roleService.getRolesByParams(search, roleType, aggRoles, orgUnits, orgUnitsInScope);
+
+        List<SimpleRole> simpleRoles = rolesByParams.stream()
+                .map(Role::toSimpleRole)
+                .collect(Collectors.toList());
+
+        return RoleResponseFactory.toResponseEntity(RoleResponseFactory.toPage(simpleRoles, pageRequest));
 
     }
 
@@ -104,5 +98,17 @@ public class RoleController {
                 .build();
 
         return ResponseEntity.ok(mappedMembers);
+    }
+
+    private List<String> getOrgUnitsInScope() {
+
+        List<Scope> userScopes = authorizationClient.getUserScopesList();
+        log.info("User scopes from api: {}", userScopes);
+
+        return userScopes.stream()
+                .filter(scope -> scope.getObjectType().equals("role"))
+                .map(Scope::getOrgUnits)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 }

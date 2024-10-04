@@ -16,4 +16,5 @@ public class SimpleRole {
     private boolean aggregatedRole;
     private String organisationUnitId;
     private String organisationUnitName;
+    private Integer memberships;
 }
