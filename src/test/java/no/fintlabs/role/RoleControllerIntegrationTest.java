@@ -2,8 +2,10 @@ package no.fintlabs.role;
 
 import no.fintlabs.DatabaseIntegrationTest;
 import no.fintlabs.member.Member;
+import no.fintlabs.member.MemberConsumer;
 import no.fintlabs.member.MemberRepository;
 import no.fintlabs.membership.Membership;
+import no.fintlabs.membership.MembershipConsumer;
 import no.fintlabs.membership.MembershipId;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
@@ -19,7 +21,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +57,15 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
 
     @MockBean
     private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
+
+    @MockBean
+    private MembershipConsumer membershipConsumer;
+
+    @MockBean
+    private MemberConsumer memberConsumer;
+
+    @MockBean
+    private RoleConsumerConfiguration roleConsumerConfiguration;
 
     @MockBean
     private FintKontrollSecurityConfig fintKontrollSecurityConfig;
