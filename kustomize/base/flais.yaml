@@ -30,7 +30,7 @@ spec:
     - name: spring.kafka.consumer.group-id
       value: 'fint-kontroll-role-catalog'
     - name: JAVA_TOOL_OPTIONS
-      value: "-XX:+ExitOnOutOfMemoryError -Xms512m -Xmx912m -verbose:gc"
+      value: "-XX:+ExitOnOutOfMemoryError -Xms512m -Xmx912m"
   envFrom:
     - configMapRef:
         name: fint-environment
