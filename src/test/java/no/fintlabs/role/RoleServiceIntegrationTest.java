@@ -110,6 +110,7 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
         assertThat(foundMemberships.get(0).getMembershipStatus()).isEqualTo("ACTIVE");
     }
 
+
     @NotNull
     private Set<Membership> createMembership(Role role, Member member) {
         Membership membership = new Membership();

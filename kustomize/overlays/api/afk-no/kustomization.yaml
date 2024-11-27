@@ -36,13 +36,13 @@ patches:
         value: "afk-no-fint-kontroll-role-catalog"
       - op: replace
         path: "/spec/env/2/value"
-        value: "-XX:+ExitOnOutOfMemoryError -Xms512m -Xmx1408m -verbose:gc"
+        value: "-XX:+ExitOnOutOfMemoryError -Xmx1950m"
       - op: replace
         path: "/spec/resources"
         value: 
           limits:
             cpu: "2000m"
-            memory: "1512Mi"
+            memory: "2000Mi"
           requests:
             cpu: "1000m"
             memory: "1024Mi"

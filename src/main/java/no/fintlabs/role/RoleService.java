@@ -93,24 +93,9 @@ public class RoleService {
                 .orElse(new DetailedRole());
     }
 
-    public List<SimpleRole> getSimpleRoles(
-            FintJwtEndUserPrincipal principal,
-            String search,
-            List<String> orgUnits,
-            List<String> orgUnitsInScope,
-            String roleType,
-            Boolean aggRoles
-    ) {
+    public List<Role> getRolesByParams(String search, String roleType, Boolean aggRoles, List<String> orgUnits, List<String> orgUnitsInScope) {
         List<String> orgUnitsInSearch = getOrgUnitsInSearch(orgUnits, orgUnitsInScope);
-        List<Role> roles = getRoles(search, roleType, aggRoles, orgUnitsInSearch);
 
-        return roles.stream()
-                .map(Role::toSimpleRole)
-                .toList();
-    }
-
-    private List<Role> getRoles(String search, String roleType, Boolean aggRoles, List<String> orgUnitsInSearch) {
-        List<Role> roles;
         if (orgUnitsInSearch.contains(OrgUnitType.ALLORGUNITS.name())) {
             if (roleType.equals("ALLTYPES")) {
                 if (aggRoles == null) {
