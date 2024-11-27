@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.EntityManager;
 import no.fintlabs.DatabaseIntegrationTest;
 import no.fintlabs.member.Member;
+import no.fintlabs.member.MemberConsumer;
 import no.fintlabs.member.MemberRepository;
 import no.fintlabs.role.Role;
+import no.fintlabs.role.RoleConsumerConfiguration;
 import no.fintlabs.role.RoleRepository;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
@@ -86,6 +88,12 @@ public class MembershipConsumerIntegrationTest extends DatabaseIntegrationTest {
 
     @MockBean
     private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
+
+    @MockBean
+    private MemberConsumer memberConsumer;
+
+    @MockBean
+    private RoleConsumerConfiguration roleConsumerConfiguration;
 
     @MockBean
     private FintKontrollSecurityConfig fintKontrollSecurityConfig;

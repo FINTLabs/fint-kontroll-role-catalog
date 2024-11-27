@@ -1,8 +1,10 @@
 package no.fintlabs.membership;
 
 import no.fintlabs.member.Member;
+import no.fintlabs.member.MemberConsumer;
 import no.fintlabs.member.MemberRepository;
 import no.fintlabs.role.Role;
+import no.fintlabs.role.RoleConsumerConfiguration;
 import no.fintlabs.role.RoleRepository;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
@@ -52,6 +54,12 @@ public class MembershipKafkaConsumerIntegrationTest {
 
     @MockBean
     private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
+
+    @MockBean
+    private MemberConsumer memberConsumer;
+
+    @MockBean
+    private RoleConsumerConfiguration roleConsumerConfiguration;
 
     @MockBean
     private FintKontrollSecurityConfig fintKontrollSecurityConfig;
