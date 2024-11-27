@@ -10,7 +10,7 @@ fint:
     role-catalog:
       pagesize: 50
       publishing:
-        initial-delay: 600000
+        initial-delay: 60000
         fixed-delay: 900000
     opa:
       url: http://fint-kontroll-opa:8181/v1/data/accessmanagement
