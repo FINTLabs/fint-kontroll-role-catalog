@@ -33,9 +33,6 @@ public class RoleControllerTest {
     private RoleService roleServiceMock;
 
     @MockBean
-    private RoleResponseFactory roleResponseFactory;
-
-    @MockBean
     private MemberResponseFactory memberResponseFactory;
 
     @MockBean

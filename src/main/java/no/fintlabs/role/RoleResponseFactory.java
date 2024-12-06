@@ -14,33 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class RoleResponseFactory {
-    private final FintFilterService fintFilterService;
-    private final RoleRepository roleRepository;
-    private final RoleService roleService;
-
-    public RoleResponseFactory(FintFilterService fintFilterService, RoleRepository roleRepository, RoleService roleService) {
-        this.fintFilterService = fintFilterService;
-        this.roleRepository = roleRepository;
-        this.roleService = roleService;
-    }
-
-    public ResponseEntity<Map<String, Object>> toResponseEntity(FintJwtEndUserPrincipal principal,
-                                                                String search,
-                                                                List<String> orgUnits,
-                                                                List<String> orgUnitsInScope,
-                                                                String roleType,
-                                                                Boolean aggRoles,
-                                                                int page,
-                                                                int size
-    ){
-        List<SimpleRole> simpleRoles = roleService.getSimpleRoles(principal,search,orgUnits,orgUnitsInScope, roleType,aggRoles);
-
-        return toResponseEntity(toPage(simpleRoles,PageRequest.of(page,size)));
-    }
-
-    private Page<SimpleRole> toPage(List<SimpleRole> list, Pageable paging) {
+    public static Page<SimpleRole> toPage(List<SimpleRole> list, Pageable paging) {
         int start = (int) paging.getOffset();
         int end = Math.min((start + paging.getPageSize()), list.size());
 
@@ -49,7 +24,7 @@ public class RoleResponseFactory {
                 : new PageImpl<>(list.subList(start, end), paging, list.size());
     }
 
-    public ResponseEntity<Map<String, Object>> toResponseEntity(Page<SimpleRole> rolePage) {
+    public static ResponseEntity<Map<String, Object>> toResponseEntity(Page<SimpleRole> rolePage) {
 
         return new ResponseEntity<>(
                 Map.of(

@@ -31,6 +31,18 @@ patches:
       - op: replace
         path: "/spec/env/0/value"
         value: "ofk.no"
+      - op: replace
+        path: "/spec/env/2/value"
+        value: "-XX:+ExitOnOutOfMemoryError -Xmx1950m"
+      - op: replace
+        path: "/spec/resources"
+        value:
+          limits:
+            cpu: "2000m"
+            memory: "2000Mi"
+          requests:
+            cpu: "1000m"
+            memory: "1024Mi"
     target:
       kind: Application
       name: fint-kontroll-role-catalog
