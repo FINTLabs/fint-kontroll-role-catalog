@@ -41,8 +41,8 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 public class MembershipKafkaConsumerIntegrationTest {
     private static final String applicationId = "fint-kontroll-role-cat";
-    private static final String topicOrgId = "testorg";
-    private static final String topicDomainContext = "testdomain";
+    private static final String topicOrgId = "testorgmembership";
+    private static final String topicDomainContext = "testdomainmembership";
 
     @MockBean
     private RoleCatalogMembershipEntityProducerService roleCatalogMembershipEntityProducerService;
@@ -75,6 +75,8 @@ public class MembershipKafkaConsumerIntegrationTest {
         registry.add("fint.kafka.topic.org-id", () -> topicOrgId);
         registry.add("fint.kafka.topic.domain-context", () -> topicDomainContext);
         registry.add("fint.kafka.application-id", () -> applicationId);
+        registry.add("fint.cache.defaultCacheEntryTimeToLiveMillis", () -> 518400000);
+        registry.add("fint.cache.defaultCacheHeapSize", () -> 1000000);
     }
 
     @Test
@@ -112,8 +114,6 @@ public class MembershipKafkaConsumerIntegrationTest {
         producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        producerConfig.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
-        producerConfig.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 5000);
         ProducerFactory<String, KafkaMembership> producerFactory = new DefaultKafkaProducerFactory<>(producerConfig);
         return new KafkaTemplate<>(producerFactory);
     }
