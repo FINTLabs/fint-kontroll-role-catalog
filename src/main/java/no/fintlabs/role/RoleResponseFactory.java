@@ -37,6 +37,4 @@ public class RoleResponseFactory {
                 HttpStatus.OK
         );
     }
-
-
 }

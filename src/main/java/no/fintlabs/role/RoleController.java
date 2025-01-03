@@ -7,9 +7,14 @@ import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.Scope;
 import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.SortDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
 import java.util.List;
@@ -69,6 +75,26 @@ public class RoleController {
 
         return RoleResponseFactory.toResponseEntity(RoleResponseFactory.toPage(simpleRoles, pageRequest));
 
+    }
+    @GetMapping("/v1")
+    public ResponseEntity<Map<String, Object>> getRoles(
+            //@AuthenticationPrincipal Jwt jwt,
+            @RequestParam(value = "search", required = false) String searchName,
+            @RequestParam(value = "orgunits", required = false) List<String> orgUnits,
+            @RequestParam(value = "roletypes", required = false) List<String> roleTypes,
+            @RequestParam(value = "aggroles", required = false) Boolean aggRoles,
+            @SortDefault(sort = "roleName", direction = Sort.Direction.ASC)
+            @ParameterObject @PageableDefault(size = 100) Pageable pageable
+    ) {
+        log.info("Fetching all roles with params search: {} orgUnits: {} roleTypes: {} getAggRoles: {} " , searchName, orgUnits, roleTypes, aggRoles);
+
+        try {
+            Page<Role> rolesByParams = roleService.findBySearchCriteria(searchName, roleTypes, orgUnits, aggRoles, pageable);
+            return ResponseEntity.ok(RoleMapper.toRoleDtoPage(rolesByParams));
+        } catch (Exception e) {
+            log.error("Error fetching roles", e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Something went wrong when fetching roles");
+        }
     }
 
     @GetMapping("{id}")
