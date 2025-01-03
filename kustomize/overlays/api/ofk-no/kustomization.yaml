@@ -32,6 +32,9 @@ patches:
         path: "/spec/env/0/value"
         value: "ofk.no"
       - op: replace
+        path: "/spec/observability/metrics/path"
+        value: "/ofk-no/actuator/prometheus"
+      - op: replace
         path: "/spec/env/2/value"
         value: "-XX:+ExitOnOutOfMemoryError -Xmx1950m"
       - op: replace

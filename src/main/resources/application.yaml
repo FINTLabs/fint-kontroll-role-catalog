@@ -44,3 +44,9 @@ springdoc:
         name: fint-environment
     - configMapRef:
         name: fint-kontroll-rolecatalog-config
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus,health,info"

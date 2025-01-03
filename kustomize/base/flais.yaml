@@ -36,6 +36,13 @@ spec:
         name: fint-environment
     - configMapRef:
         name: fint-kontroll-rolecatalog-config
+
+  observability:
+    metrics:
+      enabled: true
+      port: "8080"
+      path: '/beta/fintlabs-no/actuator/prometheus'
+
   resources:
     limits:
       cpu: 1000m
