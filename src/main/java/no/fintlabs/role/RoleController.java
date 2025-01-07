@@ -77,7 +77,7 @@ public class RoleController {
 
     }
     @GetMapping("/v1")
-    public ResponseEntity<Map<String, Object>> getRoles(
+    public ResponseEntity<Map<String, Object>> getRolesV1(
             //@AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "search", required = false) String searchName,
             @RequestParam(value = "orgunits", required = false) List<String> orgUnits,
