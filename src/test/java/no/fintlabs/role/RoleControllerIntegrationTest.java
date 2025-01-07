@@ -166,7 +166,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
     }
     @Test
     @Order(4)
-    void whenMultipleOrgUnitsAndRoleTypesIsSupplied_shouldShouldReturnCorrespondingRoles() {
+    void whenMultipleOrgUnitsAndRoleTypesIsSupplied_shouldReturnCorrespondingRoles() {
         List<Scope> userScopes = List.of(Scope.builder()
                 .objectType("role")
                 .orgUnits(List.of(OrgUnitType.ALLORGUNITS.name()))
