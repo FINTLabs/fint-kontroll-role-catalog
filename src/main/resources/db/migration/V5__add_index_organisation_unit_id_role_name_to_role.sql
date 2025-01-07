@@ -1,0 +1,1 @@
+create index org_unit_id_role_name_index on roles (organisation_unit_id, role_name);

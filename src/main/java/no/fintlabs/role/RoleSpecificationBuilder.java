@@ -11,20 +11,20 @@ public class RoleSpecificationBuilder {
     private final String searchString;
     private final List<String> filteredOrgUnits;
     private final List<String> orgUnitsInScope;
-    private final List<String> userTypes;
+    private final List<String> roleTypes;
     private final Boolean getAggregatedRoles;
 
     public RoleSpecificationBuilder(
             String search,
             List<String> filteredOrgUnits,
             List<String> orgUnitsInScope,
-            List<String> userTypes,
+            List<String> roleTypes,
             Boolean getAggregatedRoles
     ) {
         this.searchString = search;
         this.filteredOrgUnits = filteredOrgUnits;
         this.orgUnitsInScope = orgUnitsInScope;
-        this.userTypes = userTypes;
+        this.roleTypes = roleTypes;
         this.getAggregatedRoles = getAggregatedRoles;
     }
 
@@ -42,8 +42,8 @@ public class RoleSpecificationBuilder {
         if (filteredOrgUnits != null) {
             roleSpecification = roleSpecification.and(belongsToOrgUnit(filteredOrgUnits));
         }
-        if (userTypes != null ) {
-            roleSpecification = roleSpecification.and(belongsToUserType(userTypes));
+        if (roleTypes != null ) {
+            roleSpecification = roleSpecification.and(belongsToRoleType(roleTypes));
         }
         if (getAggregatedRoles!=null) {
             roleSpecification = roleSpecification.and(isAggregatedRole(getAggregatedRoles));
@@ -60,8 +60,8 @@ public class RoleSpecificationBuilder {
     private Specification<Role> belongsToOrgUnit(List<String> orgUnits) {
         return (root, query, criteriaBuilder)-> criteriaBuilder.in(root.get("organisationUnitId")).value(orgUnits);
     }
-    private Specification<Role> belongsToUserType(List<String> orgUnits) {
-        return (root, query, criteriaBuilder)-> criteriaBuilder.in(root.get("userType")).value(orgUnits);
+    private Specification<Role> belongsToRoleType(List<String> roleTypes) {
+        return (root, query, criteriaBuilder)-> criteriaBuilder.in(root.get("roleType")).value(roleTypes);
     }
     private Specification<Role> isAggregatedRole(Boolean aggregatedRole) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("aggregatedRole"), aggregatedRole);

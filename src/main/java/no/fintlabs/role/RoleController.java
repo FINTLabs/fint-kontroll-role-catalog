@@ -83,13 +83,16 @@ public class RoleController {
             @RequestParam(value = "orgunits", required = false) List<String> orgUnits,
             @RequestParam(value = "roletypes", required = false) List<String> roleTypes,
             @RequestParam(value = "aggroles", required = false) Boolean aggRoles,
-            @SortDefault(sort = "roleName", direction = Sort.Direction.ASC)
+            @SortDefault.SortDefaults({
+                    @SortDefault(sort="organisationUnitId", direction = Sort.Direction.ASC),
+                    @SortDefault(sort = {"roleName"}, direction = Sort.Direction.ASC)
+            })
             @ParameterObject @PageableDefault(size = 100) Pageable pageable
     ) {
         log.info("Fetching all roles with params search: {} orgUnits: {} roleTypes: {} getAggRoles: {} " , searchName, orgUnits, roleTypes, aggRoles);
 
         try {
-            Page<Role> rolesByParams = roleService.findBySearchCriteria(searchName, roleTypes, orgUnits, aggRoles, pageable);
+            Page<Role> rolesByParams = roleService.findBySearchCriteria(searchName, orgUnits, roleTypes, aggRoles, pageable);
             return ResponseEntity.ok(RoleMapper.toRoleDtoPage(rolesByParams));
         } catch (Exception e) {
             log.error("Error fetching roles", e);
