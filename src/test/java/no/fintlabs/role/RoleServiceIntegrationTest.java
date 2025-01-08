@@ -7,10 +7,14 @@ import no.fintlabs.member.MemberService;
 import no.fintlabs.membership.Membership;
 import no.fintlabs.membership.MembershipId;
 import no.fintlabs.membership.MembershipRepository;
+import no.fintlabs.opa.AuthorizationClient;
+import no.fintlabs.opa.OpaService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -33,6 +37,8 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
     private MemberRepository memberRepository;
     @Autowired
     private MembershipRepository membershipRepository;
+    @MockBean
+    private OpaService opaService;
 
     @Test
     public void shouldSaveRoleMemberRelationship() {

@@ -51,7 +51,7 @@ public class RoleController {
         this.membershipRepository = membershipRepository;
     }
 
-    @GetMapping()
+    @GetMapping("/old")
     public ResponseEntity<Map<String, Object>> getRoles(@AuthenticationPrincipal Jwt jwt,
                                                         @RequestParam(value = "search", defaultValue = "%") String search,
                                                         @RequestParam(value = "orgunits", required = false) List<String> orgUnits,
@@ -76,12 +76,12 @@ public class RoleController {
         return RoleResponseFactory.toResponseEntity(RoleResponseFactory.toPage(simpleRoles, pageRequest));
 
     }
-    @GetMapping("/v1")
+    @GetMapping()
     public ResponseEntity<Map<String, Object>> getRolesV1(
             //@AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "search", required = false) String searchName,
             @RequestParam(value = "orgunits", required = false) List<String> orgUnits,
-            @RequestParam(value = "roletypes", required = false) List<String> roleTypes,
+            @RequestParam(value = "roletype", required = false) List<String> roleTypes,
             @RequestParam(value = "aggroles", required = false) Boolean aggRoles,
             @SortDefault.SortDefaults({
                     @SortDefault(sort="organisationUnitId", direction = Sort.Direction.ASC),
