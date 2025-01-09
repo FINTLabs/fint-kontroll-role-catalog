@@ -83,10 +83,7 @@ public class RoleController {
             @RequestParam(value = "orgunits", required = false) List<String> orgUnits,
             @RequestParam(value = "roletype", required = false) List<String> roleTypes,
             @RequestParam(value = "aggroles", required = false) Boolean aggRoles,
-            @SortDefault.SortDefaults({
-                    @SortDefault(sort="organisationUnitId", direction = Sort.Direction.ASC),
-                    @SortDefault(sort = {"roleName"}, direction = Sort.Direction.ASC)
-            })
+            @SortDefault(sort = {"roleName"}, direction = Sort.Direction.ASC)
             @ParameterObject @PageableDefault(size = 100) Pageable pageable
     ) {
         log.info("Fetching all roles with params search: {} orgUnits: {} roleTypes: {} getAggRoles: {} " , searchName, orgUnits, roleTypes, aggRoles);

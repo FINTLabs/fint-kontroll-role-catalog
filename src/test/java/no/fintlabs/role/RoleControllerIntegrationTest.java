@@ -111,7 +111,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
 
         when(authorizationClient.getUserScopesList()).thenReturn(userScopes);
 
-        Sort sort = Sort.by(Sort.Order.asc("organisationUnitId"), Sort.Order.asc("roleName"));
+        Sort sort = Sort.by(Sort.Order.asc("roleName"));
         Pageable pageable = PageRequest.of(0, 10, sort);
 
         ResponseEntity<Map<String, Object>> response = roleController.getRolesV1(null, null, null, null, pageable);
@@ -119,8 +119,8 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         List<RoleDto> foundRoles = (List<RoleDto>) response.getBody().get("roles");
         assertEquals(5, foundRoles.size());
 
-        List<RoleDto> expectedRoles = List.of( roleDto, roleDto2, roleDto1, roleDto3, roleDto4);
-        assertEquals(foundRoles, expectedRoles);
+        List<RoleDto> expectedRoles = List.of( roleDto1, roleDto3, roleDto2, roleDto, roleDto4);
+        assertEquals(expectedRoles, foundRoles);
    }
     @Test
     @Order(2)
