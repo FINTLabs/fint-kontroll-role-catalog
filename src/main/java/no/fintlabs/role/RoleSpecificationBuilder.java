@@ -29,12 +29,10 @@ public class RoleSpecificationBuilder {
     }
 
     public Specification<Role> build() {
-        Specification<Role> roleSpecification;
+        Specification<Role> roleSpecification = Specification.where(roleIsActive());
 
         if (searchString != null) {
-            roleSpecification = roleNameLike(searchString);
-        } else {
-            roleSpecification = Specification.where(null);
+            roleSpecification = roleSpecification.and(roleNameLike(searchString));
         }
         if(!orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS.name())) {
             roleSpecification = roleSpecification.and(belongsToOrgUnit(orgUnitsInScope));
@@ -49,6 +47,12 @@ public class RoleSpecificationBuilder {
             roleSpecification = roleSpecification.and(isAggregatedRole(getAggregatedRoles));
         }
         return roleSpecification;
+    }
+
+private Specification<Role> roleIsActive() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.or(criteriaBuilder.equal(criteriaBuilder.lower(root.get("roleStatus")), "active"),
+                        criteriaBuilder.isNull(root.get("roleStatus")));
     }
 
     private Specification<Role> roleNameLike(String search) {

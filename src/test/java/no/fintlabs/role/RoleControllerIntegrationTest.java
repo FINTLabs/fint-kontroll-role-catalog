@@ -83,8 +83,8 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
     @Autowired
     private RoleRepository roleRepository;
 
-    Role role, role1, role2, role3, role4;
-    RoleDto roleDto, roleDto1, roleDto2, roleDto3, roleDto4;
+    Role role, role1, role2, role3, role4, role5;
+    RoleDto roleDto, roleDto1, roleDto2, roleDto3, roleDto4, roleDto5;
 
     @BeforeEach void setUp() {;
         membershipRepository.deleteAll();
@@ -95,11 +95,13 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         role2 = createRole2();
         role3 = createRole3();
         role4 = createRole4();
+        role5 = createRole5();
         roleDto = RoleMapper.toRoleDto(role);
         roleDto1 = RoleMapper.toRoleDto(role1);
         roleDto2 = RoleMapper.toRoleDto(role2);
         roleDto3 = RoleMapper.toRoleDto(role3);
         roleDto4 = RoleMapper.toRoleDto(role4);
+        roleDto5 = RoleMapper.toRoleDto(role5);
     }
     @Test
     @Order(1)
@@ -233,6 +235,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         role.setOrganisationUnitName("VARFK Vår fylkeskommune");
         role.setRoleSource("fint");
         role.setAggregatedRole(false);
+        role.setRoleStatus("ACTIVE");
         role.setNoOfMembers(1);
         role = roleRepository.save(role);
         return role;
@@ -248,6 +251,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         role.setOrganisationUnitName("DIGIT Digitaliseringsavdeling");
         role.setRoleSource("fint");
         role.setAggregatedRole(false);
+        role.setRoleStatus("ACTIVE");
         role.setNoOfMembers(1);
         role = roleRepository.save(role);
         return role;
@@ -263,6 +267,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         role.setOrganisationUnitName("PLAN Samferdsel");
         role.setRoleSource("fint");
         role.setAggregatedRole(false);
+        role.setRoleStatus("ACTIVE");
         role.setNoOfMembers(1);
         role = roleRepository.save(role);
         return role;
@@ -278,6 +283,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         role.setOrganisationUnitName("DIGIT Digitaliseringsavdeling");
         role.setRoleSource("fint");
         role.setAggregatedRole(true);
+        role.setRoleStatus("ACTIVE");
         role.setNoOfMembers(1);
         role = roleRepository.save(role);
         return role;
@@ -297,7 +303,22 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         role = roleRepository.save(role);
         return role;
     }
-
+    @NotNull
+    private Role createRole5 () {
+        Role role = new Role();
+        role.setRoleId("elev@gvmidt-old");
+        role.setResourceId("https://test.test");
+        role.setRoleName("Elev - VGMIDT Midtbyen videregående skole- INACTIVE");
+        role.setRoleType("elev");
+        role.setOrganisationUnitId("V40.10");
+        role.setOrganisationUnitName("VGMIDT Midtbyen videregående skole - INACTIVE");
+        role.setRoleSource("fint");
+        role.setAggregatedRole(false);
+        role.setRoleStatus("INACTIVE");
+        role.setNoOfMembers(1);
+        role = roleRepository.save(role);
+        return role;
+    }
     @NotNull
     private Member createMember() {
         Member member = new Member();
