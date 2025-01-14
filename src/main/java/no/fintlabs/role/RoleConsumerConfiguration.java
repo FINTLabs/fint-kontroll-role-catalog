@@ -46,8 +46,11 @@ public class RoleConsumerConfiguration {
 
                             Role savedRole = roleService.save(consumerRecord.value());
 
-                            log.info("Role saved to database with roleid: {}, rolestatus: {}  resourceid: {}"
-                                    , savedRole.getRoleId(), consumerRecord.value().getRoleStatus(), savedRole.getResourceId());
+                            log.info("Role {} saved to database with roleid: {}, rolestatus: {}  resourceid: {}",
+                                    consumerRecord.value().getRoleName(),
+                                    consumerRecord.value().getRoleId(),
+                                    consumerRecord.value().getRoleStatus(),
+                                    consumerRecord.value().getResourceId());
                         }
                 )
                 .createContainer(entityTopicNameParameters);
