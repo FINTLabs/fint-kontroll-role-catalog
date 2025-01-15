@@ -3,21 +3,47 @@ package no.fintlabs.role;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.opa.model.OrgUnitType;
-import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import no.fintlabs.opa.OpaService;
 
 @Service
 @Slf4j
 public class RoleService {
 
     private final RoleRepository roleRepository;
+    private final OpaService opaService;
 
-    public RoleService(RoleRepository roleRepository) {
+    public RoleService(RoleRepository roleRepository, OpaService opaService) {
         this.roleRepository = roleRepository;
+        this.opaService = opaService;
+    }
+
+    public Page<Role> findBySearchCriteria(
+            String searchString,
+            List<String> filteredOrgUnits,
+            List<String> roleTypes,
+            Boolean getAggregatedRoles,
+            Pageable pageable
+    ) {
+        List<String> orgUnitsInScope = opaService.getOrgUnitsInScope("role");
+        log.info("Org units returned from scope: {}", orgUnitsInScope);
+
+        RoleSpecificationBuilder roleSpecificationBuilder = new RoleSpecificationBuilder(
+                searchString,
+                filteredOrgUnits,
+                orgUnitsInScope,
+                roleTypes,
+                getAggregatedRoles
+        );
+        return roleRepository
+                .findAll(roleSpecificationBuilder.build(), pageable);
     }
 
     @Transactional
@@ -67,7 +93,7 @@ public class RoleService {
     }
 
     public List<Role> getAllRoles() {
-        return roleRepository.findAll().stream().collect(Collectors.toList());
+        return new ArrayList<>(roleRepository.findAll());
     }
 
     public Role createNewRole(Role role) {
@@ -93,7 +119,13 @@ public class RoleService {
                 .orElse(new DetailedRole());
     }
 
-    public List<Role> getRolesByParams(String search, String roleType, Boolean aggRoles, List<String> orgUnits, List<String> orgUnitsInScope) {
+    public List<Role> getRolesByParams(
+            String search,
+            String roleType,
+            Boolean aggRoles,
+            List<String> orgUnits,
+            List<String> orgUnitsInScope
+    ) {
         List<String> orgUnitsInSearch = getOrgUnitsInSearch(orgUnits, orgUnitsInScope);
 
         if (orgUnitsInSearch.contains(OrgUnitType.ALLORGUNITS.name())) {

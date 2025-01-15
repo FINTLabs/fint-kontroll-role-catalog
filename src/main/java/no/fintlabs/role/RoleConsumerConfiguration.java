@@ -37,13 +37,20 @@ public class RoleConsumerConfiguration {
                         Role.class,
                         (ConsumerRecord<String, Role> consumerRecord) -> {
 
-                            log.info("Role consumed from Kafka with offset {}, roleid: {}, members: {}, resourceid: {}",
-                                     consumerRecord.offset() , consumerRecord.value().getRoleId(), consumerRecord.value().getNoOfMembers(), consumerRecord.value().getResourceId());
+                            log.info("Role {} consumed from Kafka with offset {}, roleid: {}, rolestatus: {}, resourceid: {}",
+                                    consumerRecord.value().getRoleName(),
+                                    consumerRecord.offset(),
+                                    consumerRecord.value().getRoleId(),
+                                    consumerRecord.value().getRoleStatus(),
+                                    consumerRecord.value().getResourceId());
 
                             Role savedRole = roleService.save(consumerRecord.value());
 
-                            log.info("Role saved to database with roleid: {},  resourceid: {}"
-                                    , savedRole.getRoleId(),  savedRole.getResourceId());
+                            log.info("Role {} saved to database with roleid: {}, rolestatus: {}  resourceid: {}",
+                                    consumerRecord.value().getRoleName(),
+                                    consumerRecord.value().getRoleId(),
+                                    consumerRecord.value().getRoleStatus(),
+                                    consumerRecord.value().getResourceId());
                         }
                 )
                 .createContainer(entityTopicNameParameters);

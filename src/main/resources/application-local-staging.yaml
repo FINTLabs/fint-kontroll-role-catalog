@@ -14,10 +14,10 @@ fint:
     role-catalog:
       pagesize: 50
       publishing:
-        initial-delay: 30000
+        initial-delay: 3000000
         fixed-delay: 60000
       persisting:
-        initial-delay: 10000
+        initial-delay: 1000000
         fixed-delay: 60000
 spring:
   kafka:
@@ -51,3 +51,5 @@ logging:
   level:
     root: INFO
     #org.apache.kafka: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
