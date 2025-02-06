@@ -171,4 +171,13 @@ public class RoleService {
         log.info("OrgUnits in search: {}", filteredOrgUnits);
         return filteredOrgUnits;
     }
+    public Integer getNoOfActiveMemberships(Role role) {
+        Integer noOfActiveMemberships = role.getMemberships()
+                .stream()
+                .filter(membership -> membership.getMembershipStatus().equals("ACTIVE"))
+                .toList()
+                .size();
+        log.info("Role {} ({})  has {} active memberships", role.getId(), role.getRoleName(), noOfActiveMemberships);
+        return noOfActiveMemberships;
+    }
 }

@@ -61,6 +61,13 @@ public class Role {
     @OneToMany(mappedBy = "role", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     private Set<Membership> memberships;
 
+    @Transient
+    Integer noOfMemberships = memberships == null ? 0 : this.memberships
+            .stream()
+            .filter(membership -> membership.getMembershipStatus().equals("ACTIVE"))
+            .toList()
+            .size();
+
     public DetailedRole toDetailedRole() {
         return DetailedRole
                 .builder()
@@ -86,7 +93,7 @@ public class Role {
                 .aggregatedRole(aggregatedRole)
                 .organisationUnitId(organisationUnitId)
                 .organisationUnitName(organisationUnitName)
-                .memberships(memberships != null ? memberships.size() : 0)
+                .memberships(noOfMemberships)
                 .build();
     }
 }
