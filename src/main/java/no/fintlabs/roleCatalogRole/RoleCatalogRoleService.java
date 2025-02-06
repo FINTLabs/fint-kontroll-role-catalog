@@ -1,8 +1,10 @@
 package no.fintlabs.roleCatalogRole;
 
+import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.role.Role;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class RoleCatalogRoleService {
     private final RoleCatalogRoleEntityProducerService roleCatalogRoleEntityProducerService;
@@ -29,10 +31,12 @@ public class RoleCatalogRoleService {
     }
 
     private Integer getNoOfActiveMemberships(Role role) {
-        return role.getMemberships()
+        Integer noOfActiveMemberships = role.getMemberships()
                 .stream()
                 .filter(membership -> membership.getMembershipStatus().equals("ACTIVE"))
                 .toList()
                 .size();
+        log.info("Role {} ({})  has {} active memberships", role.getId(), role.getRoleName(), noOfActiveMemberships);
+        return noOfActiveMemberships;
     }
 }
