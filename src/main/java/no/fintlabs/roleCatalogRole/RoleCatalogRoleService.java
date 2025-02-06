@@ -1,10 +1,7 @@
 package no.fintlabs.roleCatalogRole;
 
-import no.fintlabs.roleCatalogRole.RoleCatalogRole;
 import no.fintlabs.role.Role;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class RoleCatalogRoleService {
@@ -21,7 +18,7 @@ public class RoleCatalogRoleService {
                 .id(role.getId())
                 .roleId(role.getRoleId())
                 .roleName(role.getRoleName())
-                .noOfMembers(role.getNoOfMembers())
+                .noOfMembers(getNoOfActiveMemberships(role))
                 .roleType(role.getRoleType())
                 .roleName(role.getRoleName())
                 .organisationUnitId(role.getOrganisationUnitId())
@@ -29,5 +26,13 @@ public class RoleCatalogRoleService {
                 .roleStatus(role.getRoleStatus())
                 .roleStatusChanged(role.getRoleStatusChanged())
                 .build();
+    }
+
+    private Integer getNoOfActiveMemberships(Role role) {
+        return role.getMemberships()
+                .stream()
+                .filter(membership -> membership.getMembershipStatus().equals("ACTIVE"))
+                .toList()
+                .size();
     }
 }
