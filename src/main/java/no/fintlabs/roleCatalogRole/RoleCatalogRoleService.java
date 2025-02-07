@@ -23,7 +23,7 @@ public class RoleCatalogRoleService {
                 .id(role.getId())
                 .roleId(role.getRoleId())
                 .roleName(role.getRoleName())
-                .noOfMembers(roleService.getNoOfActiveMemberships(role))
+                .noOfMembers(role.getNoOfMemberships())
                 .roleType(role.getRoleType())
                 .roleName(role.getRoleName())
                 .organisationUnitId(role.getOrganisationUnitId())
