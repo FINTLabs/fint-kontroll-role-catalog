@@ -65,11 +65,18 @@ public class RoleCatalogPublishingComponent {
         List<RoleCatalogRole> publishedRoles = roleCatalogRoleEntityProducerService.publishChangedCatalogRoles(allCatalogRoles);
 
         log.info("Published {} of {} role catalog roles", publishedRoles.size(), allCatalogRoles.size());
-        log.info("Ids of published role catalog roles: {}",
-                publishedRoles.stream()
-                        .map(RoleCatalogRole::getRoleId)
-                        .toList()
-        );
+//        log.info("Ids of published role catalog roles: {}",
+//                publishedRoles.stream()
+//                        .map(RoleCatalogRole::getRoleId)
+//                        .toList()
+//        );
+
+        publishedRoles.forEach(roleCatalogRole ->
+                        log.info("Published role catalog role: id {} - name {} - no of members {}",
+                                roleCatalogRole.getId(),
+                                roleCatalogRole.getRoleName(),
+                                roleCatalogRole.getNoOfMembers()
+                        ));
     }
 
     //TODO: Maybe publishMemberships should be in a separate class like MembershipPublishingComponent with a separate schedule
