@@ -174,7 +174,7 @@ public class RoleService {
     public Integer getNoOfActiveMemberships(Role role) {
         Integer noOfActiveMemberships = role.getMemberships()
                 .stream()
-                .filter(membership -> membership.getMembershipStatus().equals("ACTIVE"))
+                .filter(membership -> membership.getMembershipStatus() != null && membership.getMembershipStatus().equals("ACTIVE"))
                 .toList()
                 .size();
         log.info("Role {} ({})  has {} active memberships", role.getId(), role.getRoleName(), noOfActiveMemberships);
