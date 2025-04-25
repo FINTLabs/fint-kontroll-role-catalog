@@ -1,6 +1,7 @@
 package no.fintlabs.role;
 
 import no.fintlabs.DatabaseIntegrationTest;
+import no.fintlabs.OrgUnitType;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberConsumer;
 import no.fintlabs.member.MemberRepository;
@@ -9,7 +10,6 @@ import no.fintlabs.membership.MembershipConsumer;
 import no.fintlabs.membership.MembershipId;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
-import no.fintlabs.opa.model.OrgUnitType;
 import no.fintlabs.opa.model.Scope;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;

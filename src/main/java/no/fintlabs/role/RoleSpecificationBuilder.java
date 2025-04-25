@@ -1,10 +1,10 @@
 package no.fintlabs.role;
 
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.OrgUnitType;
 import org.springframework.data.jpa.domain.Specification;
 import java.util.List;
 
-import no.fintlabs.opa.model.OrgUnitType;
 
 @Slf4j
 public class RoleSpecificationBuilder {
