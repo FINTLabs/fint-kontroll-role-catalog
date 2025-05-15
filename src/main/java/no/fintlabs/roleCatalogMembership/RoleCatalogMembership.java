@@ -3,6 +3,7 @@ package no.fintlabs.roleCatalogMembership;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -17,4 +18,5 @@ public class RoleCatalogMembership {
     private Long memberId;
     private UUID identityProviderUserObjectId;
     private String memberStatus;
+    private Date membershipStatusChanged;
 }

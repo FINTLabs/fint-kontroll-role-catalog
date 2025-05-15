@@ -26,6 +26,7 @@ public class RoleCatalogMembershipService {
                 .memberId(membership.getMember().getId())
                 .identityProviderUserObjectId(membership.getMember().getIdentityProviderUserObjectId())
                 .memberStatus(membership.getMembershipStatus() == null ? "ACTIVE" : membership.getMembershipStatus())
+                .membershipStatusChanged(membership.getMembershipStatusChanged())
                 .build();
     }
 }
