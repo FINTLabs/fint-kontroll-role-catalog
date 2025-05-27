@@ -49,12 +49,11 @@ public class RoleSpecificationBuilder {
         return roleSpecification;
     }
 
-private Specification<Role> roleIsActive() {
+    private Specification<Role> roleIsActive() {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.or(criteriaBuilder.equal(criteriaBuilder.lower(root.get("roleStatus")), "active"),
                         criteriaBuilder.isNull(root.get("roleStatus")));
     }
-
     private Specification<Role> roleNameLike(String search) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("roleName")), "%" + search.toLowerCase() + "%");
     }
