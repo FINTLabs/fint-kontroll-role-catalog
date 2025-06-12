@@ -14,10 +14,10 @@ fint:
     role-catalog:
       pagesize: 50
       publishing:
-        initial-delay: 3000000
+        initial-delay: 3000
         fixed-delay: 60000
       persisting:
-        initial-delay: 1000000
+        initial-delay: 1000
         fixed-delay: 60000
 spring:
   kafka:

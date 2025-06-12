@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: nfk-no
+resources:
+  - ../../../base
+commonLabels:
+  app.kubernetes.io/name: fint-kontroll-role-catalog
+  app.kubernetes.io/instance: fint-kontroll-role-catalog_nfk-no
+  app.kubernetes.io/version: latest
+  app.kubernetes.io/component: backend
+  app.kubernetes.io/part-of: fint-kontroll
+  fintlabs.no/team: bas
+  fintlabs.no/org-id: nfk.no
+patches:
+  - patch: |-
+      - op: replace
+        path: "/spec/orgId"
+        value: "nfk.no"
+      - op: replace
+        path: "/spec/kafka/acls/0/topic"
+        value: "nfk-no.kontroll.*"
+      - op: replace
+        path: "/spec/kafka/acls/1/topic"
+        value: "nfk-no.kontroll.*"
+      - op: replace
+        path: "/spec/ingress/basePath"
+        value: "/nfk-no/api/roles"
+      - op: replace
+        path: "/spec/url/basePath"
+        value: "/nfk-no"
+      - op: replace
+        path: "/spec/env/0/value"
+        value: "nfk.no"
+      - op: replace
+        path: "/spec/observability/metrics/path"
+        value: "/nfk-no/actuator/prometheus"
+      - op: replace
+        path: "/spec/env/2/value"
+        value: "-XX:+ExitOnOutOfMemoryError -Xmx1950m"
+      - op: replace
+        path: "/spec/resources"
+        value:
+          limits:
+            cpu: "2000m"
+            memory: "2000Mi"
+          requests:
+            cpu: "1000m"
+            memory: "1024Mi"
+    target:
+      kind: Application
+      name: fint-kontroll-role-catalog
