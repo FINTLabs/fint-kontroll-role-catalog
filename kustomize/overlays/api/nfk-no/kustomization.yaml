@@ -32,6 +32,9 @@ patches:
         path: "/spec/env/0/value"
         value: "nfk.no"
       - op: replace
+        path: "/spec/env/1/value"
+        value: "nfk-no-fint-kontroll-role-catalog"
+      - op: replace
         path: "/spec/observability/metrics/path"
         value: "/nfk-no/actuator/prometheus"
       - op: replace
@@ -46,6 +49,7 @@ patches:
           requests:
             cpu: "1000m"
             memory: "1024Mi"
+
     target:
       kind: Application
       name: fint-kontroll-role-catalog
