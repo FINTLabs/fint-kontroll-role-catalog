@@ -66,7 +66,7 @@ public class MembershipKafkaConsumerIntegrationTest {
     private MemberRepository memberRepositoryMock;
 
     @Container
-    public static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:latest"));
+    public static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:latest:7.9.1"));
 
 
     @DynamicPropertySource
