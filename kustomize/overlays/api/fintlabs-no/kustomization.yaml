@@ -30,7 +30,7 @@ patches:
         value: "/fintlabs-no"
       - op: replace
         path: "/spec/env/0/value"
-        value: "fintlabs.no"
+        value: "vigo.no"
       - op: replace
         path: "/spec/env/1/value"
         value: "fintlabs-no-fint-kontroll-role-catalog"
