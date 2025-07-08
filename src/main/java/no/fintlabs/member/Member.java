@@ -2,23 +2,10 @@ package no.fintlabs.member;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.membership.Membership;
-import no.fintlabs.role.Role;
-import org.hibernate.Hibernate;
 
-import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -37,7 +24,6 @@ public class Member {
 
     @Id
     @NonNull
-    //@GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long id;
     private String resourceId;
     private String firstName;

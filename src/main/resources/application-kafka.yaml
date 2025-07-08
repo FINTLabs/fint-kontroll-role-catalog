@@ -4,8 +4,3 @@ fint:
       org-id: ${fint.org-id}
       domain-context: kontroll
     application-id: ${fint.application-id}
-spring:
-  kafka:
-    consumer:
-      group-id: ${fint.application-id}
-

@@ -2,7 +2,6 @@ package no.fintlabs.role;
 
 import no.fintlabs.OrgUnitType;
 import no.fintlabs.member.Member;
-import no.fintlabs.member.MemberService;
 import no.fintlabs.membership.Membership;
 import no.fintlabs.membership.MembershipId;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
@@ -28,8 +27,7 @@ public class RoleServiceTests {
 
     @Mock
     private RoleRepository roleRepository;
-    @Mock
-    private  MemberService memberService;
+
     @Mock
     private RoleCatalogRoleService roleCatalogRoleService;
     @Mock
