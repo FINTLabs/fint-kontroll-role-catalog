@@ -1,13 +1,8 @@
 package no.fintlabs.roleCatalogMembership;
 
-import no.fintlabs.member.Member;
 import no.fintlabs.membership.Membership;
 import no.fintlabs.role.Role;
-import no.fintlabs.roleCatalogRole.RoleCatalogRole;
-import no.fintlabs.roleCatalogRole.RoleCatalogRoleEntityProducerService;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class RoleCatalogMembershipService {

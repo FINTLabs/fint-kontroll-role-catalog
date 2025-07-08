@@ -1,5 +1,6 @@
 package no.fintlabs.member;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.role.RoleRepository;
 import no.fintlabs.role.RoleService;
@@ -13,32 +14,11 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/member")
-
+@RequiredArgsConstructor
 public class MemberController {
     private final MemberResponseFactory memberResponseFactory;
-    private final RoleRepository roleRepository;
-    private final MemberService memberService;
-    private final RoleService roleService;
 
-    public MemberController(MemberResponseFactory memberResponseFactory, MemberService memberService,
-                            RoleRepository roleRepository, RoleService roleService) {
-        this.memberResponseFactory = memberResponseFactory;
-        this.memberService = memberService;
-        this.roleRepository = roleRepository;
-        this.roleService = roleService;
-    }
-//    @GetMapping
-//    public ResponseEntity<Map<String, Object>> getMembers(@AuthenticationPrincipal Jwt jwt,
-//                                                                  @RequestParam(value = "$filter", required = false) String filter,
-//                                                                  @RequestParam(defaultValue = "0") int page,
-//                                                                  @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size) {
-//
-//        log.info("Finding all members for role with filter: " + filter + " at page: " + page + " (first page = 0)" );
-//
-//        return memberResponseFactory.toResponseEntity(
-//                //FintJwtEndUserPrincipal.from(jwt),roleId,
-//                filter, page, size);
-//    }
+
     @GetMapping("/role/{roleId}")
     public ResponseEntity<Map<String, Object>> getMembersWithRole(@AuthenticationPrincipal Jwt jwt,
                                                         @PathVariable Long roleId,
@@ -48,8 +28,6 @@ public class MemberController {
 
         log.info("Finding all members for role " + roleId + " with filter: " + filter + " at page: " + page + " (first page = 0)" );
 
-        return memberResponseFactory.toResponseEntity(
-                //FintJwtEndUserPrincipal.from(jwt),
-                roleId, filter, page, size);
+        return memberResponseFactory.toResponseEntity(roleId, filter, page, size);
     }
 }

@@ -10,7 +10,7 @@ fint:
     default-replicas: 1
   kontroll:
     opa:
-      url: http://localhost:8181/v1/data/accessmanagement
+      url: http://localhost:8080/v1/data/accessmanagement
     role-catalog:
       pagesize: 50
       publishing:

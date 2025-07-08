@@ -1,9 +1,8 @@
 package no.fintlabs.member;
 
+import lombok.RequiredArgsConstructor;
 import no.fint.antlr.FintFilterService;
 import no.fintlabs.membership.MembershipRepository;
-import no.fintlabs.role.RoleRepository;
-import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -19,21 +18,12 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 @Component
+@RequiredArgsConstructor
 public class MemberResponseFactory {
     private final FintFilterService fintFilterService;
-    private final MemberRepository memberRepository;
     private final MembershipRepository membershipRepository;
-    private final RoleRepository roleRepository;
 
-    public MemberResponseFactory(FintFilterService fintFilterService, MemberRepository memberRepository, MembershipRepository membershipRepository,
-                                 RoleRepository roleRepository) {
-        this.fintFilterService = fintFilterService;
-        this.memberRepository = memberRepository;
-        this.roleRepository = roleRepository;
-        this.membershipRepository = membershipRepository;
-    }
     public ResponseEntity<Map<String, Object>> toResponseEntity(
-            //FintJwtEndRolePrincipal principal,
             Long roleId,
             String filter,
             int page,
@@ -41,7 +31,7 @@ public class MemberResponseFactory {
     ) {
         Stream<Member> memberStream = membershipRepository.findAllMembersByRoleId(roleId).stream();
 
-        ResponseEntity<Map<String, Object>> entity = toResponseEntity(
+        return toResponseEntity(
                 toPage(
                         StringUtils.hasText(filter)
                                 ? fintFilterService
@@ -51,8 +41,6 @@ public class MemberResponseFactory {
                         PageRequest.of(page, size)
                 )
         );
-
-        return entity;
     }
 
     private Page<SimpleMember> toPage(List<SimpleMember> list, Pageable paging) {
