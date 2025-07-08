@@ -1,14 +1,10 @@
 package no.fintlabs.role;
 
-import no.fint.antlr.FintFilterService;
-import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;

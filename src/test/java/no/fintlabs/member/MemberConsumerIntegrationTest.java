@@ -1,13 +1,10 @@
 package no.fintlabs.member;
 
 import no.fintlabs.DatabaseIntegrationTest;
-import no.fintlabs.membership.KafkaMembership;
-import no.fintlabs.membership.Membership;
-import no.fintlabs.membership.MembershipId;
 import no.fintlabs.membership.MembershipRepository;
-import no.fintlabs.role.Role;
 import no.fintlabs.role.RoleRepository;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogRoleEntityProducerService;
 import no.fintlabs.securityconfig.FintKontrollSecurityConfig;
@@ -16,13 +13,11 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
@@ -30,25 +25,15 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
-import org.testcontainers.utility.DockerImageName;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
 
 @Testcontainers
 @ExtendWith(SpringExtension.class)
@@ -77,6 +62,9 @@ public class MemberConsumerIntegrationTest extends DatabaseIntegrationTest {
 
     @MockBean
     private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
+
+    @MockBean
+    private RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
 
     @MockBean
     private FintKontrollSecurityConfig fintKontrollSecurityConfig;

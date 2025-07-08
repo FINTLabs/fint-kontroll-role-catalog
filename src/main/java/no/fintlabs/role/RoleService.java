@@ -3,6 +3,8 @@ package no.fintlabs.role;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.OrgUnitType;
+import no.fintlabs.opa.OpaService;
+import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import no.fintlabs.opa.OpaService;
 
 @Service
 @Slf4j
@@ -51,25 +52,20 @@ public class RoleService {
 
         String roleId = role.getRoleId();
 
-        //TODO: Change this to getMemberships and then saveAll(memberships)
-        // Members should be obtained by consuming the kontrolluser topic and saved separately
-//        Set<Member> members = role.getMembers();
-//        log.info("Save {} members for role {} started", members.size(), roleId);
-//        memberService.saveAll(members);
-//        log.info("Save {} members for role {} finished", members.size(), roleId);
-       Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
+        Optional<Role> existingRole = roleRepository.findByRoleId(roleId);
 
         Role persistedRole;
 
         if (existingRole.isEmpty()) {
             log.info("Role {} not found. Saving new role", roleId);
-            persistedRole =  roleRepository.save(role);
+            role.setNoOfMembers(0);
+            persistedRole = roleRepository.save(role);
         } else {
             log.info("Role {} already exists", roleId);
             role.setId(existingRole.get().getId());
             Role mappedRole = mapChangesToExistingRole(role, existingRole.get());
             log.info("Updating existing role {}", roleId);
-            persistedRole =  roleRepository.save(mappedRole);
+            persistedRole = roleRepository.save(mappedRole);
         }
 
         log.info("Save/update role {} finished", roleId);
@@ -96,27 +92,10 @@ public class RoleService {
         return new ArrayList<>(roleRepository.findAll());
     }
 
-    public Role createNewRole(Role role) {
-        return roleRepository.save(role);
-    }
-
-    public Role findRoleById(Long id) {
-        return roleRepository.findById(id).orElse(new Role());
-    }
-
-    public Role findRoleByRoleId(String roleId) {
-        return roleRepository.findByRoleId(roleId).orElse(new Role());
-    }
-
-    public Role findRoleByResourceId(String id) {
-        return roleRepository.findByResourceId(id).orElse(new Role());
-
-    }
-
-    public DetailedRole GetDetailedRoleById(Long id) {
+    public DetailedRole getDetailedRoleById(Long id) {
         return roleRepository.findById(id)
                 .map(Role::toDetailedRole)
-                .orElse(new DetailedRole());
+                .orElseThrow(() -> new ResourceNotFoundException("No role with id " + id + " found"));
     }
 
     public List<Role> getRolesByParams(
@@ -171,13 +150,5 @@ public class RoleService {
         log.info("OrgUnits in search: {}", filteredOrgUnits);
         return filteredOrgUnits;
     }
-    public Integer getNoOfActiveMemberships(Role role) {
-        Integer noOfActiveMemberships = role.getMemberships()
-                .stream()
-                .filter(membership -> membership.getMembershipStatus() != null && membership.getMembershipStatus().equals("ACTIVE"))
-                .toList()
-                .size();
-        log.info("Role {} ({})  has {} active memberships", role.getId(), role.getRoleName(), noOfActiveMemberships);
-        return noOfActiveMemberships;
-    }
+
 }

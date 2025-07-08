@@ -1,8 +1,8 @@
 package no.fintlabs.opa;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.opa.model.Scope;
-import no.fintlabs.util.AuthenticationUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -11,14 +11,10 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class OpaService {
     private final AuthorizationClient authorizationClient;
-    private final AuthenticationUtil authenticationUtil;
 
-    public OpaService(AuthorizationClient authorizationClient, AuthenticationUtil authenticationUtil) {
-        this.authorizationClient = authorizationClient;
-        this.authenticationUtil = authenticationUtil;
-    }
 
     public List<String> getOrgUnitsInScope(
             String objectType

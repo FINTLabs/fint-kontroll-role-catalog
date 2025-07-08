@@ -1,14 +1,10 @@
 package no.fintlabs.membership;
 
+import jakarta.persistence.Embeddable;
+import lombok.*;
+
 import java.io.Serializable;
 import java.util.Objects;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.ManyToOne;
-import lombok.*;
-import no.fintlabs.member.Member;
-import no.fintlabs.role.Role;
 
 @Setter
 @Getter
