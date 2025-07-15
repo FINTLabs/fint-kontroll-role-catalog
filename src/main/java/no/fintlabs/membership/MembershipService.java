@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -91,9 +92,7 @@ public class MembershipService {
         String currentStatus = membership.getMembershipStatus();
         Date currentChangedDate = membership.getMembershipStatusChanged();
 
-        return !newStatus.equals(currentStatus) ||
-                (newChangedDate != null && currentChangedDate != null &&
-                        newChangedDate.toInstant().isAfter(currentChangedDate.toInstant()));
+        return !newStatus.equals(currentStatus) || !Objects.equals(currentChangedDate, newChangedDate);
     }
 
     private void adjustRoleMemberCountIfNeeded(Role role, boolean isNew, boolean wasActive, boolean nowActive) {
