@@ -9,7 +9,6 @@ import lombok.Setter;
 @Builder
 public class SimpleRole {
     private Long id;
-    //private String roleId;
     private String roleName;
     private String roleType;
     private String roleSubType;

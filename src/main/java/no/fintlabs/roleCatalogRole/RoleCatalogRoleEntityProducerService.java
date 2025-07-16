@@ -10,9 +10,6 @@ import no.fintlabs.kafka.entity.topic.EntityTopicService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-
-//import jakarta.annotation.PostConstruct;
 
 @Service
 @Slf4j
@@ -35,30 +32,7 @@ public class RoleCatalogRoleEntityProducerService {
                 .build();
         entityTopicService.ensureTopic(entityTopicNameParameters, 0);
     }
-//    @PostConstruct
-//    public void init() {
-//        entityTopicService.ensureTopic(entityTopicNameParameters, 0);
-//    }
 
-//    public void publish(RoleCatalogRole roleCatalogRole) {
-//        String key = roleCatalogRole.getRoleId();
-//        Optional<Integer> roleHashOptional = roleCatalogRoleCache.getOptional(key);
-//
-//        if (roleHashOptional.isEmpty() || !(roleCatalogRole.hashCode()==(roleHashOptional.get()))) {
-//            log.info("Publish role-catalog-role : " + key);
-//            entityProducer.send(
-//                    EntityProducerRecord.<RoleCatalogRole>builder()
-//                            .topicNameParameters(entityTopicNameParameters)
-//                            .key(key)
-//                            .value(roleCatalogRole)
-//                            .build()
-//            );
-//            roleCatalogRoleCache.put(key, roleCatalogRole.hashCode());
-//        }
-//        else {
-//            log.info("role-catalog-role : " + key +" already published");
-//        }
-//    }
 
     public List<RoleCatalogRole> publishChangedCatalogRoles(List<RoleCatalogRole> catalogRoles) {
         return catalogRoles
@@ -74,7 +48,7 @@ public class RoleCatalogRoleEntityProducerService {
 
     private void publishCatalogRole(RoleCatalogRole roleCatalogRole) {
         String key = roleCatalogRole.getRoleId();
-        log.info("Publish role-catalog-role : " + key);
+        log.info("Publish role-catalog-role : {}", key);
         entityProducer.send(
                 EntityProducerRecord.<RoleCatalogRole>builder()
                         .topicNameParameters(entityTopicNameParameters)

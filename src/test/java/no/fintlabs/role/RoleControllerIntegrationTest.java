@@ -6,38 +6,36 @@ import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberConsumer;
 import no.fintlabs.member.MemberRepository;
 import no.fintlabs.membership.Membership;
-import no.fintlabs.membership.MembershipConsumer;
+import no.fintlabs.membership.MembershipConsumerConfiguration;
 import no.fintlabs.membership.MembershipId;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.Scope;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogRoleEntityProducerService;
 import no.fintlabs.securityconfig.FintKontrollSecurityConfig;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @Testcontainers
 @SpringBootTest
@@ -60,7 +58,10 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
     private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
     @MockBean
-    private MembershipConsumer membershipConsumer;
+    private MembershipConsumerConfiguration membershipConsumerConfiguration;
+
+    @MockBean
+    private RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
 
     @MockBean
     private MemberConsumer memberConsumer;

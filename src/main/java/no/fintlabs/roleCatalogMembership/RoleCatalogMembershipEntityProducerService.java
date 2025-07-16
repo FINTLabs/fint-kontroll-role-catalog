@@ -7,14 +7,11 @@ import no.fintlabs.kafka.entity.EntityProducerFactory;
 import no.fintlabs.kafka.entity.EntityProducerRecord;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
 import no.fintlabs.kafka.entity.topic.EntityTopicService;
-import no.fintlabs.member.Member;
-import no.fintlabs.roleCatalogRole.RoleCatalogRole;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-//import jakarta.annotation.PostConstruct;
 
 @Service
 @Slf4j

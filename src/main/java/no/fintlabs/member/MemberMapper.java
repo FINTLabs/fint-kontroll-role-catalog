@@ -11,8 +11,6 @@ public class MemberMapper {
                 .userType(kontrollUser.getUserType())
                 .organisationUnitId(kontrollUser.getMainOrganisationUnitId())
                 .organisationUnitName(kontrollUser.getMainOrganisationUnitName())
-                //.status(kontrollUser.getStatus())
-                //.statusChanged(kontrollUser.getStatusChanged())
                 .build();
     }
 }

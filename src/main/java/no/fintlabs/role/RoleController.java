@@ -1,12 +1,11 @@
 package no.fintlabs.role;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.member.Member;
-import no.fintlabs.member.MemberResponseFactory;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.Scope;
-import no.vigoiks.resourceserver.security.FintJwtEndUserPrincipal;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,11 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
@@ -33,23 +28,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/api/roles")
+@RequiredArgsConstructor
 public class RoleController {
 
     private final RoleService roleService;
-    private final MemberResponseFactory memberResponseFactory;
     private final AuthorizationClient authorizationClient;
     private final MembershipRepository membershipRepository;
-
-    public RoleController(RoleService roleService,
-                          MemberResponseFactory memberResponseFactory,
-                          AuthorizationClient authorizationClient,
-                          MembershipRepository membershipRepository
-    ) {
-        this.roleService = roleService;
-        this.memberResponseFactory = memberResponseFactory;
-        this.authorizationClient = authorizationClient;
-        this.membershipRepository = membershipRepository;
-    }
 
     @GetMapping("/old")
     public ResponseEntity<Map<String, Object>> getRoles(@AuthenticationPrincipal Jwt jwt,
@@ -78,7 +62,6 @@ public class RoleController {
     }
     @GetMapping()
     public ResponseEntity<Map<String, Object>> getRolesV1(
-            //@AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "search", required = false) String searchName,
             @RequestParam(value = "orgunits", required = false) List<String> orgUnits,
             @RequestParam(value = "roletype", required = false) List<String> roleTypes,
@@ -100,7 +83,7 @@ public class RoleController {
     @GetMapping("{id}")
     public DetailedRole getRoleById(@PathVariable Long id) {
         log.info("Fetching role info for : " + id.toString());
-        return roleService.GetDetailedRoleById(id);
+        return roleService.getDetailedRoleById(id);
     }
 
     @GetMapping("{id}/members")
