@@ -1,5 +1,7 @@
 package no.fintlabs.role;
 
+import io.micrometer.tracing.Tracer;
+import no.fintlabs.ProblemDetailFactory;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberResponseFactory;
 import no.fintlabs.membership.MembershipRepository;
@@ -45,6 +47,12 @@ public class RoleControllerTest {
 
     @Autowired
     private WebApplicationContext context;
+
+    @MockBean
+    private Tracer tracer;
+
+    @MockBean
+    private ProblemDetailFactory problemDetailFactory;
 
     @BeforeEach
     public void setup() {

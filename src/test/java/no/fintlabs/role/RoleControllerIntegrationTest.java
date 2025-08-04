@@ -1,7 +1,9 @@
 package no.fintlabs.role;
 
+import io.micrometer.tracing.Tracer;
 import no.fintlabs.DatabaseIntegrationTest;
 import no.fintlabs.OrgUnitType;
+import no.fintlabs.ProblemDetailFactory;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberConsumer;
 import no.fintlabs.member.MemberRepository;
@@ -83,6 +85,13 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
 
     @Autowired
     private RoleRepository roleRepository;
+
+
+    @MockBean
+    private Tracer tracer;
+
+    @MockBean
+    private ProblemDetailFactory problemDetailFactory;
 
     Role role, role1, role2, role3, role4, role5;
     RoleDto roleDto, roleDto1, roleDto2, roleDto3, roleDto4, roleDto5;
