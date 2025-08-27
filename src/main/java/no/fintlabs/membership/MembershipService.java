@@ -91,6 +91,11 @@ public class MembershipService {
     private boolean isMembershipChanged(Membership membership, String newStatus, Date newChangedDate) {
         String currentStatus = membership.getMembershipStatus();
         Date currentChangedDate = membership.getMembershipStatusChanged();
+        log.info("Current status: {}", currentStatus);
+        log.info("Current changed: {}", currentChangedDate);
+        log.info("New status: {}", newStatus);
+        log.info("New changed date: {}", newChangedDate);
+
 
         return !newStatus.equals(currentStatus) || !Objects.equals(currentChangedDate, newChangedDate);
     }
