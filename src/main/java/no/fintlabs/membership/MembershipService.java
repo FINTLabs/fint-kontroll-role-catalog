@@ -10,6 +10,7 @@ import no.fintlabs.util.MissingReferenceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
@@ -90,14 +91,15 @@ public class MembershipService {
 
     private boolean isMembershipChanged(Membership membership, String newStatus, Date newChangedDate) {
         String currentStatus = membership.getMembershipStatus();
-        Date currentChangedDate = membership.getMembershipStatusChanged();
+        Instant newChangeDateInstant = newChangedDate.toInstant();
+        Instant currentChangedDate = membership.getMembershipStatusChanged().toInstant();
         log.info("Current status: {}", currentStatus);
         log.info("Current changed: {}", currentChangedDate);
         log.info("New status: {}", newStatus);
         log.info("New changed date: {}", newChangedDate);
-        boolean isEqual = !newStatus.equals(currentStatus) || !Objects.equals(currentChangedDate, newChangedDate);
+        boolean isEqual = !newStatus.equalsIgnoreCase(currentStatus) || !Objects.equals(currentChangedDate, newChangeDateInstant);
 
-        log.info("Membership is equal: {}", isEqual);
+        log.info("Is membership changed: {}", isEqual);
 
         return isEqual;
     }
