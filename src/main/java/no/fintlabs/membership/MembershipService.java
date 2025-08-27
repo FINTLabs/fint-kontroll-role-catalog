@@ -40,7 +40,7 @@ public class MembershipService {
         Optional<Membership> existingMembership = membershipRepository.findById(membershipId);
 
         String newStatus = kafkaMembership.getMemberStatus() == null ? ACTIVE : kafkaMembership.getMemberStatus();
-        Date newChangedDate = kafkaMembership.getMemberStatusChanged().;
+        Date newChangedDate = kafkaMembership.getMemberStatusChanged();
         boolean isNew = existingMembership.isEmpty();
 
         Membership membership = createOrLoadMembership(existingMembership, membershipId, role, member);
