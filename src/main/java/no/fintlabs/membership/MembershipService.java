@@ -40,7 +40,7 @@ public class MembershipService {
         Optional<Membership> existingMembership = membershipRepository.findById(membershipId);
 
         String newStatus = kafkaMembership.getMemberStatus() == null ? ACTIVE : kafkaMembership.getMemberStatus();
-        Date newChangedDate = kafkaMembership.getMemberStatusChanged();
+        Date newChangedDate = kafkaMembership.getMemberStatusChanged().;
         boolean isNew = existingMembership.isEmpty();
 
         Membership membership = createOrLoadMembership(existingMembership, membershipId, role, member);
@@ -95,9 +95,11 @@ public class MembershipService {
         log.info("Current changed: {}", currentChangedDate);
         log.info("New status: {}", newStatus);
         log.info("New changed date: {}", newChangedDate);
+        boolean isEqual = !newStatus.equals(currentStatus) || !Objects.equals(currentChangedDate, newChangedDate);
 
+        log.info("Membership is equal: {}", isEqual);
 
-        return !newStatus.equals(currentStatus) || !Objects.equals(currentChangedDate, newChangedDate);
+        return isEqual;
     }
 
     private void adjustRoleMemberCountIfNeeded(Role role, boolean isNew, boolean wasActive, boolean nowActive) {
