@@ -91,17 +91,10 @@ public class MembershipService {
 
     private boolean isMembershipChanged(Membership membership, String newStatus, Date newChangedDate) {
         String currentStatus = membership.getMembershipStatus();
-        Instant newChangeDateInstant = newChangedDate.toInstant();
-        Instant currentChangedDate = membership.getMembershipStatusChanged().toInstant();
-        log.info("Current status: {}", currentStatus);
-        log.info("Current changed: {}", currentChangedDate);
-        log.info("New status: {}", newStatus);
-        log.info("New changed date: {}", newChangedDate);
-        boolean isEqual = !newStatus.equalsIgnoreCase(currentStatus) || !Objects.equals(currentChangedDate, newChangeDateInstant);
+        Instant newChangeDateInstant = newChangedDate == null ? null :newChangedDate.toInstant();
+        Instant currentChangedDate = membership.getMembershipStatusChanged() == null ? null : membership.getMembershipStatusChanged().toInstant();
 
-        log.info("Is membership changed: {}", isEqual);
-
-        return isEqual;
+        return !newStatus.equalsIgnoreCase(currentStatus) || !Objects.equals(currentChangedDate, newChangeDateInstant);
     }
 
     private void adjustRoleMemberCountIfNeeded(Role role, boolean isNew, boolean wasActive, boolean nowActive) {
