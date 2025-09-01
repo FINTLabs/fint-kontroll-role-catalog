@@ -18,5 +18,6 @@ public class RoleCatalogMembership {
     private Long memberId;
     private UUID identityProviderUserObjectId;
     private String memberStatus;
+    @EqualsAndHashCode.Exclude
     private Date memberStatusChanged;
 }
