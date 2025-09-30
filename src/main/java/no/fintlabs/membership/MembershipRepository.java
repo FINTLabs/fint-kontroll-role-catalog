@@ -15,6 +15,11 @@ public interface MembershipRepository extends JpaRepository<Membership, Membersh
     @Query("SELECT m.member FROM Membership m WHERE m.role.id = :roleId")
     List<Member> findAllMembersByRoleId(@Param("roleId") Long roleId);
 
+
+    @Query("select count(m) from Membership m where m.role.id = :roleId and m.membershipStatus = 'ACTIVE'")
+    int getActiveMembersCountByRoleId(@Param("roleId") Long roleId);
+
+
     @Query("SELECT m.member FROM Membership m " +
            "WHERE m.role.id = :id " +
            "AND (:name IS NULL OR :name = '' OR " +
