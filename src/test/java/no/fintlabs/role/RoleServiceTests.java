@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
@@ -212,40 +213,5 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
         List<String> returnedOrgUnits = roleService.getOrgUnitsInSearch(orgUnitsInFilter, orgUnitsInScope);
 
         assertThat(returnedOrgUnits).isEqualTo(expectedReturnedOrgUnits);
-    }
-
-    @DisplayName("syncNoOfMembers updates noOfMembers from active membership counts and persists")
-    @Test
-    void givenRoles_whenSyncNoOfMembers_thenCountsUpdatedAndSaved() {
-        // given
-        Role role2 = Role.builder()
-                .id(2L)
-                .roleId("ansatt@digit")
-                .roleName("Role One")
-                .memberships(Set.of())
-                .noOfMembers(0)
-                .resourceId("resourceId")
-                .build();
-
-        given(roleRepository.findAll()).willReturn(List.of(role, role2));
-        given(membershipRepository.getActiveMembersCountByRoleId(1L)).willReturn(3);
-        given(membershipRepository.getActiveMembersCountByRoleId(2L)).willReturn(0);
-
-        // when
-        roleService.syncNoOfMembers();
-
-        // then: in-memory objects updated
-        assertThat(role.getNoOfMembers()).isEqualTo(3);
-        assertThat(role2.getNoOfMembers()).isEqualTo(0);
-
-        ArgumentCaptor<List<Role>> captor = ArgumentCaptor.forClass(List.class);
-        verify(roleRepository, times(1)).saveAll(captor.capture());
-
-        List<Role> saved = captor.getValue();
-        assertThat(saved).asList().hasSize(2);
-        Role saved1 = saved.stream().filter(r -> r.getId().equals(1L)).findFirst().orElseThrow();
-        Role saved2 = saved.stream().filter(r -> r.getId().equals(2L)).findFirst().orElseThrow();
-        assertThat(saved1.getNoOfMembers()).isEqualTo(3);
-        assertThat(saved2.getNoOfMembers()).isEqualTo(0);
     }
 }

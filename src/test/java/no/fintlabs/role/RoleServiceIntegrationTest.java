@@ -22,7 +22,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import({RoleService.class})
+@Import({RoleService.class, RoleSyncWorker.class})
 @Testcontainers
 public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
 
@@ -34,6 +34,8 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
     private MemberRepository memberRepository;
     @Autowired
     private MembershipRepository membershipRepository;
+    @Autowired
+    private RoleSyncWorker worker;
     @MockBean
     private OpaService opaService;
 
