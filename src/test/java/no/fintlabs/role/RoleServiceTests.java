@@ -4,23 +4,23 @@ import no.fintlabs.OrgUnitType;
 import no.fintlabs.member.Member;
 import no.fintlabs.membership.Membership;
 import no.fintlabs.membership.MembershipId;
+import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
 import no.fintlabs.roleCatalogRole.RoleCatalogRoleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 public class RoleServiceTests {
@@ -32,6 +32,8 @@ public class RoleServiceTests {
     private RoleCatalogRoleService roleCatalogRoleService;
     @Mock
     private RoleCatalogMembershipService roleCatalogMembershipService;
+    @Mock
+    private MembershipRepository membershipRepository;
     @InjectMocks
     private RoleService roleService;
     private Role role, aggrole;
@@ -210,5 +212,40 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
         List<String> returnedOrgUnits = roleService.getOrgUnitsInSearch(orgUnitsInFilter, orgUnitsInScope);
 
         assertThat(returnedOrgUnits).isEqualTo(expectedReturnedOrgUnits);
+    }
+
+    @DisplayName("syncNoOfMembers updates noOfMembers from active membership counts and persists")
+    @Test
+    void givenRoles_whenSyncNoOfMembers_thenCountsUpdatedAndSaved() {
+        // given
+        Role role2 = Role.builder()
+                .id(2L)
+                .roleId("ansatt@digit")
+                .roleName("Role One")
+                .memberships(Set.of())
+                .noOfMembers(0)
+                .resourceId("resourceId")
+                .build();
+
+        given(roleRepository.findAll()).willReturn(List.of(role, role2));
+        given(membershipRepository.getActiveMembersCountByRoleId(1L)).willReturn(3);
+        given(membershipRepository.getActiveMembersCountByRoleId(2L)).willReturn(0);
+
+        // when
+        roleService.syncNoOfMembers();
+
+        // then: in-memory objects updated
+        assertThat(role.getNoOfMembers()).isEqualTo(3);
+        assertThat(role2.getNoOfMembers()).isEqualTo(0);
+
+        ArgumentCaptor<List<Role>> captor = ArgumentCaptor.forClass(List.class);
+        verify(roleRepository, times(1)).saveAll(captor.capture());
+
+        List<Role> saved = captor.getValue();
+        assertThat(saved).asList().hasSize(2);
+        Role saved1 = saved.stream().filter(r -> r.getId().equals(1L)).findFirst().orElseThrow();
+        Role saved2 = saved.stream().filter(r -> r.getId().equals(2L)).findFirst().orElseThrow();
+        assertThat(saved1.getNoOfMembers()).isEqualTo(3);
+        assertThat(saved2.getNoOfMembers()).isEqualTo(0);
     }
 }

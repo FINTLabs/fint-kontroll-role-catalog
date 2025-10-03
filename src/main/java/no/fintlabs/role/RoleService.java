@@ -1,6 +1,6 @@
 package no.fintlabs.role;
 
-import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.OrgUnitType;
 import no.fintlabs.opa.OpaService;
@@ -8,6 +8,7 @@ import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,15 +17,12 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class RoleService {
 
     private final RoleRepository roleRepository;
     private final OpaService opaService;
-
-    public RoleService(RoleRepository roleRepository, OpaService opaService) {
-        this.roleRepository = roleRepository;
-        this.opaService = opaService;
-    }
+    private final RoleSyncWorker worker;
 
     public Page<Role> findBySearchCriteria(
             String searchString,
@@ -151,4 +149,9 @@ public class RoleService {
         return filteredOrgUnits;
     }
 
+
+    public void syncNoOfMembers() {
+        List<Long> ids = roleRepository.findAll().stream().map(Role::getId).toList();
+        ids.forEach(worker::recomputeOneRole);
+    }
 }

@@ -6,6 +6,7 @@ import no.fintlabs.member.Member;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.Scope;
+import no.fintlabs.util.OnlyDevelopers;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -120,4 +121,13 @@ public class RoleController {
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
+
+    @OnlyDevelopers
+    @GetMapping("/syncnoofmembers")
+    public void syncNoOfMembers() {
+        log.info("Syncing number of members for all roles");
+        roleService.syncNoOfMembers();
+        log.info("Syncing number of members for all roles done");
+    }
+
 }
