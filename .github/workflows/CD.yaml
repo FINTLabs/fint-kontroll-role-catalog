@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v5.0.0
 
       - name: Set up java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: ${{ env.JAVA-DISTRIBUTION }}
           java-version: ${{ env.JAVA-VERSION }}
