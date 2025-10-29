@@ -80,13 +80,16 @@ public class Role {
     public void incrementMemberCount() {
         if (this.noOfMembers == null) {
             this.noOfMembers = 1;
-        }
-        else {
+        } else {
             this.noOfMembers++;
         }
     }
 
     public void decrementMemberCount() {
+        if (this.noOfMembers == null) {
+            log.warn("Tried to decrement member count for role {} but no members were present", this.roleId);
+            return;
+        }
         if (this.noOfMembers > 0) {
             this.noOfMembers--;
         }
