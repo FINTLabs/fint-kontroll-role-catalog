@@ -3,7 +3,6 @@ package no.fintlabs.member;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.membership.Membership;
 
 import java.util.Set;
@@ -11,9 +10,6 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@ToString
-@RequiredArgsConstructor
-@Slf4j
 @Entity
 @Table(name = "members", indexes = @Index(name = "resource_id_index", columnList = "resourceId"))
 @AllArgsConstructor
@@ -33,10 +29,12 @@ public class Member {
     private UUID identityProviderUserObjectId;
     private String organisationUnitName;
     private String organisationUnitId;
+    private String status;
 
     @JsonIgnore
     @ToString.Exclude
     @OneToMany(mappedBy = "member", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
     private Set<Membership> memberships;
 
     public SimpleMember toSimpleMember() {

@@ -1,9 +1,11 @@
 package no.fintlabs.member;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.cache.FintCache;
 import no.fintlabs.kafka.entity.EntityConsumerFactoryService;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import no.fintlabs.membership.MembershipService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -11,16 +13,13 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class MemberConsumer {
 
     private final FintCache<Long, Member> memberCache;
 
     private final MemberRepository memberRepository;
-
-    public MemberConsumer(MemberRepository memberRepository, FintCache<Long, Member> memberCache) {
-        this.memberCache = memberCache;
-        this.memberRepository = memberRepository;
-    }
+    private final MembershipService membershipService;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, KontrollUser> memberConsumerConfiguration(
@@ -76,6 +75,10 @@ public class MemberConsumer {
         if (!member.equals(updatedMember)) {
             Member savedmember = memberRepository.save(updatedMember);
             memberCache.put(savedmember.getId(), savedmember);
+            if(!"ACTIVE".equals(savedmember.getStatus()))
+            {
+                membershipService.removeAllMembershipsForUser(savedmember);
+            }
         }
     }
 

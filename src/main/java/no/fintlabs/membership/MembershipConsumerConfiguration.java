@@ -31,7 +31,7 @@ public class MembershipConsumerConfiguration {
 
 
         return entityConsumerFactoryService
-                .createFactory(KafkaMembership.class, this::process)
+                .createFactory(KafkaMembership.class, this::processWithRetry)
                 .createContainer(entityTopicNameParameters);
     }
 
