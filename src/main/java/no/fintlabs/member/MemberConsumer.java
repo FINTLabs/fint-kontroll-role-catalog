@@ -38,7 +38,7 @@ public class MemberConsumer {
     void process(ConsumerRecord<String, KontrollUser> consumerRecord) {
         KontrollUser kontrollUser = consumerRecord.value();
         log.info("Processing member: {}, username: {}, status: {}, identityProviderUserObjectId: {}", kontrollUser.getId(), kontrollUser.getUserName(), kontrollUser.getStatus(),
-                 kontrollUser.getIdentityProviderUserObjectId());
+                kontrollUser.getIdentityProviderUserObjectId());
 
         Member convertedMember = MemberMapper.fromKontrollUser(kontrollUser);
 
@@ -71,12 +71,14 @@ public class MemberConsumer {
                 );
     }
 
-    private void updateMember(Member member, Member updatedMember) {
-        if (!member.equals(updatedMember)) {
-            Member savedmember = memberRepository.save(updatedMember);
+    private void updateMember(Member existingMember, Member incomingMember) {
+        if (!existingMember.equals(incomingMember)) {
+            boolean wasActive = "ACTIVE".equals(existingMember.getStatus());
+            boolean willBeActive = "ACTIVE".equals(incomingMember.getStatus());
+            boolean deactivate = wasActive && !willBeActive;
+            Member savedmember = memberRepository.save(incomingMember);
             memberCache.put(savedmember.getId(), savedmember);
-            if(!"ACTIVE".equals(savedmember.getStatus()))
-            {
+            if (deactivate) {
                 membershipService.removeAllMembershipsForUser(savedmember);
             }
         }
