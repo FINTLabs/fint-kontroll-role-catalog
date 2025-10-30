@@ -1,9 +1,11 @@
 package no.fintlabs.member;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.cache.FintCache;
 import no.fintlabs.kafka.entity.EntityConsumerFactoryService;
 import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import no.fintlabs.membership.MembershipService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -11,16 +13,13 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class MemberConsumer {
 
     private final FintCache<Long, Member> memberCache;
 
     private final MemberRepository memberRepository;
-
-    public MemberConsumer(MemberRepository memberRepository, FintCache<Long, Member> memberCache) {
-        this.memberCache = memberCache;
-        this.memberRepository = memberRepository;
-    }
+    private final MembershipService membershipService;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, KontrollUser> memberConsumerConfiguration(
@@ -39,7 +38,7 @@ public class MemberConsumer {
     void process(ConsumerRecord<String, KontrollUser> consumerRecord) {
         KontrollUser kontrollUser = consumerRecord.value();
         log.info("Processing member: {}, username: {}, status: {}, identityProviderUserObjectId: {}", kontrollUser.getId(), kontrollUser.getUserName(), kontrollUser.getStatus(),
-                 kontrollUser.getIdentityProviderUserObjectId());
+                kontrollUser.getIdentityProviderUserObjectId());
 
         Member convertedMember = MemberMapper.fromKontrollUser(kontrollUser);
 
@@ -72,10 +71,16 @@ public class MemberConsumer {
                 );
     }
 
-    private void updateMember(Member member, Member updatedMember) {
-        if (!member.equals(updatedMember)) {
-            Member savedmember = memberRepository.save(updatedMember);
+    private void updateMember(Member existingMember, Member incomingMember) {
+        if (!existingMember.equals(incomingMember)) {
+            boolean wasActive = "ACTIVE".equals(existingMember.getStatus());
+            boolean willBeActive = "ACTIVE".equals(incomingMember.getStatus());
+            boolean deactivate = wasActive && !willBeActive;
+            Member savedmember = memberRepository.save(incomingMember);
             memberCache.put(savedmember.getId(), savedmember);
+            if (deactivate) {
+                membershipService.removeAllMembershipsForUser(savedmember);
+            }
         }
     }
 
