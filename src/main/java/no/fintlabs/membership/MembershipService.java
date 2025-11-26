@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -20,11 +21,11 @@ import java.util.Optional;
 @Slf4j
 public class MembershipService {
 
+    private static final String ACTIVE = "ACTIVE";
+    private static final String INACTIVE = "INACTIVE";
     private final MembershipRepository membershipRepository;
     private final RoleRepository roleRepository;
     private final MemberRepository memberRepository;
-
-    private static final String ACTIVE = "ACTIVE";
 
     @Transactional
     public void processMembership(KafkaMembership kafkaMembership) {
@@ -91,7 +92,7 @@ public class MembershipService {
 
     private boolean isMembershipChanged(Membership membership, String newStatus, Date newChangedDate) {
         String currentStatus = membership.getMembershipStatus();
-        Instant newChangeDateInstant = newChangedDate == null ? null :newChangedDate.toInstant();
+        Instant newChangeDateInstant = newChangedDate == null ? null : newChangedDate.toInstant();
         Instant currentChangedDate = membership.getMembershipStatusChanged() == null ? null : membership.getMembershipStatusChanged().toInstant();
 
         return !newStatus.equalsIgnoreCase(currentStatus) || !Objects.equals(currentChangedDate, newChangeDateInstant);
@@ -110,6 +111,21 @@ public class MembershipService {
             log.info("Decremented member count for Role: {} to {}", role.getId(), role.getNoOfMembers());
         }
     }
+
+    public void removeAllMembershipsForUser(Member member) {
+        List<Membership> activeMemberships = membershipRepository.findAllActiveByMemberId(member.getId());
+        if (!activeMemberships.isEmpty()) {
+            log.info("Removing all memberships for member {}. Found {} active memberships", member.getId(), activeMemberships.size());
+        }
+        activeMemberships.forEach(this::deactivateMembership);
+    }
+
+    private void deactivateMembership(Membership membership) {
+        membership.setMembershipStatus(INACTIVE);
+        membershipRepository.save(membership);
+        adjustRoleMemberCountIfNeeded(membership.getRole(), false, true, false);
+    }
+
 }
 
 
