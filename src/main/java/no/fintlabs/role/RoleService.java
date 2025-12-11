@@ -27,6 +27,7 @@ public class RoleService {
     public Page<Role> findBySearchCriteria(
             String searchString,
             List<String> filteredOrgUnits,
+            List<String> validOrgUnits,
             List<String> roleTypes,
             Boolean getAggregatedRoles,
             Pageable pageable
@@ -34,10 +35,12 @@ public class RoleService {
         List<String> orgUnitsInScope = opaService.getOrgUnitsInScope("role");
         log.info("Org units returned from scope: {}", orgUnitsInScope);
 
+        List<String> validOrgUnitsInScope = getIntersection(orgUnitsInScope, validOrgUnits);
+
         RoleSpecificationBuilder roleSpecificationBuilder = new RoleSpecificationBuilder(
                 searchString,
                 filteredOrgUnits,
-                orgUnitsInScope,
+                validOrgUnitsInScope,
                 roleTypes,
                 getAggregatedRoles
         );
@@ -153,5 +156,18 @@ public class RoleService {
     public void syncNoOfMembers() {
         List<Long> ids = roleRepository.findAll().stream().map(Role::getId).toList();
         ids.forEach(worker::recomputeOneRole);
+    }
+
+    public static List<String> getIntersection(List<String> orgUnitsInScope, List<String> validOrgUnits) {
+
+        if (validOrgUnits ==null || validOrgUnits.isEmpty()) {
+            return orgUnitsInScope;
+        }
+        if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS.name())) {
+           return validOrgUnits;
+        }
+        List<String> intersection = new ArrayList<>(orgUnitsInScope);
+        intersection.retainAll(validOrgUnits);
+        return intersection;
     }
 }
