@@ -65,13 +65,13 @@ public class RoleController {
     public ResponseEntity<Map<String, Object>> getRolesV1(
             @RequestParam(value = "search", required = false) String searchName,
             @RequestParam(value = "orgunits", required = false) List<String>  requestedOrgUnits,
-            @RequestParam(value = "validOrgUnits", required = false) List<String> validOrgUnits,
+            @RequestParam(value = "validorgunits", required = false) List<String> validOrgUnits,
             @RequestParam(value = "roletype", required = false) List<String> roleTypes,
             @RequestParam(value = "aggroles", required = false) Boolean aggRoles,
             @SortDefault(sort = {"roleName"}, direction = Sort.Direction.ASC)
             @ParameterObject @PageableDefault(size = 100) Pageable pageable
     ) {
-        log.info("Fetching all roles with params search: {} orgUnits: {} roleTypes: {} getAggRoles: {} " , searchName, requestedOrgUnits, roleTypes, aggRoles);
+        log.info("Fetching all roles with params search: {} orgUnits: {} validOrgUnits: {} roleTypes: {} getAggRoles: {} " , searchName, requestedOrgUnits, validOrgUnits, roleTypes, aggRoles);
 
         try {
             Page<Role> rolesByParams = roleService.findBySearchCriteria(searchName, requestedOrgUnits, roleTypes, validOrgUnits, aggRoles, pageable);
