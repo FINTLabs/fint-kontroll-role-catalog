@@ -74,7 +74,7 @@ public class RoleController {
         log.info("Fetching all roles with params search: {} orgUnits: {} validOrgUnits: {} roleTypes: {} getAggRoles: {} " , searchName, requestedOrgUnits, validOrgUnits, roleTypes, aggRoles);
 
         try {
-            Page<Role> rolesByParams = roleService.findBySearchCriteria(searchName, requestedOrgUnits, roleTypes, validOrgUnits, aggRoles, pageable);
+            Page<Role> rolesByParams = roleService.findBySearchCriteria(searchName, requestedOrgUnits, validOrgUnits, roleTypes, aggRoles, pageable);
             return ResponseEntity.ok(RoleMapper.toRoleDtoPage(rolesByParams));
         } catch (Exception e) {
             log.error("Error fetching roles", e);
