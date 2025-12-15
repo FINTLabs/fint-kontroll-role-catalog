@@ -214,4 +214,57 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 
         assertThat(returnedOrgUnits).isEqualTo(expectedReturnedOrgUnits);
     }
+
+    @DisplayName("Test for getOrgUnitsValidAndInScope method - validOrgUnits is null")
+    @Test
+    public void givenNullValidOrgUnits_whenGetOrgUnitsValidAndInScope_thenReturnOrgUnitsInScope() {
+        List<String> orgUnitsInScope = List.of("198", "205", "211");
+
+        List<String> result = RoleService.getOrgUnitsValidAndInScope(orgUnitsInScope, null);
+
+        assertThat(result).isEqualTo(orgUnitsInScope);
+    }
+
+    @DisplayName("Test for getOrgUnitsValidAndInScope method - validOrgUnits is empty")
+    @Test
+    public void givenEmptyValidOrgUnits_whenGetOrgUnitsValidAndInScope_thenReturnOrgUnitsInScope() {
+        List<String> orgUnitsInScope = List.of("198", "205", "211");
+
+        List<String> result = RoleService.getOrgUnitsValidAndInScope(orgUnitsInScope, new ArrayList<>());
+
+        assertThat(result).isEqualTo(orgUnitsInScope);
+    }
+
+    @DisplayName("Test for getOrgUnitsValidAndInScope method - orgUnitsInScope contains ALLORGUNITS")
+    @Test
+    public void givenOrgUnitsInScopeContainsALLORGUNITS_whenGetOrgUnitsValidAndInScope_thenReturnValidOrgUnits() {
+        List<String> orgUnitsInScope = List.of("ALLORGUNITS", "198", "205");
+        List<String> validOrgUnits = List.of("211", "218");
+
+        List<String> result = RoleService.getOrgUnitsValidAndInScope(orgUnitsInScope, validOrgUnits);
+
+        assertThat(result).isEqualTo(validOrgUnits);
+    }
+
+    @DisplayName("Test for getOrgUnitsValidAndInScope method - intersection of orgUnitsInScope and validOrgUnits")
+    @Test
+    public void givenNonEmptyOrgUnitsInScopeAndValidOrgUnits_whenGetOrgUnitsValidAndInScope_thenReturnIntersection() {
+        List<String> orgUnitsInScope = List.of("198", "205", "211", "218");
+        List<String> validOrgUnits = List.of("211", "218", "219");
+
+        List<String> result = RoleService.getOrgUnitsValidAndInScope(orgUnitsInScope, validOrgUnits);
+
+        assertThat(result).isEqualTo(List.of("211", "218"));
+    }
+
+    @DisplayName("Test for getOrgUnitsValidAndInScope method - no intersection between orgUnitsInScope and validOrgUnits")
+    @Test
+    public void givenNoIntersectionBetweenOrgUnitsInScopeAndValidOrgUnits_whenGetOrgUnitsValidAndInScope_thenReturnEmptyList() {
+        List<String> orgUnitsInScope = List.of("198", "205");
+        List<String> validOrgUnits = List.of("211", "218");
+
+        List<String> result = RoleService.getOrgUnitsValidAndInScope(orgUnitsInScope, validOrgUnits);
+
+        assertThat(result).isEqualTo(new ArrayList<>());
+    }
 }
