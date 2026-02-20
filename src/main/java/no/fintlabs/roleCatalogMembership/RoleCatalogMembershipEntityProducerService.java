@@ -18,14 +18,13 @@ import java.util.Optional;
 public class RoleCatalogMembershipEntityProducerService {
     private final EntityProducer<RoleCatalogMembership> entityProducer;
     private final EntityTopicNameParameters entityTopicNameParameters;
-    private final EntityTopicService entityTopicService;
     private final FintCache<String, RoleCatalogMembership> roleCatalogMembershipCache;
+
     public RoleCatalogMembershipEntityProducerService(
             EntityProducerFactory entityProducerFactory,
             EntityTopicService entityTopicService,
             FintCache<String, RoleCatalogMembership> roleCatalogMembershipCache) {
         entityProducer = entityProducerFactory.createProducer(RoleCatalogMembership.class);
-        this.entityTopicService = entityTopicService;
         this.roleCatalogMembershipCache = roleCatalogMembershipCache;
         entityTopicNameParameters = EntityTopicNameParameters
                 .builder()
@@ -78,5 +77,17 @@ public class RoleCatalogMembershipEntityProducerService {
                         .build()
         );
         roleCatalogMembershipCache.put(key, roleCatalogMembership);
+    }
+
+    public void publishTombstone(String membershipId) {
+        log.info("Publish tombstone for role-catalog-membership: {}", membershipId);
+        entityProducer.send(
+                EntityProducerRecord.<RoleCatalogMembership>builder()
+                        .topicNameParameters(entityTopicNameParameters)
+                        .key(membershipId)
+                        .value(null)
+                        .build()
+        );
+        roleCatalogMembershipCache.remove(membershipId);
     }
 }
