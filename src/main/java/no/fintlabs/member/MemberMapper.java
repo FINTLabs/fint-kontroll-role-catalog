@@ -12,6 +12,7 @@ public class MemberMapper {
                 .organisationUnitId(kontrollUser.getMainOrganisationUnitId())
                 .organisationUnitName(kontrollUser.getMainOrganisationUnitName())
                 .status(kontrollUser.getStatus())
+                .resourceId(kontrollUser.getResourceId())
                 .build();
     }
 }

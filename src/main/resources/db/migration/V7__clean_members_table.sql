@@ -1,0 +1,1 @@
+alter table members add status varchar(255);
