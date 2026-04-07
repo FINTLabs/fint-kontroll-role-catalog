@@ -126,7 +126,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         Sort sort = Sort.by(Sort.Order.asc("roleName"));
         Pageable pageable = PageRequest.of(0, 10, sort);
 
-        ResponseEntity<Map<String, Object>> response = roleController.getRolesV1(null, null, null, null, pageable);
+        ResponseEntity<Map<String, Object>> response = roleController.getRolesV1(null,null, null, null, null, pageable);
 
         List<RoleDto> foundRoles = (List<RoleDto>) response.getBody().get("roles");
         assertEquals(5, foundRoles.size());
@@ -147,7 +147,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         Sort sort = Sort.by(Sort.Order.asc("organisationUnitId"), Sort.Order.asc("roleName"));
         Pageable pageable = PageRequest.of(0, 10, sort);
 
-        ResponseEntity<Map<String, Object>> response = roleController.getRolesV1(null, null, null, null, pageable);
+        ResponseEntity<Map<String, Object>> response = roleController.getRolesV1(null,null, null, null, null, pageable);
 
         List<RoleDto> foundRoles = (List<RoleDto>) response.getBody().get("roles");
         assertEquals(2, foundRoles.size());
@@ -168,7 +168,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         Sort sort = Sort.by(Sort.Order.asc("organisationUnitId"), Sort.Order.asc("roleName"));
         Pageable pageable = PageRequest.of(0, 10, sort);
 
-        ResponseEntity<Map<String, Object>> response = roleController.getRolesV1(null, null, null, true, pageable);
+        ResponseEntity<Map<String, Object>> response = roleController.getRolesV1(null,null, null, null, true, pageable);
 
         List<RoleDto> foundRoles = (List<RoleDto>) response.getBody().get("roles");
         assertEquals(1, foundRoles.size());
@@ -189,7 +189,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         Sort sort = Sort.by(Sort.Order.asc("organisationUnitId"), Sort.Order.asc("roleName"));
         Pageable pageable = PageRequest.of(0, 10, sort);
 
-        ResponseEntity<Map<String, Object>> response = roleController.getRolesV1(null, List.of("V00","V40.10"), List.of("ansatt","elev"), null, pageable);
+        ResponseEntity<Map<String, Object>> response = roleController.getRolesV1(null, List.of("V00","V40.10"), null,List.of("ansatt","elev"), null, pageable);
 
         List<RoleDto> foundRoles = (List<RoleDto>) response.getBody().get("roles");
         assertEquals(2, foundRoles.size());

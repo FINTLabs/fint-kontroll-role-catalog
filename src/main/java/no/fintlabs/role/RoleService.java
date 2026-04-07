@@ -27,6 +27,7 @@ public class RoleService {
     public Page<Role> findBySearchCriteria(
             String searchString,
             List<String> filteredOrgUnits,
+            List<String> validOrgUnits,
             List<String> roleTypes,
             Boolean getAggregatedRoles,
             Pageable pageable
@@ -34,10 +35,12 @@ public class RoleService {
         List<String> orgUnitsInScope = opaService.getOrgUnitsInScope("role");
         log.info("Org units returned from scope: {}", orgUnitsInScope);
 
+        List<String> validOrgUnitsInScope = getOrgUnitsValidAndInScope(orgUnitsInScope, validOrgUnits);
+
         RoleSpecificationBuilder roleSpecificationBuilder = new RoleSpecificationBuilder(
                 searchString,
                 filteredOrgUnits,
-                orgUnitsInScope,
+                validOrgUnitsInScope,
                 roleTypes,
                 getAggregatedRoles
         );
@@ -153,5 +156,21 @@ public class RoleService {
     public void syncNoOfMembers() {
         List<Long> ids = roleRepository.findAll().stream().map(Role::getId).toList();
         ids.forEach(worker::recomputeOneRole);
+    }
+
+    public static List<String> getOrgUnitsValidAndInScope(List<String> orgUnitsInScope, List<String> validOrgUnits) {
+        log.debug("Getting intersection of {} and {}", orgUnitsInScope,  validOrgUnits);
+        if (validOrgUnits ==null || validOrgUnits.isEmpty()) {
+            log.debug("No valid orgUnits found, returning org units in scope");
+            return orgUnitsInScope;
+        }
+        if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS.name())) {
+            log.debug("org unit scope contains ALLORGUNITS, returning valid orgUnits");
+            return validOrgUnits;
+        }
+        List<String> intersection = new ArrayList<>(orgUnitsInScope);
+        intersection.retainAll(validOrgUnits);
+        log.debug("Both orgUnitsInScope and validOrgUnits are non empty subsets. Returning the actual intersection");
+        return intersection;
     }
 }
