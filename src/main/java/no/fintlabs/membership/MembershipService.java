@@ -6,14 +6,18 @@ import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberRepository;
 import no.fintlabs.role.Role;
 import no.fintlabs.role.RoleRepository;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
 import no.fintlabs.util.MissingReferenceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import static no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService.getRoleCatalogMembershipId;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +29,7 @@ public class MembershipService {
     private final MemberRepository memberRepository;
 
     private static final String ACTIVE = "ACTIVE";
+    private final RoleCatalogMembershipEntityProducerService roleCatalogMembershipEntityProducerService;
 
     @Transactional
     public void processMembership(KafkaMembership kafkaMembership) {
@@ -110,6 +115,23 @@ public class MembershipService {
             log.info("Decremented member count for Role: {} to {}", role.getId(), role.getNoOfMembers());
         }
     }
+
+    public void removeAllMembershipsForUser(Member member) {
+        List<Membership> activeMemberships = membershipRepository.findAllActiveByMemberId(member.getId());
+        if (!activeMemberships.isEmpty()) {
+            log.info("Removing all memberships for member {}. Found {} active memberships", member.getId(), activeMemberships.size());
+        }
+        activeMemberships.forEach(this::deleteMembership);
+    }
+
+    private void deleteMembership(Membership membership) {
+        log.info("Deleting membership: {}", membership.getId());
+        String kafkaKey = getRoleCatalogMembershipId(membership.getRole(), membership);
+        membershipRepository.delete(membership);
+        adjustRoleMemberCountIfNeeded(membership.getRole(), false, true, false);
+        roleCatalogMembershipEntityProducerService.publishTombstone(kafkaKey);
+    }
+
 }
 
 
