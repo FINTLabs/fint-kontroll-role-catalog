@@ -115,7 +115,7 @@ public class MembershipService {
             log.info("Decremented member count for Role: {} to {}", role.getId(), role.getNoOfMembers());
         }
     }
-
+    @Transactional
     public void removeAllMembershipsForUser(Member member) {
         List<Membership> activeMemberships = membershipRepository.findAllActiveByMemberId(member.getId());
         if (!activeMemberships.isEmpty()) {
