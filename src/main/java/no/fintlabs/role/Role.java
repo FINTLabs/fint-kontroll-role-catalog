@@ -87,6 +87,9 @@ public class Role {
     }
 
     public void decrementMemberCount() {
+        if (this.noOfMembers == null) {
+            this.noOfMembers = 0;
+        }
         if (this.noOfMembers > 0) {
             this.noOfMembers--;
         }
