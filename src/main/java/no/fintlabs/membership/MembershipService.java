@@ -117,7 +117,7 @@ public class MembershipService {
     }
     @Transactional
     public void removeAllMembershipsForUser(Member member) {
-        List<Membership> activeMemberships = membershipRepository.findAllActiveByMemberId(member.getId());
+        List<Membership> activeMemberships = membershipRepository.findAllByMember_Id(member.getId());
         if (!activeMemberships.isEmpty()) {
             log.info("Removing all memberships for member {}. Found {} active memberships", member.getId(), activeMemberships.size());
         }

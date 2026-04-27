@@ -32,4 +32,6 @@ public interface MembershipRepository extends JpaRepository<Membership, Membersh
                                     Pageable pageable);
     @Query("select m from Membership m where m.member.id = :memberId and m.membershipStatus = 'ACTIVE'")
     List<Membership> findAllActiveByMemberId(Long memberId);
+
+    List<Membership> findAllByMember_Id(Long memberId);
 }
