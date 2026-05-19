@@ -2,9 +2,10 @@ package no.fintlabs.member;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.KafkaConsumerConfigurationDefaults;
 import no.fintlabs.cache.FintCache;
-import no.fintlabs.kafka.entity.EntityConsumerFactoryService;
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import no.novari.kafka.consuming.*;
+import no.novari.kafka.topic.name.EntityTopicNameParameters;
 import no.fintlabs.membership.MembershipService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
@@ -20,20 +21,39 @@ public class MemberConsumer {
 
     private final MemberRepository memberRepository;
     private final MembershipService membershipService;
+    private final KafkaConsumerConfigurationDefaults kafkaConsumerConfigurationDefaults;
+    private final ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService;
+
+
+    private <T> ParameterizedListenerContainerFactory<T> createRecordListenerFactory(
+            Class<T> resourceClass,
+            java.util.function.Consumer<ConsumerRecord<String, T>> recordProcessor
+    ) {
+        return parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
+                resourceClass,
+                recordProcessor,
+                kafkaConsumerConfigurationDefaults.seekToBeginningListenerConfiguration(),
+                kafkaConsumerConfigurationDefaults.defaultErrorHandler()
+        );
+    }
+
+    private EntityTopicNameParameters topic(String resourceName) {
+        return kafkaConsumerConfigurationDefaults.defaultEntityTopic(resourceName);
+    }
+
 
     @Bean
     public ConcurrentMessageListenerContainer<String, KontrollUser> memberConsumerConfiguration(
-            EntityConsumerFactoryService entityConsumerFactoryService
     ) {
-        EntityTopicNameParameters kontrolluser = EntityTopicNameParameters
-                .builder()
-                .resource("kontrolluser")
-                .build();
+        return createRecordListenerFactory(
+                KontrollUser.class,
+                this::process
+        ).createContainer(topic("kontrolluser"));
 
-        return entityConsumerFactoryService
-                .createFactory(KontrollUser.class, this::process)
-                .createContainer(kontrolluser);
     }
+
+
+
 
     void process(ConsumerRecord<String, KontrollUser> consumerRecord) {
         KontrollUser kontrollUser = consumerRecord.value();
