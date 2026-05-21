@@ -18,41 +18,26 @@ import org.springframework.stereotype.Component;
 public class MemberConsumer {
 
     private final FintCache<Long, Member> memberCache;
-
     private final MemberRepository memberRepository;
     private final MembershipService membershipService;
     private final KafkaConsumerConfigurationDefaults kafkaConsumerConfigurationDefaults;
-    private final ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService;
-
-
-    private <T> ParameterizedListenerContainerFactory<T> createRecordListenerFactory(
-            Class<T> resourceClass,
-            java.util.function.Consumer<ConsumerRecord<String, T>> recordProcessor
-    ) {
-        return parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
-                resourceClass,
-                recordProcessor,
-                kafkaConsumerConfigurationDefaults.seekToBeginningListenerConfiguration(),
-                kafkaConsumerConfigurationDefaults.defaultErrorHandler()
-        );
-    }
-
-    private EntityTopicNameParameters topic(String resourceName) {
-        return kafkaConsumerConfigurationDefaults.defaultEntityTopic(resourceName);
-    }
-
 
     @Bean
     public ConcurrentMessageListenerContainer<String, KontrollUser> memberConsumerConfiguration(
+            ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService
     ) {
-        return createRecordListenerFactory(
-                KontrollUser.class,
-                this::process
-        ).createContainer(topic("kontrolluser"));
+        ParameterizedListenerContainerFactory<KontrollUser> recordListenerFactory =
+                parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
+                        KontrollUser.class,
+                        this::process,
+                        kafkaConsumerConfigurationDefaults.seekToBeginningListenerConfiguration(),
+                        kafkaConsumerConfigurationDefaults.defaultErrorHandler()
+                );
+        EntityTopicNameParameters entityTopicNameParameters =
+                kafkaConsumerConfigurationDefaults.defaultEntityTopic("kontrolluser");
 
+        return recordListenerFactory.createContainer(entityTopicNameParameters);
     }
-
-
 
 
     void process(ConsumerRecord<String, KontrollUser> consumerRecord) {
