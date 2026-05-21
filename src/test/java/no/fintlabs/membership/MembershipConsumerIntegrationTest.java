@@ -90,9 +90,9 @@ public class MembershipConsumerIntegrationTest extends DatabaseIntegrationTest {
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
-        registry.add("fint.kafka.topic.org-id", () -> topicOrgId);
-        registry.add("fint.kafka.topic.domain-context", () -> topicDomainContext);
-        registry.add("fint.kafka.application-id", () -> applicationId);
+        registry.add("novari.kafka.topic.org-id", () -> topicOrgId);
+        registry.add("novari.kafka.topic.domain-context", () -> topicDomainContext);
+        registry.add("novari.kafka.application-id", () -> applicationId);
     }
 
     @Test

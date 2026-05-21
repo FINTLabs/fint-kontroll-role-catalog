@@ -38,3 +38,11 @@ fint:
 
   kafka:
     application-id: fint-kontroll-role-catalog
+
+novari:
+  kafka:
+    default-replicas: 1
+    topic:
+      domain-context: kontroll
+      org-id: fintlabs-no
+    application-id: fint-kontroll-role-catalog

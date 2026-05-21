@@ -15,7 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+//import org.springframework.boot.test.mock.mockito.Mock;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerializer;
@@ -54,19 +55,19 @@ public class MemberConsumerIntegrationTest extends DatabaseIntegrationTest {
     @Autowired
     private EmbeddedKafkaBroker embeddedKafkaBroker;
 
-    @MockBean
+    @MockitoBean
     private RoleCatalogMembershipEntityProducerService roleCatalogMembershipEntityProducerService;
 
-    @MockBean
+    @MockitoBean
     private RoleCatalogRoleEntityProducerService roleCatalogRoleEntityProducerService;
 
-    @MockBean
+    @MockitoBean
     private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
-    @MockBean
+    @MockitoBean
     private RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
 
-    @MockBean
+    @MockitoBean
     private FintKontrollSecurityConfig fintKontrollSecurityConfig;
 
     private static final String applicationId = "fint-kontroll-role-cat";
@@ -75,9 +76,9 @@ public class MemberConsumerIntegrationTest extends DatabaseIntegrationTest {
 
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
-        registry.add("fint.kafka.topic.org-id", () -> topicOrgId);
-        registry.add("fint.kafka.topic.domain-context", () -> topicDomainContext);
-        registry.add("fint.kafka.application-id", () -> applicationId);
+        registry.add("novari.kafka.topic.org-id", () -> topicOrgId);
+        registry.add("novari.kafka.topic.domain-context", () -> topicDomainContext);
+        registry.add("novari.kafka.application-id", () -> applicationId);
     }
 
     @Test
@@ -99,7 +100,7 @@ public class MemberConsumerIntegrationTest extends DatabaseIntegrationTest {
                 .atMost(10, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     Optional<Member> dbMember = memberRepository.findById(kontrollUser.getId());
-                    assertTrue(dbMember.isPresent(), "Membership should be present in the database");
+                    assertTrue(dbMember.isPresent(), "Member should be present in the database");
                 });
     }
 

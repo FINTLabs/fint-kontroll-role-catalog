@@ -77,9 +77,9 @@ public class MembershipKafkaConsumerIntegrationTest {
     @DynamicPropertySource
     static void registerProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", () -> kafka.getBootstrapServers());
-        registry.add("fint.kafka.topic.org-id", () -> topicOrgId);
-        registry.add("fint.kafka.topic.domain-context", () -> topicDomainContext);
-        registry.add("fint.kafka.application-id", () -> applicationId);
+        registry.add("novari.kafka.topic.org-id", () -> topicOrgId);
+        registry.add("novari.kafka.topic.domain-context", () -> topicDomainContext);
+        registry.add("novari.kafka.application-id", () -> applicationId);
         registry.add("fint.cache.defaultCacheEntryTimeToLiveMillis", () -> 518400000);
         registry.add("fint.cache.defaultCacheHeapSize", () -> 1000000);
     }
