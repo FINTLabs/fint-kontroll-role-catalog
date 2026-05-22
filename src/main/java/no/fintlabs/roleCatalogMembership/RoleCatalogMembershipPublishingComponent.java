@@ -3,7 +3,7 @@ package no.fintlabs.roleCatalogMembership;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.membership.Membership;
-import no.fintlabs.role.RoleService;
+import no.fintlabs.role.RoleRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RoleCatalogMembershipPublishingComponent {
 
-    private final RoleService roleService;
+    private final RoleRepository roleRepository;
     private final RoleCatalogMembershipService roleCatalogMembershipService;
     private final RoleCatalogMembershipEntityProducerService roleCatalogMembershipEntityProducerService;
 
@@ -22,7 +22,7 @@ public class RoleCatalogMembershipPublishingComponent {
             cron = "${fint.kontroll.role-catalog.publishing.cron-membership}"
     )
     public void publishMemberships() {
-        List<RoleCatalogMembership> allCatalogMemberships = roleService.getAllRoles()
+        List<RoleCatalogMembership> allCatalogMemberships = roleRepository.findAll()
                 .stream()
                 .map(role -> role.getMemberships()
                         .stream()
