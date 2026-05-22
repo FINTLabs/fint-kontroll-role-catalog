@@ -19,7 +19,7 @@ public class RoleCatalogMembershipPublishingComponent {
     private final RoleCatalogMembershipEntityProducerService roleCatalogMembershipEntityProducerService;
 
     @Scheduled(
-            cron = "${fint.kontroll.role-catalog.publishing.cron}"
+            cron = "${fint.kontroll.role-catalog.publishing.cron-membership}"
     )
     public void publishMemberships() {
         List<RoleCatalogMembership> allCatalogMemberships = roleService.getAllRoles()

@@ -7,6 +7,7 @@ import no.fintlabs.membership.Membership;
 import no.fintlabs.membership.MembershipId;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.OpaService;
+import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,8 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
     private RoleSyncWorker worker;
     @MockBean
     private OpaService opaService;
+    @MockBean
+    private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
     @Test
     public void shouldSaveRoleMemberRelationship() {

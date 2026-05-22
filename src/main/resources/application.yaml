@@ -10,7 +10,8 @@ fint:
     role-catalog:
       pagesize: 50
       publishing:
-        cron: "0 40 1 * * 0"
+        cron-membership: "0 40 1 * * 0"
+        cron-role: "0 30 1 * * 0"
     opa:
       url: http://fint-kontroll-opa:8181/v1/data/accessmanagement
     authorization:

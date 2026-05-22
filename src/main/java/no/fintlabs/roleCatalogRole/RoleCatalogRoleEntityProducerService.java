@@ -60,7 +60,7 @@ public class RoleCatalogRoleEntityProducerService {
                 .toList();
     }
 
-    private void publishCatalogRole(RoleCatalogRole roleCatalogRole) {
+    public void publishCatalogRole(RoleCatalogRole roleCatalogRole) {
         String key = roleCatalogRole.getRoleId();
         log.info("Publish role-catalog-role : {}", key);
         parameterizedTemplate.send(
