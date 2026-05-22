@@ -6,8 +6,6 @@ fint:
         enable: true
   client:
     base-url: https://beta.felleskomponent.no
-  kafka:
-    default-replicas: 1
   kontroll:
     opa:
       url: http://localhost:8181/v1/data/accessmanagement
@@ -19,6 +17,13 @@ fint:
       persisting:
         initial-delay: 1000
         fixed-delay: 60000
+novari:
+  kafka:
+    default-replicas: 1
+    topic:
+      domain-context: kontroll
+      org-id: fintlabs-no
+    application-id: ${fint.application-id}
 spring:
   kafka:
     bootstrap-servers: localhost:9092

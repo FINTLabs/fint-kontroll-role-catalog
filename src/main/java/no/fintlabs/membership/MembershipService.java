@@ -7,6 +7,7 @@ import no.fintlabs.member.MemberRepository;
 import no.fintlabs.role.Role;
 import no.fintlabs.role.RoleRepository;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
 import no.fintlabs.util.MissingReferenceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ public class MembershipService {
 
     private static final String ACTIVE = "ACTIVE";
     private final RoleCatalogMembershipEntityProducerService roleCatalogMembershipEntityProducerService;
+    private final RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
 
     @Transactional
     public void processMembership(KafkaMembership kafkaMembership) {
@@ -60,6 +62,8 @@ public class MembershipService {
             membership.setMembershipStatus(newStatus);
             membership.setMembershipStatusChanged(newChangedDate);
             membershipRepository.save(membership);
+
+            roleCatalogMembershipPublishingComponent.publishMembership(membership);
 
             adjustRoleMemberCountIfNeeded(role, isNew, wasActive, nowActive);
         } else {

@@ -1,6 +1,5 @@
 package no.fintlabs.roleCatalogMembership;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import no.fintlabs.membership.Membership;
 import no.fintlabs.role.Role;
@@ -17,6 +16,19 @@ public class RoleCatalogMembershipService {
                 .memberId(membership.getMember().getId())
                 .identityProviderUserObjectId(membership.getMember().getIdentityProviderUserObjectId())
                 .memberStatus(membership.getMembershipStatus() == null ? "ACTIVE" : membership.getMembershipStatus())
+                .memberStatusChanged(membership.getMembershipStatusChanged())
+                .build();
+    }
+
+    public RoleCatalogMembership create(Membership membership) {
+        String roleId = membership.getRole().getId().toString();
+
+        return RoleCatalogMembership.builder()
+                .id(roleId +"_"+ membership.getMember().getId())
+                .roleId(membership.getRole().getId())
+                .memberId(membership.getMember().getId())
+                .identityProviderUserObjectId(membership.getMember().getIdentityProviderUserObjectId())
+                .memberStatus(membership.getMembershipStatus())
                 .memberStatusChanged(membership.getMembershipStatusChanged())
                 .build();
     }

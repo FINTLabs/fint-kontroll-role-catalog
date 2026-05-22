@@ -49,26 +49,6 @@ public class RoleCatalogMembershipEntityProducerService {
         );
     }
 
-    public void publish(RoleCatalogMembership roleCatalogMembership) {
-        String key = roleCatalogMembership.getId();
-        Optional<RoleCatalogMembership> roleCatalogMembershipOptional = roleCatalogMembershipCache.getOptional(key);
-
-        if (roleCatalogMembershipOptional.isEmpty() || !roleCatalogMembership.equals(roleCatalogMembershipOptional.get())) {
-            log.debug("Publish role-catalog-membership: {}", key);
-            parameterizedTemplate.send(
-                    ParameterizedProducerRecord.<RoleCatalogMembership>builder()
-                            .topicNameParameters(entityTopicNameParameters)
-                            .key(key)
-                            .value(roleCatalogMembership)
-                            .build()
-            );
-            roleCatalogMembershipCache.put(key, roleCatalogMembership);
-        }
-        else {
-            log.info("role-catalog-membership: {} already published", key);
-        }
-    }
-
     public List<RoleCatalogMembership> publishChangedCatalogMemberships(List<RoleCatalogMembership> allCatalogMemberships) {
         return allCatalogMemberships
                 .stream()
@@ -82,7 +62,7 @@ public class RoleCatalogMembershipEntityProducerService {
                 .toList();
     }
 
-    private void publishChangedCatalogMemberships(RoleCatalogMembership roleCatalogMembership) {
+    public void publishChangedCatalogMemberships(RoleCatalogMembership roleCatalogMembership) {
         String key = roleCatalogMembership.getId();
         log.info("Publish role-catalog-membership: {}", key);
         parameterizedTemplate.send(
