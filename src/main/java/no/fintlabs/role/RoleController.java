@@ -6,6 +6,8 @@ import no.fintlabs.member.Member;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.Scope;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
+import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import no.fintlabs.util.OnlyDevelopers;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -35,6 +37,8 @@ public class RoleController {
     private final RoleService roleService;
     private final AuthorizationClient authorizationClient;
     private final MembershipRepository membershipRepository;
+    private final RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
+    private final RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
     @GetMapping("/old")
     public ResponseEntity<Map<String, Object>> getRoles(@AuthenticationPrincipal Jwt jwt,
@@ -129,6 +133,23 @@ public class RoleController {
         log.info("Syncing number of members for all roles");
         roleService.syncNoOfMembers();
         log.info("Syncing number of members for all roles done");
+    }
+
+    @OnlyDevelopers
+    @GetMapping("/publishallroles")
+    public void publishallroles() {
+        log.info("Publishing all roles");
+        roleCatalogPublishingComponent.publishRoles();
+        log.info("Publishing all roles done");
+    }
+
+    @OnlyDevelopers
+    @GetMapping("/publishrole/{id}")
+    public void publishrole(@PathVariable Long id) {
+        log.info("Publishing role with id: {}", id);
+        Role roleToPublish = roleService.getRoleByRoleId(id);
+        roleCatalogPublishingComponent.publishRole(roleToPublish);
+        log.info("Publishing role with id: {} done", id);
     }
 
 }

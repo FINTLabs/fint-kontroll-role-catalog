@@ -177,4 +177,9 @@ public class RoleService {
         log.debug("Both orgUnitsInScope and validOrgUnits are non empty subsets. Returning the actual intersection");
         return intersection;
     }
+
+    public Role getRoleByRoleId(Long id) {
+        return roleRepository.findById(id).orElseThrow(()
+                -> new ResourceNotFoundException("No role with id " + id + " found"));
+    }
 }
