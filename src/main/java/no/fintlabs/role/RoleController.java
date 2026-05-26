@@ -152,4 +152,22 @@ public class RoleController {
         log.info("Publishing role with id: {} done", id);
     }
 
+    @OnlyDevelopers
+    @GetMapping("/publishallmemberships")
+    public void publishallmemberships() {
+        log.info("Publishing all memberships");
+        roleCatalogMembershipPublishingComponent.publishMemberships();
+        log.info("Publishing all memberships done");
+    }
+
+    @OnlyDevelopers
+    @GetMapping("/publishmembershipsforrole/{id}")
+    public void publishMembershipsForRole(@PathVariable Long id){
+        log.info("Publishing memberships for role with id: {}", id);
+        Role roleToPublish = roleService.getRoleByRoleId(id);
+
+        roleCatalogMembershipPublishingComponent.publishMembershipsForRole(roleToPublish);
+        log.info("Publishing memberships for role with id: {} done", id);
+    }
+
 }
