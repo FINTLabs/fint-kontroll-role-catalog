@@ -1,8 +1,9 @@
-fint:
+novari:
   kafka:
+    default-replicas: 1
     topic:
-      org-id: ${fint.org-id}
       domain-context: kontroll
+      org-id: fintlabs-no
     application-id: ${fint.application-id}
 spring:
   kafka:

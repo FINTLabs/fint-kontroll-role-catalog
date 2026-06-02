@@ -18,6 +18,7 @@ fint:
       authorized-role: 'https://role-catalog.vigoiks.no/vigo/kontroll/user'
       authorized-admin-role: 'https://role-catalog.vigoiks.no/vigo/kontroll/admin'
       authorized-org-id: 'vigo.no'
+
 spring:
   security:
     oauth2:
