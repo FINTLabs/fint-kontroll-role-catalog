@@ -6,6 +6,8 @@ import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberResponseFactory;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
+import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,12 @@ public class RoleControllerTest {
 
     @MockBean
     private ProblemDetailFactory problemDetailFactory;
+
+    @MockBean
+    private RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
+
+    @MockBean
+    private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
     @BeforeEach
     public void setup() {
