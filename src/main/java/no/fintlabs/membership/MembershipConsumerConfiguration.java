@@ -2,8 +2,9 @@ package no.fintlabs.membership;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.kafka.entity.EntityConsumerFactoryService;
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import no.fintlabs.KafkaConsumerConfigurationDefaults;
+import no.novari.kafka.consuming.*;
+import no.novari.kafka.topic.name.EntityTopicNameParameters;
 import no.fintlabs.util.MissingReferenceException;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
@@ -18,21 +19,26 @@ public class MembershipConsumerConfiguration {
 
     private final MembershipService membershipService;
     private final RetryTemplate kafkaRetryTemplate;
+    private final KafkaConsumerConfigurationDefaults kafkaConsumerConfigurationDefaults;
 
 
     @Bean
     public ConcurrentMessageListenerContainer<String, KafkaMembership> membershipConsumer(
-            EntityConsumerFactoryService entityConsumerFactoryService
+            ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService
     ) {
-        EntityTopicNameParameters entityTopicNameParameters = EntityTopicNameParameters
-                .builder()
-                .resource("role-membership")
-                .build();
+        ParameterizedListenerContainerFactory<KafkaMembership> recordListenerFactory =
+                parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
+                        KafkaMembership.class,
+                        this::processWithRetry,
+                        kafkaConsumerConfigurationDefaults.continueFromPreviousListenerConfiguration(),
+                        kafkaConsumerConfigurationDefaults.defaultErrorHandler()
+                );
+
+        EntityTopicNameParameters entityTopicNameParameters =
+                kafkaConsumerConfigurationDefaults.defaultEntityTopic("role-membership");
 
 
-        return entityConsumerFactoryService
-                .createFactory(KafkaMembership.class, this::process)
-                .createContainer(entityTopicNameParameters);
+        return recordListenerFactory.createContainer(entityTopicNameParameters);
     }
 
     private void processWithRetry(ConsumerRecord<String, KafkaMembership> record) {

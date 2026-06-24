@@ -10,14 +10,15 @@ fint:
     role-catalog:
       pagesize: 50
       publishing:
-        initial-delay: 10000
-        fixed-delay: 900000
+        cron-membership: "0 40 1 * * 0"
+        cron-role: "0 30 1 * * 0"
     opa:
       url: http://fint-kontroll-opa:8181/v1/data/accessmanagement
     authorization:
       authorized-role: 'https://role-catalog.vigoiks.no/vigo/kontroll/user'
       authorized-admin-role: 'https://role-catalog.vigoiks.no/vigo/kontroll/admin'
       authorized-org-id: 'vigo.no'
+
 spring:
   security:
     oauth2:

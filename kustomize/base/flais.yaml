@@ -31,6 +31,8 @@ spec:
       value: 'fint-kontroll-role-catalog'
     - name: JAVA_TOOL_OPTIONS
       value: "-XX:+ExitOnOutOfMemoryError -Xms512m -Xmx912m"
+    - name: novari.kafka.topic.org-id
+      value: "No 3 - orgid with - and not ."
   envFrom:
     - configMapRef:
         name: fint-environment

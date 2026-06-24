@@ -14,7 +14,8 @@ public class RoleMapper {
                 role.getRoleSubType(),
                 role.isAggregatedRole(),
                 role.getOrganisationUnitId(),
-                role.getOrganisationUnitName()
+                role.getOrganisationUnitName(),
+                role.getNoOfMembers()
         );
     }
     public static Map<String, Object> toRoleDtoPage(Page<Role> rolePage) {

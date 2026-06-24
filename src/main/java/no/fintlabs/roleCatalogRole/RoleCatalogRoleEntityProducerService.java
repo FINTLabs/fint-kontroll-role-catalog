@@ -2,35 +2,49 @@ package no.fintlabs.roleCatalogRole;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.cache.FintCache;
-import no.fintlabs.kafka.entity.EntityProducer;
-import no.fintlabs.kafka.entity.EntityProducerFactory;
-import no.fintlabs.kafka.entity.EntityProducerRecord;
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
-import no.fintlabs.kafka.entity.topic.EntityTopicService;
+import no.novari.kafka.producing.ParameterizedProducerRecord;
+import no.novari.kafka.producing.ParameterizedTemplate;
+import no.novari.kafka.producing.ParameterizedTemplateFactory;
+import no.novari.kafka.topic.EntityTopicService;
+import no.novari.kafka.topic.configuration.EntityCleanupFrequency;
+import no.novari.kafka.topic.configuration.EntityTopicConfiguration;
+import no.novari.kafka.topic.name.EntityTopicNameParameters;
+import no.novari.kafka.topic.name.TopicNamePrefixParameters;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 
 @Service
 @Slf4j
 public class RoleCatalogRoleEntityProducerService {
-    private final EntityProducer<RoleCatalogRole> entityProducer;
+    private final ParameterizedTemplate<RoleCatalogRole> parameterizedTemplate;
     private final EntityTopicNameParameters entityTopicNameParameters;
-    private final EntityTopicService entityTopicService;
     private final FintCache<String, Integer> roleCatalogRoleCache;
 
     public RoleCatalogRoleEntityProducerService(
-            EntityProducerFactory entityProducerFactory,
+            ParameterizedTemplateFactory parameterizedTemplateFactory,
             EntityTopicService entityTopicService,
-            FintCache<String, Integer> roleCatalogRoleCache) {
-        entityProducer = entityProducerFactory.createProducer(RoleCatalogRole.class);
-        this.entityTopicService = entityTopicService;
+            FintCache<String, Integer> roleCatalogRoleCache
+    ) {
+        this.parameterizedTemplate = parameterizedTemplateFactory.createTemplate(RoleCatalogRole.class);
         this.roleCatalogRoleCache = roleCatalogRoleCache;
         entityTopicNameParameters = EntityTopicNameParameters
                 .builder()
-                .resource("role-catalog-role")
+                .topicNamePrefixParameters(TopicNamePrefixParameters
+                        .stepBuilder()
+                        .orgIdApplicationDefault()
+                        .domainContextApplicationDefault()
+                        .build())
+                .resourceName("role-catalog-role")
                 .build();
-        entityTopicService.ensureTopic(entityTopicNameParameters, 0);
+        entityTopicService.createOrModifyTopic(entityTopicNameParameters, EntityTopicConfiguration.stepBuilder()
+                .partitions(1)
+                .lastValueRetainedForever()
+                .nullValueRetentionTime(Duration.ofDays(7))
+                .cleanupFrequency(EntityCleanupFrequency.NORMAL)
+                .build()
+        );
     }
 
 
@@ -46,11 +60,11 @@ public class RoleCatalogRoleEntityProducerService {
                 .toList();
     }
 
-    private void publishCatalogRole(RoleCatalogRole roleCatalogRole) {
+    public void publishCatalogRole(RoleCatalogRole roleCatalogRole) {
         String key = roleCatalogRole.getRoleId();
         log.info("Publish role-catalog-role : {}", key);
-        entityProducer.send(
-                EntityProducerRecord.<RoleCatalogRole>builder()
+        parameterizedTemplate.send(
+                ParameterizedProducerRecord.<RoleCatalogRole>builder()
                         .topicNameParameters(entityTopicNameParameters)
                         .key(key)
                         .value(roleCatalogRole)

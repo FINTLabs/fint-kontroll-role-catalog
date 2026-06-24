@@ -2,13 +2,17 @@ package no.fintlabs.roleCatalogMembership;
 
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.cache.FintCache;
-import no.fintlabs.kafka.entity.EntityProducer;
-import no.fintlabs.kafka.entity.EntityProducerFactory;
-import no.fintlabs.kafka.entity.EntityProducerRecord;
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
-import no.fintlabs.kafka.entity.topic.EntityTopicService;
+import no.novari.kafka.producing.ParameterizedProducerRecord;
+import no.novari.kafka.producing.ParameterizedTemplate;
+import no.novari.kafka.producing.ParameterizedTemplateFactory;
+import no.novari.kafka.topic.EntityTopicService;
+import no.novari.kafka.topic.configuration.EntityCleanupFrequency;
+import no.novari.kafka.topic.configuration.EntityTopicConfiguration;
+import no.novari.kafka.topic.name.EntityTopicNameParameters;
+import no.novari.kafka.topic.name.TopicNamePrefixParameters;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,42 +20,33 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class RoleCatalogMembershipEntityProducerService {
-    private final EntityProducer<RoleCatalogMembership> entityProducer;
+    private final ParameterizedTemplate<RoleCatalogMembership> parameterizedTemplate;
     private final EntityTopicNameParameters entityTopicNameParameters;
-    private final EntityTopicService entityTopicService;
     private final FintCache<String, RoleCatalogMembership> roleCatalogMembershipCache;
+
     public RoleCatalogMembershipEntityProducerService(
-            EntityProducerFactory entityProducerFactory,
+            ParameterizedTemplateFactory parameterizedTemplateFactory,
             EntityTopicService entityTopicService,
-            FintCache<String, RoleCatalogMembership> roleCatalogMembershipCache) {
-        entityProducer = entityProducerFactory.createProducer(RoleCatalogMembership.class);
-        this.entityTopicService = entityTopicService;
+            FintCache<String, RoleCatalogMembership> roleCatalogMembershipCache
+    ) {
+        this.parameterizedTemplate = parameterizedTemplateFactory.createTemplate(RoleCatalogMembership.class);
         this.roleCatalogMembershipCache = roleCatalogMembershipCache;
         entityTopicNameParameters = EntityTopicNameParameters
                 .builder()
-                .resource("role-catalog-membership")
+                .topicNamePrefixParameters(TopicNamePrefixParameters
+                        .stepBuilder()
+                        .orgIdApplicationDefault()
+                        .domainContextApplicationDefault()
+                        .build())
+                .resourceName("role-catalog-membership")
                 .build();
-        entityTopicService.ensureTopic(entityTopicNameParameters, 0);
-    }
-
-    public void publish(RoleCatalogMembership roleCatalogMembership) {
-        String key = roleCatalogMembership.getId();
-        Optional<RoleCatalogMembership> roleCatalogMembershipOptional = roleCatalogMembershipCache.getOptional(key);
-
-        if (roleCatalogMembershipOptional.isEmpty() || !roleCatalogMembership.equals(roleCatalogMembershipOptional.get())) {
-            log.info("Publish role-catalog-membership: {}", key);
-            entityProducer.send(
-                    EntityProducerRecord.<RoleCatalogMembership>builder()
-                            .topicNameParameters(entityTopicNameParameters)
-                            .key(key)
-                            .value(roleCatalogMembership)
-                            .build()
-            );
-            roleCatalogMembershipCache.put(key, roleCatalogMembership);
-        }
-        else {
-            log.info("role-catalog-membership: {} already published", key);
-        }
+        entityTopicService.createOrModifyTopic(entityTopicNameParameters,EntityTopicConfiguration.stepBuilder()
+                .partitions(1)
+                .lastValueRetainedForever()
+                .nullValueRetentionTime(Duration.ofDays(7))
+                .cleanupFrequency(EntityCleanupFrequency.NORMAL)
+                .build()
+        );
     }
 
     public List<RoleCatalogMembership> publishChangedCatalogMemberships(List<RoleCatalogMembership> allCatalogMemberships) {
@@ -62,21 +57,33 @@ public class RoleCatalogMembershipEntityProducerService {
                         .map(publishedCatalogMembership -> !catalogMembership.equals(publishedCatalogMembership))
                         .orElse(true)
                 )
-                .peek(catalogMembership -> log.info("Publish role-catalog-membership: {}", catalogMembership.getId()))
+                .peek(catalogMembership -> log.debug("Publish role-catalog-membership: {}", catalogMembership.getId()))
                 .peek(this::publishChangedCatalogMemberships)
                 .toList();
     }
 
-    private void publishChangedCatalogMemberships(RoleCatalogMembership roleCatalogMembership) {
+    public void publishChangedCatalogMemberships(RoleCatalogMembership roleCatalogMembership) {
         String key = roleCatalogMembership.getId();
         log.info("Publish role-catalog-membership: {}", key);
-        entityProducer.send(
-                EntityProducerRecord.<RoleCatalogMembership>builder()
+        parameterizedTemplate.send(
+                ParameterizedProducerRecord.<RoleCatalogMembership>builder()
                         .topicNameParameters(entityTopicNameParameters)
                         .key(key)
                         .value(roleCatalogMembership)
                         .build()
         );
         roleCatalogMembershipCache.put(key, roleCatalogMembership);
+    }
+
+    public void publishTombstone(String membershipId) {
+        log.info("Publish tombstone for role-catalog-membership: {}", membershipId);
+        parameterizedTemplate.send(
+                ParameterizedProducerRecord.<RoleCatalogMembership>builder()
+                        .topicNameParameters(entityTopicNameParameters)
+                        .key(membershipId)
+                        .value(null)
+                        .build()
+        );
+        roleCatalogMembershipCache.remove(membershipId);
     }
 }

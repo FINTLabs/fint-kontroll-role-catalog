@@ -7,5 +7,6 @@ public record RoleDto(
         String roleSubType,
         boolean aggregatedRole,
         String organisationUnitId,
-        String organisationUnitName
+        String organisationUnitName,
+        Integer noOfMembers
 ) {}

@@ -2,8 +2,9 @@ package no.fintlabs.role;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.kafka.entity.EntityConsumerFactoryService;
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import no.fintlabs.KafkaConsumerConfigurationDefaults;
+import no.novari.kafka.consuming.*;
+import no.novari.kafka.topic.name.EntityTopicNameParameters;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,19 +16,24 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 public class RoleConsumerConfiguration {
 
     private final RoleService roleService;
+    private final KafkaConsumerConfigurationDefaults kafkaConsumerConfigurationDefaults;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, Role> roleConsumer(
-            EntityConsumerFactoryService entityConsumerFactoryService
+            ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService
     ) {
-        EntityTopicNameParameters topicParams = EntityTopicNameParameters.builder()
-                .resource("role")
-                .build();
+        ParameterizedListenerContainerFactory<Role> recordListenerFactory =
+                parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
+                        Role.class,
+                        this::processRecord,
+                        kafkaConsumerConfigurationDefaults.continueFromPreviousListenerConfiguration(),
+                        kafkaConsumerConfigurationDefaults.defaultErrorHandler()
+                );
 
-        return entityConsumerFactoryService.createFactory(
-                Role.class,
-                this::processRecord
-        ).createContainer(topicParams);
+        EntityTopicNameParameters topicParams =
+                kafkaConsumerConfigurationDefaults.defaultEntityTopic("role");
+
+        return recordListenerFactory.createContainer(topicParams);
     }
 
     private void processRecord(ConsumerRecord<String, Role> record) {

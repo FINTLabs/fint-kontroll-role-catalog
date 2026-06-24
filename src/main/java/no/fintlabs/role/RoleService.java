@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.OrgUnitType;
 import no.fintlabs.opa.OpaService;
+import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
+import no.fintlabs.roleCatalogRole.RoleCatalogRoleEntityProducerService;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,7 @@ public class RoleService {
     private final RoleRepository roleRepository;
     private final OpaService opaService;
     private final RoleSyncWorker worker;
+    private final RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
     public Page<Role> findBySearchCriteria(
             String searchString,
@@ -61,6 +64,7 @@ public class RoleService {
             log.info("Role {} not found. Saving new role", roleId);
             role.setNoOfMembers(0);
             persistedRole = roleRepository.save(role);
+            roleCatalogPublishingComponent.publishRole(role);
         } else {
             log.info("Role {} already exists", roleId);
             role.setId(existingRole.get().getId());
@@ -172,5 +176,10 @@ public class RoleService {
         intersection.retainAll(validOrgUnits);
         log.debug("Both orgUnitsInScope and validOrgUnits are non empty subsets. Returning the actual intersection");
         return intersection;
+    }
+
+    public Role getRoleByRoleId(Long id) {
+        return roleRepository.findById(id).orElseThrow(()
+                -> new ResourceNotFoundException("No role with id " + id + " found"));
     }
 }
