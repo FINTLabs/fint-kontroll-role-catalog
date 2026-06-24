@@ -1,9 +1,12 @@
 package no.fintlabs.member;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.KafkaConsumerConfigurationDefaults;
 import no.fintlabs.cache.FintCache;
-import no.fintlabs.kafka.entity.EntityConsumerFactoryService;
-import no.fintlabs.kafka.entity.topic.EntityTopicNameParameters;
+import no.novari.kafka.consuming.*;
+import no.novari.kafka.topic.name.EntityTopicNameParameters;
+import no.fintlabs.membership.MembershipService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -11,30 +14,31 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class MemberConsumer {
 
     private final FintCache<Long, Member> memberCache;
-
     private final MemberRepository memberRepository;
-
-    public MemberConsumer(MemberRepository memberRepository, FintCache<Long, Member> memberCache) {
-        this.memberCache = memberCache;
-        this.memberRepository = memberRepository;
-    }
+    private final MembershipService membershipService;
+    private final KafkaConsumerConfigurationDefaults kafkaConsumerConfigurationDefaults;
 
     @Bean
     public ConcurrentMessageListenerContainer<String, KontrollUser> memberConsumerConfiguration(
-            EntityConsumerFactoryService entityConsumerFactoryService
+            ParameterizedListenerContainerFactoryService parameterizedListenerContainerFactoryService
     ) {
-        EntityTopicNameParameters kontrolluser = EntityTopicNameParameters
-                .builder()
-                .resource("kontrolluser")
-                .build();
+        ParameterizedListenerContainerFactory<KontrollUser> recordListenerFactory =
+                parameterizedListenerContainerFactoryService.createRecordListenerContainerFactory(
+                        KontrollUser.class,
+                        this::process,
+                        kafkaConsumerConfigurationDefaults.seekToBeginningListenerConfiguration(),
+                        kafkaConsumerConfigurationDefaults.defaultErrorHandler()
+                );
+        EntityTopicNameParameters entityTopicNameParameters =
+                kafkaConsumerConfigurationDefaults.defaultEntityTopic("kontrolluser");
 
-        return entityConsumerFactoryService
-                .createFactory(KontrollUser.class, this::process)
-                .createContainer(kontrolluser);
+        return recordListenerFactory.createContainer(entityTopicNameParameters);
     }
+
 
     void process(ConsumerRecord<String, KontrollUser> consumerRecord) {
         KontrollUser kontrollUser = consumerRecord.value();
@@ -72,15 +76,24 @@ public class MemberConsumer {
                 );
     }
 
-    private void updateMember(Member member, Member updatedMember) {
-        if (!member.equals(updatedMember)) {
-            Member savedmember = memberRepository.save(updatedMember);
+    private void updateMember(Member existingMember, Member incomingMember) {
+        if (!existingMember.equals(incomingMember)) {
+            if("DELETED".equals(incomingMember.getStatus())) {
+                log.info("Member {} marked as DELETED, removing all memberships and deleting member", incomingMember.getId());
+                membershipService.removeAllMembershipsForUser(existingMember);
+                memberRepository.deleteById(existingMember.getId());
+                memberCache.remove(existingMember.getId());
+                return;
+            }
+            Member savedmember = memberRepository.save(incomingMember);
             memberCache.put(savedmember.getId(), savedmember);
         }
     }
 
     private void saveNewMember(Member member) {
-        Member savedmember = memberRepository.save(member);
-        memberCache.put(savedmember.getId(), savedmember);
+        if(!"DELETED".equals(member.getStatus())) {
+            Member savedmember = memberRepository.save(member);
+            memberCache.put(savedmember.getId(), savedmember);
+        }
     }
 }

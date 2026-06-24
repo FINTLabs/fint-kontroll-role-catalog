@@ -2,7 +2,8 @@ package no.fintlabs.roleCatalogRole;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import no.fintlabs.role.RoleService;
+import no.fintlabs.role.Role;
+import no.fintlabs.role.RoleRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -13,16 +14,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RoleCatalogPublishingComponent {
 
-    private final RoleService roleService;
+    private final RoleRepository roleRepository;
     private final RoleCatalogRoleService roleCatalogRoleService;
     private final RoleCatalogRoleEntityProducerService roleCatalogRoleEntityProducerService;
 
     @Scheduled(
-            initialDelayString = "${fint.kontroll.role-catalog.publishing.initial-delay}",
-            fixedDelayString = "${fint.kontroll.role-catalog.publishing.fixed-delay}"
+            cron = "${fint.kontroll.role-catalog.publishing.cron-role}"
     )
     public void publishRoles() {
-        List<RoleCatalogRole> allCatalogRoles = roleService.getAllRoles()
+        List<RoleCatalogRole> allCatalogRoles = roleRepository.findAll()
                 .stream()
                 .map(roleCatalogRoleService::mapToRoleCatalogRole)
                 .toList();
@@ -36,5 +36,10 @@ public class RoleCatalogPublishingComponent {
                                 roleCatalogRole.getRoleName(),
                                 roleCatalogRole.getNoOfMembers()
                         ));
+    }
+
+    public void publishRole(Role role) {
+        RoleCatalogRole roleCatalogRole = roleCatalogRoleService.mapToRoleCatalogRole(role);
+        roleCatalogRoleEntityProducerService.publishCatalogRole(roleCatalogRole);
     }
 }
