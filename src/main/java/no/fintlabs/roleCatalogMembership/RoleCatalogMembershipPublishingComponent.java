@@ -51,7 +51,7 @@ public class RoleCatalogMembershipPublishingComponent {
         roleCatalogMembershipEntityProducerService
                 .publishChangedCatalogMemberships(roleCatalogMemberships);
 
-        log.info("Published {} rolecatalog memberships for role with id: {}",
-               roleCatalogMemberships.size(), roleToPublish.getId());
+        log.info("Published role catalog memberships for role. roleId={}, memberships={}",
+                roleToPublish.getId(), roleCatalogMemberships.size());
     }
 }

@@ -57,14 +57,13 @@ public class RoleCatalogMembershipEntityProducerService {
                         .map(publishedCatalogMembership -> !catalogMembership.equals(publishedCatalogMembership))
                         .orElse(true)
                 )
-                .peek(catalogMembership -> log.debug("Publish role-catalog-membership: {}", catalogMembership.getId()))
                 .peek(this::publishChangedCatalogMemberships)
                 .toList();
     }
 
     public void publishChangedCatalogMemberships(RoleCatalogMembership roleCatalogMembership) {
         String key = roleCatalogMembership.getId();
-        log.info("Publish role-catalog-membership: {}", key);
+        log.debug("Publishing role catalog membership. key={}", key);
         parameterizedTemplate.send(
                 ParameterizedProducerRecord.<RoleCatalogMembership>builder()
                         .topicNameParameters(entityTopicNameParameters)
@@ -76,7 +75,7 @@ public class RoleCatalogMembershipEntityProducerService {
     }
 
     public void publishTombstone(String membershipId) {
-        log.info("Publish tombstone for role-catalog-membership: {}", membershipId);
+        log.info("Publishing role catalog membership tombstone. key={}", membershipId);
         parameterizedTemplate.send(
                 ParameterizedProducerRecord.<RoleCatalogMembership>builder()
                         .topicNameParameters(entityTopicNameParameters)

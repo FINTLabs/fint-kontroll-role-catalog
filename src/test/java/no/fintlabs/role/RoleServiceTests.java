@@ -51,6 +51,7 @@ public class RoleServiceTests {
                 .roleName("Ansatt - DIGIT Digitaliseringsavdeling")
                 .roleSource("fint")
                 .roleType("ansatt")
+                .roleStatus("ACTIVE")
                 .aggregatedRole(false)
                 .memberships(new HashSet<>())
                 .build();
@@ -62,6 +63,7 @@ public class RoleServiceTests {
                 .roleName("Ansatt - DIGIT Digitaliseringsavdeling -aggregert")
                 .roleSource("fint")
                 .roleType("ansatt")
+                .roleStatus("ACTIVE")
                 .aggregatedRole(false)
                 .memberships(new HashSet<>())
                 .build();
@@ -77,6 +79,7 @@ public class RoleServiceTests {
                 .roleName("Ansatt - DIGIT Digitaliseringsavdeling -inkludert underenheter")
                 .roleSource("fint")
                 .roleType("ansatt")
+                .roleStatus("ACTIVE")
                 .aggregatedRole(false)
                 .memberships(new HashSet<>())
                 .build();
@@ -88,6 +91,7 @@ public class RoleServiceTests {
                 .roleName("Ansatt - DIGIT Digitaliseringsavdeling -inkludert underenheter")
                 .roleSource("fint")
                 .roleType("ansatt")
+                .roleStatus("ACTIVE")
                 .aggregatedRole(false)
                 .memberships(new HashSet<>())
                 .build();
@@ -242,6 +246,7 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
                 .roleName("Ansatt - DIGIT Fagtjenester")
                 .roleSource("fint")
                 .roleType("ansatt")
+                .roleStatus("ACTIVE")
                 .aggregatedRole(false)
                 .build();
     }

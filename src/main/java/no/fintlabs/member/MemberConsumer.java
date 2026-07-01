@@ -42,7 +42,7 @@ public class MemberConsumer {
 
     void process(ConsumerRecord<String, KontrollUser> consumerRecord) {
         KontrollUser kontrollUser = consumerRecord.value();
-        log.info("Processing member: {}, username: {}, status: {}, identityProviderUserObjectId: {}", kontrollUser.getId(), kontrollUser.getUserName(), kontrollUser.getStatus(),
+        log.debug("Processing member event. memberId={}, username={}, status={}, identityProviderUserObjectId={}", kontrollUser.getId(), kontrollUser.getUserName(), kontrollUser.getStatus(),
                  kontrollUser.getIdentityProviderUserObjectId());
 
         Member convertedMember = MemberMapper.fromKontrollUser(kontrollUser);
@@ -56,18 +56,18 @@ public class MemberConsumer {
 
     private void handleCachedMember(Member cachedMember, Member convertedMember) {
         if (!cachedMember.equals(convertedMember)) {
-            updateMemberInCache(convertedMember, "Member found in cache, but not equal, updating member: {}");
+            updateMemberInCache(convertedMember, "Member changed; saving update. memberId={}");
         } else {
             log.debug("Member in cache is up-to-date: {}", cachedMember.getId());
         }
     }
 
     private void handleMember(Member member) {
-        updateMemberInCache(member, "Member not found in cache, saving member: {}");
+        updateMemberInCache(member, "New member; saving. memberId={}");
     }
 
     void updateMemberInCache(Member member, String logMessage) {
-        log.info(logMessage, member.getId());
+        log.debug(logMessage, member.getId());
 
         memberRepository.findById(member.getId())
                 .ifPresentOrElse(
@@ -79,7 +79,7 @@ public class MemberConsumer {
     private void updateMember(Member existingMember, Member incomingMember) {
         if (!existingMember.equals(incomingMember)) {
             if("DELETED".equals(incomingMember.getStatus())) {
-                log.info("Member {} marked as DELETED, removing all memberships and deleting member", incomingMember.getId());
+                log.info("Deleting member from catalog. memberId={}", incomingMember.getId());
                 membershipService.removeAllMembershipsForUser(existingMember);
                 memberRepository.deleteById(existingMember.getId());
                 memberCache.remove(existingMember.getId());

@@ -34,7 +34,6 @@ logging:
     root: INFO
     org.apache.kafka: INFO
     no.fintlabs.cache.ehcache: WARN
-    no.fintlabs.role.RoleService: DEBUG
 
 springdoc:
   swagger-ui:

@@ -99,6 +99,7 @@ public class MembershipKafkaConsumerIntegrationTest {
         Role role = Role.builder()
                 .id(1775L)
                 .resourceId("http://test.no")
+                .roleStatus("ACTIVE")
                 .build();
 
         Member member = Member.builder().id(976L).build();

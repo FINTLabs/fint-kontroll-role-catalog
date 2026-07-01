@@ -103,6 +103,7 @@ public class MembershipConsumerIntegrationTest extends DatabaseIntegrationTest {
         Role role = Role.builder()
                 .roleId("123")
                 .resourceId("http://test.no")
+                .roleStatus("ACTIVE")
                 .build();
 
         role = roleRepository.save(role);

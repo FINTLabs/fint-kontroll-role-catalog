@@ -38,7 +38,12 @@ public class MembershipService {
         Long roleId = kafkaMembership.getRoleId();
         Long memberId = kafkaMembership.getMemberId();
 
-        log.info("Processing membership event. Role: {}, Member: {}, Status: {}, Start: {}, End: {}",
+        if (kafkaMembership.getMemberStatus() == null) {
+            log.warn("Dropping membership event with null status. Role: {}, Member: {}", roleId, memberId);
+            return;
+        }
+
+        log.debug("Processing membership event. roleId={}, memberId={}, status={}, startDate={}, endDate={}",
                 roleId, memberId, kafkaMembership.getMemberStatus(), kafkaMembership.getStartDate(), kafkaMembership.getEndDate());
 
         Role role = getRoleOrThrow(roleId);
@@ -47,7 +52,7 @@ public class MembershipService {
         MembershipId membershipId = new MembershipId(roleId, memberId);
         Optional<Membership> existingMembership = membershipRepository.findById(membershipId);
 
-        String newStatus = kafkaMembership.getMemberStatus() == null ? ACTIVE : kafkaMembership.getMemberStatus();
+        String newStatus = kafkaMembership.getMemberStatus();
         boolean isNew = existingMembership.isEmpty();
 
         Membership membership = createOrLoadMembership(existingMembership, membershipId, role, member);
@@ -55,13 +60,15 @@ public class MembershipService {
         boolean nowActive = ACTIVE.equalsIgnoreCase(newStatus);
 
         if (isNew || isMembershipChanged(membership, kafkaMembership, newStatus)) {
-            Date newChangedDate = getStatusChangedDate(
-                    membership.getMembershipStatus(),
-                    newStatus,
-                    membership.getMembershipStatusChanged()
-            );
-            log.info("Saving membership update. isNew={}, statusChange={} -> {}, changedAt={}",
-                    isNew, membership.getMembershipStatus(), newStatus, newChangedDate);
+            Date newChangedDate = isNew
+                    ? Date.from(Instant.now())
+                    : getStatusChangedDate(
+                            membership.getMembershipStatus(),
+                            newStatus,
+                            membership.getMembershipStatusChanged()
+                    );
+            log.debug("Saving membership. isNew={}, roleId={}, memberId={}, status={} -> {}, statusChanged={}",
+                    isNew, roleId, memberId, membership.getMembershipStatus(), newStatus, newChangedDate);
 
             membership.setMembershipStatus(newStatus);
             membership.setMembershipStatusChanged(newChangedDate);
@@ -95,7 +102,7 @@ public class MembershipService {
 
     private Membership createOrLoadMembership(Optional<Membership> existingMembership, MembershipId id, Role role, Member member) {
         return existingMembership.orElseGet(() -> {
-            log.info("New membership detected. Role: {}, Member: {}", role.getId(), member.getId());
+            log.debug("Creating new membership. roleId={}, memberId={}", role.getId(), member.getId());
             Membership m = new Membership();
             m.setId(id);
             m.setRole(role);
@@ -107,42 +114,46 @@ public class MembershipService {
     private boolean isMembershipChanged(Membership membership, KafkaMembership kafkaMembership, String newStatus) {
         String currentStatus = membership.getMembershipStatus();
 
-        return !Objects.equals(newStatus, currentStatus)
+        return hasStatusChanged(newStatus, currentStatus)
                 || !Objects.equals(membership.getStartDate(), kafkaMembership.getStartDate())
                 || !Objects.equals(membership.getEndDate(), kafkaMembership.getEndDate());
     }
 
     private Date getStatusChangedDate(String currentStatus, String newStatus, Date currentStatusChanged) {
-        if (!Objects.equals(currentStatus, newStatus)) {
+        if (hasStatusChanged(currentStatus, newStatus)) {
             return Date.from(Instant.now());
         }
         return currentStatusChanged;
+    }
+
+    private boolean hasStatusChanged(String firstStatus, String secondStatus) {
+        return !firstStatus.equalsIgnoreCase(secondStatus);
     }
 
     private void adjustRoleMemberCountIfNeeded(Role role, boolean isNew, boolean wasActive, boolean nowActive) {
         if ((isNew && nowActive) || (!isNew && !wasActive && nowActive)) {
             role.incrementMemberCount();
             roleRepository.save(role);
-            log.info("Incremented member count for Role: {} to {}", role.getId(), role.getNoOfMembers());
+            log.debug("Incremented active member count. roleId={}, count={}", role.getId(), role.getNoOfMembers());
         }
 
         if (wasActive && !nowActive) {
             role.decrementMemberCount();
             roleRepository.save(role);
-            log.info("Decremented member count for Role: {} to {}", role.getId(), role.getNoOfMembers());
+            log.debug("Decremented active member count. roleId={}, count={}", role.getId(), role.getNoOfMembers());
         }
     }
     @Transactional
     public void removeAllMembershipsForUser(Member member) {
         List<Membership> activeMemberships = membershipRepository.findAllByMember_Id(member.getId());
         if (!activeMemberships.isEmpty()) {
-            log.info("Removing all memberships for member {}. Found {} active memberships", member.getId(), activeMemberships.size());
+            log.info("Removing memberships for deleted member. memberId={}, memberships={}", member.getId(), activeMemberships.size());
         }
         activeMemberships.forEach(this::deleteMembership);
     }
 
     private void deleteMembership(Membership membership) {
-        log.info("Deleting membership: {}", membership.getId());
+        log.debug("Deleting membership. membershipId={}", membership.getId());
         String kafkaKey = getRoleCatalogMembershipId(membership.getRole(), membership);
         membershipRepository.delete(membership);
         adjustRoleMemberCountIfNeeded(membership.getRole(), false, true, false);
@@ -150,4 +161,3 @@ public class MembershipService {
     }
 
 }
-

@@ -20,6 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 public class MembershipServiceTests {
@@ -43,8 +44,20 @@ public class MembershipServiceTests {
     private MembershipService membershipService;
 
     @Test
+    void shouldDropMembershipWhenStatusIsNull() {
+        KafkaMembership kafkaMembership = KafkaMembership.builder()
+                .roleId(1L)
+                .memberId(2L)
+                .build();
+
+        membershipService.processMembership(kafkaMembership);
+
+        verifyNoInteractions(roleRepository, memberRepository, membershipRepository, roleCatalogMembershipPublishingComponent);
+    }
+
+    @Test
     void shouldCalculateStatusChangedWhenStatusChanges() {
-        Role role = Role.builder().id(1L).resourceId("http://test.no").noOfMembers(1).build();
+        Role role = Role.builder().id(1L).resourceId("http://test.no").roleStatus("ACTIVE").noOfMembers(1).build();
         Member member = Member.builder().id(2L).build();
         MembershipId membershipId = new MembershipId(role.getId(), member.getId());
         Date oldStatusChanged = Date.from(Instant.parse("2025-01-01T00:00:00Z"));
@@ -82,7 +95,7 @@ public class MembershipServiceTests {
 
     @Test
     void shouldPreserveStatusChangedWhenOnlyDatesChange() {
-        Role role = Role.builder().id(1L).resourceId("http://test.no").noOfMembers(1).build();
+        Role role = Role.builder().id(1L).resourceId("http://test.no").roleStatus("ACTIVE").noOfMembers(1).build();
         Member member = Member.builder().id(2L).build();
         MembershipId membershipId = new MembershipId(role.getId(), member.getId());
         Date oldStatusChanged = Date.from(Instant.parse("2025-01-01T00:00:00Z"));

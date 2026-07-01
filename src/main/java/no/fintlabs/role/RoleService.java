@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -39,7 +38,7 @@ public class RoleService {
             Pageable pageable
     ) {
         List<String> orgUnitsInScope = opaService.getOrgUnitsInScope("role");
-        log.info("Org units returned from scope: {}", orgUnitsInScope);
+        log.debug("Loaded {} org units from role scope", orgUnitsInScope.size());
 
         List<String> validOrgUnitsInScope = getOrgUnitsValidAndInScope(orgUnitsInScope, validOrgUnits);
 
@@ -64,20 +63,17 @@ public class RoleService {
         Role persistedRole;
 
         if (existingRole.isEmpty()) {
-            log.info("Role {} not found. Saving new role", roleId);
+            log.debug("Creating role. roleId={}, status={}", roleId, role.getRoleStatus());
             role.setNoOfMembers(0);
-            role.setRoleStatusChanged(getStatusChangedDate(null, role.getRoleStatus(), null));
+            role.setRoleStatusChanged(Date.from(Instant.now()));
             persistedRole = roleRepository.save(role);
             roleCatalogPublishingComponent.publishRole(role);
         } else {
-            log.info("Role {} already exists", roleId);
             role.setId(existingRole.get().getId());
             Role mappedRole = mapChangesToExistingRole(role, existingRole.get());
-            log.info("Updating existing role {}", roleId);
+            log.debug("Updating role. roleId={}, status={} -> {}", roleId, existingRole.get().getRoleStatus(), role.getRoleStatus());
             persistedRole = roleRepository.save(mappedRole);
         }
-
-        log.info("Save/update role {} finished", roleId);
 
         return persistedRole;
     }
@@ -105,15 +101,16 @@ public class RoleService {
     }
 
     private Date getStatusChangedDate(String currentStatus, String newStatus, Date currentStatusChanged) {
-        if (!Objects.equals(currentStatus, newStatus)) {
+        if (!isSameStatus(currentStatus, newStatus)) {
             return Date.from(Instant.now());
         }
         return currentStatusChanged;
     }
 
-    public List<Role> getAllRoles() {
-        return new ArrayList<>(roleRepository.findAll());
+    private boolean isSameStatus(String firstStatus, String secondStatus) {
+        return firstStatus.equalsIgnoreCase(secondStatus);
     }
+
 
     public DetailedRole getDetailedRoleById(Long id) {
         return roleRepository.findById(id)
@@ -158,10 +155,10 @@ public class RoleService {
     public List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
 
         if (orgUnits == null) {
-            log.info("OrgUnits parameter is empty, using orgunits from scope {} in search", orgUnitsInScope);
+            log.debug("No org unit filter supplied; using {} scoped org units", orgUnitsInScope.size());
             return orgUnitsInScope;
         }
-        log.info("OrgUnits parameter list: {}", orgUnits);
+        log.debug("Filtering roles by {} requested org units", orgUnits.size());
 
         if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS.name())) {
             return orgUnits;
@@ -170,7 +167,7 @@ public class RoleService {
                 .filter(orgUnitsInScope::contains)
                 .collect(Collectors.toList());
 
-        log.info("OrgUnits in search: {}", filteredOrgUnits);
+        log.debug("Role search org unit filter reduced to {} scoped org units", filteredOrgUnits.size());
         return filteredOrgUnits;
     }
 

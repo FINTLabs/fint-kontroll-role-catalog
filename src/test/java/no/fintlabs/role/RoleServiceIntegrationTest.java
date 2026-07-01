@@ -97,6 +97,7 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
         roleChanged.setOrganisationUnitName("DIGIT2 Digitaliseringsavdeling");
         roleChanged.setRoleSource("fint");
         roleChanged.setAggregatedRole(false);
+        roleChanged.setRoleStatus("ACTIVE");
         roleChanged.setNoOfMembers(100);
         roleChanged.setMemberships(Set.of());
 
@@ -160,6 +161,7 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
         role.setOrganisationUnitName("DIGIT Digitaliseringsavdeling");
         role.setRoleSource("fint");
         role.setAggregatedRole(false);
+        role.setRoleStatus("ACTIVE");
         role.setNoOfMembers(1);
         role = roleRepository.save(role);
         return role;
