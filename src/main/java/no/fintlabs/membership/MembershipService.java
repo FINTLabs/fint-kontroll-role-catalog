@@ -38,8 +38,8 @@ public class MembershipService {
         Long roleId = kafkaMembership.getRoleId();
         Long memberId = kafkaMembership.getMemberId();
 
-        log.info("Processing membership event. Role: {}, Member: {}, Status: {}, Changed: {}",
-                roleId, memberId, kafkaMembership.getMemberStatus(), kafkaMembership.getMemberStatusChanged());
+        log.info("Processing membership event. Role: {}, Member: {}, Status: {}, Start: {}, End: {}",
+                roleId, memberId, kafkaMembership.getMemberStatus(), kafkaMembership.getStartDate(), kafkaMembership.getEndDate());
 
         Role role = getRoleOrThrow(roleId);
         Member member = getMemberOrThrow(memberId);
@@ -48,19 +48,25 @@ public class MembershipService {
         Optional<Membership> existingMembership = membershipRepository.findById(membershipId);
 
         String newStatus = kafkaMembership.getMemberStatus() == null ? ACTIVE : kafkaMembership.getMemberStatus();
-        Date newChangedDate = kafkaMembership.getMemberStatusChanged();
         boolean isNew = existingMembership.isEmpty();
 
         Membership membership = createOrLoadMembership(existingMembership, membershipId, role, member);
         boolean wasActive = ACTIVE.equalsIgnoreCase(membership.getMembershipStatus());
         boolean nowActive = ACTIVE.equalsIgnoreCase(newStatus);
 
-        if (isNew || isMembershipChanged(membership, newStatus, newChangedDate)) {
+        if (isNew || isMembershipChanged(membership, kafkaMembership, newStatus)) {
+            Date newChangedDate = getStatusChangedDate(
+                    membership.getMembershipStatus(),
+                    newStatus,
+                    membership.getMembershipStatusChanged()
+            );
             log.info("Saving membership update. isNew={}, statusChange={} -> {}, changedAt={}",
                     isNew, membership.getMembershipStatus(), newStatus, newChangedDate);
 
             membership.setMembershipStatus(newStatus);
             membership.setMembershipStatusChanged(newChangedDate);
+            membership.setStartDate(kafkaMembership.getStartDate());
+            membership.setEndDate(kafkaMembership.getEndDate());
             membershipRepository.save(membership);
 
             roleCatalogMembershipPublishingComponent.publishMembership(membership);
@@ -98,16 +104,23 @@ public class MembershipService {
         });
     }
 
-    private boolean isMembershipChanged(Membership membership, String newStatus, Date newChangedDate) {
+    private boolean isMembershipChanged(Membership membership, KafkaMembership kafkaMembership, String newStatus) {
         String currentStatus = membership.getMembershipStatus();
-        Instant newChangeDateInstant = newChangedDate == null ? null :newChangedDate.toInstant();
-        Instant currentChangedDate = membership.getMembershipStatusChanged() == null ? null : membership.getMembershipStatusChanged().toInstant();
 
-        return !newStatus.equalsIgnoreCase(currentStatus) || !Objects.equals(currentChangedDate, newChangeDateInstant);
+        return !Objects.equals(newStatus, currentStatus)
+                || !Objects.equals(membership.getStartDate(), kafkaMembership.getStartDate())
+                || !Objects.equals(membership.getEndDate(), kafkaMembership.getEndDate());
+    }
+
+    private Date getStatusChangedDate(String currentStatus, String newStatus, Date currentStatusChanged) {
+        if (!Objects.equals(currentStatus, newStatus)) {
+            return Date.from(Instant.now());
+        }
+        return currentStatusChanged;
     }
 
     private void adjustRoleMemberCountIfNeeded(Role role, boolean isNew, boolean wasActive, boolean nowActive) {
-        if (isNew || (!wasActive && nowActive)) {
+        if ((isNew && nowActive) || (!isNew && !wasActive && nowActive)) {
             role.incrementMemberCount();
             roleRepository.save(role);
             log.info("Incremented member count for Role: {} to {}", role.getId(), role.getNoOfMembers());
@@ -137,5 +150,4 @@ public class MembershipService {
     }
 
 }
-
 

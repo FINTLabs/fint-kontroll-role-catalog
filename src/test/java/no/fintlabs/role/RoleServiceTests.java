@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -102,6 +103,65 @@ public class RoleServiceTests {
         verify(roleRepository).save(roleFromDb);
 
         assertThat(savedRole).isEqualTo(roleFromDb);
+    }
+
+    @DisplayName("Test for saveRole - status changed date is calculated when status changes")
+    @Test
+    public void givenExistingRoleWithNewStatus_whenSave_thenUpdateStatusChangedDate() {
+        Date oldStatusChanged = Date.from(Instant.parse("2025-01-01T00:00:00Z"));
+        Role roleFromKafka = Role.builder()
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleStatus("INACTIVE")
+                .startDate(Date.from(Instant.parse("2026-01-01T00:00:00Z")))
+                .endDate(Date.from(Instant.parse("2026-12-31T00:00:00Z")))
+                .build();
+
+        Role roleFromDb = Role.builder()
+                .id(3L)
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleStatus("ACTIVE")
+                .roleStatusChanged(oldStatusChanged)
+                .build();
+
+        given(roleRepository.findByRoleId("ansatt@digit-aggr")).willReturn(Optional.of(roleFromDb));
+        given(roleRepository.save(roleFromDb)).willReturn(roleFromDb);
+
+        Role savedRole = roleService.save(roleFromKafka);
+
+        assertThat(savedRole.getRoleStatus()).isEqualTo("INACTIVE");
+        assertThat(savedRole.getRoleStatusChanged()).isNotEqualTo(oldStatusChanged);
+        assertThat(savedRole.getStartDate()).isEqualTo(roleFromKafka.getStartDate());
+        assertThat(savedRole.getEndDate()).isEqualTo(roleFromKafka.getEndDate());
+    }
+
+    @DisplayName("Test for saveRole - status changed date is preserved when status is unchanged")
+    @Test
+    public void givenExistingRoleWithSameStatus_whenSave_thenPreserveStatusChangedDate() {
+        Date oldStatusChanged = Date.from(Instant.parse("2025-01-01T00:00:00Z"));
+        Role roleFromKafka = Role.builder()
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleStatus("ACTIVE")
+                .startDate(Date.from(Instant.parse("2026-01-01T00:00:00Z")))
+                .build();
+
+        Role roleFromDb = Role.builder()
+                .id(3L)
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleStatus("ACTIVE")
+                .roleStatusChanged(oldStatusChanged)
+                .build();
+
+        given(roleRepository.findByRoleId("ansatt@digit-aggr")).willReturn(Optional.of(roleFromDb));
+        given(roleRepository.save(roleFromDb)).willReturn(roleFromDb);
+
+        Role savedRole = roleService.save(roleFromKafka);
+
+        assertThat(savedRole.getRoleStatusChanged()).isEqualTo(oldStatusChanged);
+        assertThat(savedRole.getStartDate()).isEqualTo(roleFromKafka.getStartDate());
     }
 
 @DisplayName("Test for saveRole - save new role")

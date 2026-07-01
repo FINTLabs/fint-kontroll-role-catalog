@@ -30,4 +30,6 @@ public class Membership {
 
     private String membershipStatus;
     private Date membershipStatusChanged;
+    private Date startDate;
+    private Date endDate;
 }

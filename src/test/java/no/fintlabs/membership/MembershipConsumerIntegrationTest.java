@@ -118,7 +118,7 @@ public class MembershipConsumerIntegrationTest extends DatabaseIntegrationTest {
                 .roleId(role.getId())
                 .memberId(member.getId())
                 .memberStatus("INACTIVE")
-                .memberStatusChanged(date)
+                .startDate(date)
                 .build();
 
         // Send message to Kafka
@@ -138,6 +138,8 @@ public class MembershipConsumerIntegrationTest extends DatabaseIntegrationTest {
                     assertTrue(optionalMembership.isPresent(), "Membership should be present in the database");
                     Membership membership = optionalMembership.get();
                     assertEquals("INACTIVE", membership.getMembershipStatus(), "Membership status should be INACTIVE");
+                    assertThat(membership.getMembershipStatusChanged()).isNotNull();
+                    assertThat(membership.getStartDate().toInstant()).isEqualTo(date.toInstant());
                     assertThat(membership.getRole().getMemberships().size()).isEqualTo(1);
                 });
 
@@ -151,6 +153,7 @@ public class MembershipConsumerIntegrationTest extends DatabaseIntegrationTest {
                     assertTrue(optionalMembership.isPresent(), "Membership should be present in the database");
                     Membership membership = optionalMembership.get();
                     assertEquals("ACTIVE", membership.getMembershipStatus(), "Membership status should be ACTIVE");
+                    assertThat(membership.getMembershipStatusChanged()).isNotNull();
                     assertThat(membership.getRole().getMemberships().size()).isEqualTo(1);
                 });
 

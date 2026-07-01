@@ -93,7 +93,7 @@ public class MembershipKafkaConsumerIntegrationTest {
                 .roleId(1775L)
                 .memberId(976L)
                 .memberStatus("INACTIVE")
-                .memberStatusChanged(date)
+                .startDate(date)
                 .build();
 
         Role role = Role.builder()

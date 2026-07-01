@@ -12,8 +12,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -63,6 +66,7 @@ public class RoleService {
         if (existingRole.isEmpty()) {
             log.info("Role {} not found. Saving new role", roleId);
             role.setNoOfMembers(0);
+            role.setRoleStatusChanged(getStatusChangedDate(null, role.getRoleStatus(), null));
             persistedRole = roleRepository.save(role);
             roleCatalogPublishingComponent.publishRole(role);
         } else {
@@ -79,10 +83,15 @@ public class RoleService {
     }
 
     private Role mapChangesToExistingRole(Role incomingRole, Role existingRole) {
+        Date roleStatusChanged = getStatusChangedDate(
+                existingRole.getRoleStatus(),
+                incomingRole.getRoleStatus(),
+                existingRole.getRoleStatusChanged()
+        );
         existingRole.setResourceId(incomingRole.getResourceId());
         existingRole.setRoleId(incomingRole.getRoleId());
         existingRole.setRoleStatus(incomingRole.getRoleStatus());
-        existingRole.setRoleStatusChanged(incomingRole.getRoleStatusChanged());
+        existingRole.setRoleStatusChanged(roleStatusChanged);
         existingRole.setRoleName(incomingRole.getRoleName());
         existingRole.setRoleType(incomingRole.getRoleType());
         existingRole.setRoleSubType(incomingRole.getRoleSubType());
@@ -90,7 +99,16 @@ public class RoleService {
         existingRole.setRoleSource(incomingRole.getRoleSource());
         existingRole.setOrganisationUnitId(incomingRole.getOrganisationUnitId());
         existingRole.setOrganisationUnitName(incomingRole.getOrganisationUnitName());
+        existingRole.setStartDate(incomingRole.getStartDate());
+        existingRole.setEndDate(incomingRole.getEndDate());
         return existingRole;
+    }
+
+    private Date getStatusChangedDate(String currentStatus, String newStatus, Date currentStatusChanged) {
+        if (!Objects.equals(currentStatus, newStatus)) {
+            return Date.from(Instant.now());
+        }
+        return currentStatusChanged;
     }
 
     public List<Role> getAllRoles() {
