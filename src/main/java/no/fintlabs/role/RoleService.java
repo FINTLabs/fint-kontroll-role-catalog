@@ -3,9 +3,12 @@ package no.fintlabs.role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.OrgUnitType;
+import no.fintlabs.maintenance.MaintenanceStatusUpdateResult;
+import no.fintlabs.membership.Membership;
+import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.OpaService;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
-import no.fintlabs.roleCatalogRole.RoleCatalogRoleEntityProducerService;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +28,10 @@ public class RoleService {
     private final OpaService opaService;
     private final RoleSyncWorker worker;
     private final RoleCatalogPublishingComponent roleCatalogPublishingComponent;
+    private final MembershipRepository membershipRepository;
+    private final RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
+
+    private static final String INACTIVE = "INACTIVE";
 
     public Page<Role> findBySearchCriteria(
             String searchString,
@@ -196,5 +200,75 @@ public class RoleService {
     public Role getRoleByRoleId(Long id) {
         return roleRepository.findById(id).orElseThrow(()
                 -> new ResourceNotFoundException("No role with id " + id + " found"));
+    }
+
+    @Transactional
+    public MaintenanceStatusUpdateResult expireRolesAndMemberships(
+            boolean dryRun
+    ) {
+        Date referenceDate = Date.from(Instant.now());
+        List<Role> expiredRoles = roleRepository.findExpiredRoles(referenceDate);
+        List<Role> rolesToUpdate = expiredRoles.stream()
+                .filter(role -> !INACTIVE.equalsIgnoreCase(role.getRoleStatus()) || hasActiveMemberCount(role))
+                .toList();
+        List<Membership> membershipsToUpdate = expiredRoles.stream()
+                .map(Role::getMemberships)
+                .filter(Objects::nonNull)
+                .flatMap(Set::stream)
+                .filter(membership -> !INACTIVE.equalsIgnoreCase(membership.getMembershipStatus()))
+                .toList();
+
+        if (dryRun) {
+            log.info("Dry run for expired role maintenance. expiredRoles={}, rolesToUpdate={}, membershipsToUpdate={}",
+                    expiredRoles.size(), rolesToUpdate.size(), membershipsToUpdate.size());
+            return new MaintenanceStatusUpdateResult(
+                    true,
+                    referenceDate,
+                    "expired-roles-and-memberships",
+                    expiredRoles.size(),
+                    membershipsToUpdate.size(),
+                    0,
+                    0,
+                    0,
+                    0,
+                    "Dry run only. Set dryRun=false to update and republish."
+            );
+        }
+
+        rolesToUpdate.forEach(role -> {
+            if (!INACTIVE.equalsIgnoreCase(role.getRoleStatus())) {
+                role.setRoleStatus(INACTIVE);
+                role.setRoleStatusChanged(referenceDate);
+            }
+            role.setNoOfMembers(0);
+            roleRepository.save(role);
+            roleCatalogPublishingComponent.publishRole(role);
+        });
+
+        membershipsToUpdate.forEach(membership -> {
+            membership.setMembershipStatus(INACTIVE);
+            membership.setMembershipStatusChanged(referenceDate);
+            membershipRepository.save(membership);
+            roleCatalogMembershipPublishingComponent.publishMembership(membership);
+        });
+
+        log.info("Expired role maintenance completed. expiredRoles={}, rolesUpdated={}, membershipsUpdated={}",
+                expiredRoles.size(), rolesToUpdate.size(), membershipsToUpdate.size());
+        return new MaintenanceStatusUpdateResult(
+                false,
+                referenceDate,
+                "expired-roles-and-memberships",
+                expiredRoles.size(),
+                membershipsToUpdate.size(),
+                rolesToUpdate.size(),
+                membershipsToUpdate.size(),
+                rolesToUpdate.size(),
+                membershipsToUpdate.size(),
+                "Expired roles and their memberships were set to INACTIVE and republished."
+        );
+    }
+
+    private boolean hasActiveMemberCount(Role role) {
+        return role.getNoOfMembers() != null && role.getNoOfMembers() > 0;
     }
 }

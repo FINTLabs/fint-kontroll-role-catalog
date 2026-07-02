@@ -5,6 +5,7 @@ import no.fintlabs.member.Member;
 import no.fintlabs.membership.Membership;
 import no.fintlabs.membership.MembershipId;
 import no.fintlabs.membership.MembershipRepository;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogRoleService;
@@ -12,10 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
@@ -23,8 +22,8 @@ import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
 @ExtendWith(MockitoExtension.class)
 public class RoleServiceTests {
 
@@ -38,10 +37,26 @@ public class RoleServiceTests {
     @Mock
     private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
     @Mock
+    private RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
+    @Mock
     private MembershipRepository membershipRepository;
     @InjectMocks
     private RoleService roleService;
     private Role role, aggrole;
+
+    private static Role createNewRole() {
+        return Role.builder()
+                .id(2L)
+                .roleId("ansatt@digit-fagtj")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/47")
+                .roleName("Ansatt - DIGIT Fagtjenester")
+                .roleSource("fint")
+                .roleType("ansatt")
+                .roleStatus("ACTIVE")
+                .aggregatedRole(false)
+                .build();
+    }
+
     @BeforeEach
     public void setUp() {
         role = Role.builder()
@@ -69,6 +84,7 @@ public class RoleServiceTests {
                 .build();
 
     }
+
     @DisplayName("Test for saveRole - save existing role")
     @Test
     public void givenRoleObject_whenSaveExistingRole_thenReturnUpdatedRoleObject() {
@@ -168,22 +184,23 @@ public class RoleServiceTests {
         assertThat(savedRole.getStartDate()).isEqualTo(roleFromKafka.getStartDate());
     }
 
-@DisplayName("Test for saveRole - save new role")
-@Test
-public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
+    @DisplayName("Test for saveRole - save new role")
+    @Test
+    public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 
-    Role newRole = createNewRole();
+        Role newRole = createNewRole();
 
-    given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
-    given(roleRepository.save(newRole)).willReturn(newRole);
+        given(roleRepository.findByRoleId("ansatt@digit-fagtj")).willReturn(Optional.empty());
+        given(roleRepository.save(newRole)).willReturn(newRole);
 
-    Role savedRole = roleService.save(newRole);
+        Role savedRole = roleService.save(newRole);
 
-    verify(roleRepository).save(newRole);
+        verify(roleRepository).save(newRole);
 
-    assertThat(savedRole).isEqualTo(newRole);
-    assertThat(savedRole.getMemberships()).isNull();
-}
+        assertThat(savedRole).isEqualTo(newRole);
+        assertThat(savedRole.getMemberships()).isNull();
+    }
+
     @DisplayName("Test for saveRole - save new role with non empty member list")
     @Test
     public void givenRoleObject_whenSaveNewRoleWithMembers_thenReturnNewSavedObjectWithMembersList() {
@@ -238,19 +255,6 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
         assertThat(savedRole.getMemberships().size()).isEqualTo(2);
     }
 
-    private static Role createNewRole() {
-        return Role.builder()
-                .id(2L)
-                .roleId("ansatt@digit-fagtj")
-                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/47")
-                .roleName("Ansatt - DIGIT Fagtjenester")
-                .roleSource("fint")
-                .roleType("ansatt")
-                .roleStatus("ACTIVE")
-                .aggregatedRole(false)
-                .build();
-    }
-
     @DisplayName("Test for getOrgUnitsInSearch method - no orgunits in filter all orgunits in scope")
     @Test
     public void givenNoOrgUnitsInFilterAndALLORGUNITSInScope_thenReturnALLORGUNITS() {
@@ -260,6 +264,7 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
 
         assertThat(returnedOrgUnits.get(0)).isEqualTo(OrgUnitType.ALLORGUNITS.name());
     }
+
     @DisplayName("Test for getOrgUnitsInSearch method - subset of orgunits in filter all orgunits in scope")
     @Test
     public void givenScopeOrgUnitsInFilterAndALLORGUNITSInScope_thenReturnOrgUnitsInFilter() {
@@ -334,5 +339,41 @@ public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
         List<String> result = RoleService.getOrgUnitsValidAndInScope(orgUnitsInScope, validOrgUnits);
 
         assertThat(result).isEqualTo(new ArrayList<>());
+    }
+
+    @Test
+    void shouldExpireRolesAndTheirMemberships() {
+        Member member = Member.builder().id(11L).build();
+        Role expiredRole = Role.builder()
+                .id(10L)
+                .roleId("expired-role")
+                .resourceId("http://test.no/expired-role")
+                .roleStatus("ACTIVE")
+                .endDate(Date.from(Instant.parse("2025-01-01T00:00:00Z")))
+                .noOfMembers(1)
+                .build();
+        Membership membership = Membership.builder()
+                .id(new MembershipId(expiredRole.getId(), member.getId()))
+                .role(expiredRole)
+                .member(member)
+                .membershipStatus("ACTIVE")
+                .build();
+        expiredRole.setMemberships(Set.of(membership));
+
+        given(roleRepository.findExpiredRoles(org.mockito.ArgumentMatchers.any(Date.class))).willReturn(List.of(expiredRole));
+
+        var result = roleService.expireRolesAndMemberships(false);
+
+        assertThat(result.updatedRoles()).isEqualTo(1);
+        assertThat(result.updatedMemberships()).isEqualTo(1);
+        assertThat(expiredRole.getRoleStatus()).isEqualTo("INACTIVE");
+        assertThat(expiredRole.getRoleStatusChanged()).isNotNull();
+        assertThat(expiredRole.getNoOfMembers()).isZero();
+        assertThat(membership.getMembershipStatus()).isEqualTo("INACTIVE");
+        assertThat(membership.getMembershipStatusChanged()).isNotNull();
+        verify(roleRepository).save(expiredRole);
+        verify(membershipRepository).save(membership);
+        verify(roleCatalogPublishingComponent).publishRole(expiredRole);
+        verify(roleCatalogMembershipPublishingComponent).publishMembership(membership);
     }
 }

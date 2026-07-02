@@ -6,6 +6,7 @@ import no.fintlabs.role.Role;
 import no.fintlabs.role.RoleRepository;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
+import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +41,9 @@ public class MembershipServiceTests {
 
     @Mock
     private RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
+
+    @Mock
+    private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
     @InjectMocks
     private MembershipService membershipService;
@@ -126,5 +131,56 @@ public class MembershipServiceTests {
         Membership savedMembership = membershipCaptor.getValue();
         assertThat(savedMembership.getMembershipStatusChanged()).isEqualTo(oldStatusChanged);
         assertThat(savedMembership.getStartDate()).isEqualTo(startDate);
+    }
+
+    @Test
+    void shouldDryRunExpiredMembershipsWithoutSavingOrPublishing() {
+        Role role = Role.builder().id(1L).roleId("student-role").resourceId("http://test.no").roleStatus("ACTIVE").noOfMembers(1).build();
+        Member member = Member.builder().id(2L).userType("STUDENT").build();
+        Membership membership = Membership.builder()
+                .id(new MembershipId(role.getId(), member.getId()))
+                .role(role)
+                .member(member)
+                .membershipStatus("ACTIVE")
+                .endDate(Date.from(Instant.parse("2025-01-01T00:00:00Z")))
+                .build();
+
+        given(membershipRepository.findExpiredActiveMemberships(org.mockito.ArgumentMatchers.any(Date.class), org.mockito.ArgumentMatchers.eq("STUDENT")))
+                .willReturn(List.of(membership));
+
+        var result = membershipService.expireMemberships("STUDENT", true);
+
+        assertThat(result.dryRun()).isTrue();
+        assertThat(result.matchedMemberships()).isEqualTo(1);
+        assertThat(membership.getMembershipStatus()).isEqualTo("ACTIVE");
+        verifyNoInteractions(roleCatalogMembershipPublishingComponent, roleCatalogPublishingComponent);
+    }
+
+    @Test
+    void shouldExpireMembershipsAndRepublishAffectedRole() {
+        Role role = Role.builder().id(1L).roleId("student-role").resourceId("http://test.no").roleStatus("ACTIVE").noOfMembers(1).build();
+        Member member = Member.builder().id(2L).userType("STUDENT").build();
+        Membership membership = Membership.builder()
+                .id(new MembershipId(role.getId(), member.getId()))
+                .role(role)
+                .member(member)
+                .membershipStatus("ACTIVE")
+                .endDate(Date.from(Instant.parse("2025-01-01T00:00:00Z")))
+                .build();
+
+        given(membershipRepository.findExpiredActiveMemberships(org.mockito.ArgumentMatchers.any(Date.class), org.mockito.ArgumentMatchers.isNull()))
+                .willReturn(List.of(membership));
+
+        var result = membershipService.expireMemberships(null, false);
+
+        assertThat(result.updatedMemberships()).isEqualTo(1);
+        assertThat(result.republishedRoles()).isEqualTo(1);
+        assertThat(membership.getMembershipStatus()).isEqualTo("INACTIVE");
+        assertThat(membership.getMembershipStatusChanged()).isNotNull();
+        assertThat(role.getNoOfMembers()).isZero();
+        verify(membershipRepository).save(membership);
+        verify(roleRepository).save(role);
+        verify(roleCatalogMembershipPublishingComponent).publishMembership(membership);
+        verify(roleCatalogPublishingComponent).publishRole(role);
     }
 }

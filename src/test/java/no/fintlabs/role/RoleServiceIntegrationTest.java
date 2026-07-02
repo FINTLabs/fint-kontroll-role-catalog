@@ -7,6 +7,7 @@ import no.fintlabs.membership.Membership;
 import no.fintlabs.membership.MembershipId;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.OpaService;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,8 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
     private OpaService opaService;
     @MockBean
     private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
+    @MockBean
+    private RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
 
     @Test
     public void shouldSaveRoleMemberRelationship() {

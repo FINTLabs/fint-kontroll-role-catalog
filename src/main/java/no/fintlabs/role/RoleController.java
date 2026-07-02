@@ -2,7 +2,9 @@ package no.fintlabs.role;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.maintenance.MaintenanceStatusUpdateResult;
 import no.fintlabs.member.Member;
+import no.fintlabs.membership.MembershipService;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.Scope;
@@ -37,6 +39,7 @@ public class RoleController {
     private final RoleService roleService;
     private final AuthorizationClient authorizationClient;
     private final MembershipRepository membershipRepository;
+    private final MembershipService membershipService;
     private final RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
     private final RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
@@ -164,6 +167,33 @@ public class RoleController {
 
         roleCatalogMembershipPublishingComponent.publishMembershipsForRole(roleToPublish);
         log.info("Triggered role catalog membership publish. id={}, roleId={}", id, roleToPublish.getRoleId());
+    }
+
+    @OnlyDevelopers
+    @PostMapping("/maintenance/expire-student-memberships")
+    public MaintenanceStatusUpdateResult expireStudentMemberships(
+            @RequestParam(defaultValue = "true") boolean dryRun
+    ) {
+        log.info("Triggered expired student membership maintenance. dryRun={}", dryRun);
+        return membershipService.expireMemberships("STUDENT", dryRun);
+    }
+
+    @OnlyDevelopers
+    @PostMapping("/maintenance/expire-memberships")
+    public MaintenanceStatusUpdateResult expireMemberships(
+            @RequestParam(defaultValue = "true") boolean dryRun
+    ) {
+        log.info("Triggered expired membership maintenance. dryRun={}", dryRun);
+        return membershipService.expireMemberships(null, dryRun);
+    }
+
+    @OnlyDevelopers
+    @PostMapping("/maintenance/expire-roles-and-memberships")
+    public MaintenanceStatusUpdateResult expireRolesAndMemberships(
+            @RequestParam(defaultValue = "true") boolean dryRun
+    ) {
+        log.info("Triggered expired role maintenance. dryRun={}", dryRun);
+        return roleService.expireRolesAndMemberships(dryRun);
     }
 
 }

@@ -2,12 +2,14 @@ package no.fintlabs.membership;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.maintenance.MaintenanceStatusUpdateResult;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberRepository;
 import no.fintlabs.role.Role;
 import no.fintlabs.role.RoleRepository;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipEntityProducerService;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
+import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import no.fintlabs.util.MissingReferenceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static no.fintlabs.roleCatalogMembership.RoleCatalogMembershipService.getRoleCatalogMembershipId;
 
@@ -30,8 +34,10 @@ public class MembershipService {
     private final MemberRepository memberRepository;
 
     private static final String ACTIVE = "ACTIVE";
+    private static final String INACTIVE = "INACTIVE";
     private final RoleCatalogMembershipEntityProducerService roleCatalogMembershipEntityProducerService;
     private final RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
+    private final RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
     @Transactional
     public void processMembership(KafkaMembership kafkaMembership) {
@@ -143,6 +149,68 @@ public class MembershipService {
             log.debug("Decremented active member count. roleId={}, count={}", role.getId(), role.getNoOfMembers());
         }
     }
+
+    @Transactional
+    public MaintenanceStatusUpdateResult expireMemberships(
+            String memberUserType,
+            boolean dryRun
+    ) {
+        Date referenceDate = Date.from(Instant.now());
+        List<Membership> expiredMemberships = membershipRepository.findExpiredActiveMemberships(referenceDate, memberUserType);
+        Set<Role> affectedRoles = expiredMemberships.stream()
+                .map(Membership::getRole)
+                .collect(Collectors.toSet());
+        String scope = memberUserType == null ? "all-memberships" : memberUserType.toLowerCase() + "-memberships";
+
+        if (dryRun) {
+            log.info("Dry run for expired membership maintenance. scope={}, memberships={}, roles={}",
+                    scope, expiredMemberships.size(), affectedRoles.size());
+            return new MaintenanceStatusUpdateResult(
+                    true,
+                    referenceDate,
+                    scope,
+                    affectedRoles.size(),
+                    expiredMemberships.size(),
+                    0,
+                    0,
+                    0,
+                    0,
+                    "Dry run only. Set dryRun=false to update and republish."
+            );
+        }
+
+        expiredMemberships.forEach(membership -> {
+            boolean wasActive = ACTIVE.equalsIgnoreCase(membership.getMembershipStatus());
+            membership.setMembershipStatus(INACTIVE);
+            membership.setMembershipStatusChanged(referenceDate);
+            membershipRepository.save(membership);
+            roleCatalogMembershipPublishingComponent.publishMembership(membership);
+            if (wasActive) {
+                membership.getRole().decrementMemberCount();
+            }
+        });
+
+        affectedRoles.forEach(role -> {
+            roleRepository.save(role);
+            roleCatalogPublishingComponent.publishRole(role);
+        });
+
+        log.info("Expired memberships updated. scope={}, memberships={}, roles={}",
+                scope, expiredMemberships.size(), affectedRoles.size());
+        return new MaintenanceStatusUpdateResult(
+                false,
+                referenceDate,
+                scope,
+                affectedRoles.size(),
+                expiredMemberships.size(),
+                affectedRoles.size(),
+                expiredMemberships.size(),
+                affectedRoles.size(),
+                expiredMemberships.size(),
+                "Expired memberships were set to INACTIVE and republished."
+        );
+    }
+
     @Transactional
     public void removeAllMembershipsForUser(Member member) {
         List<Membership> activeMemberships = membershipRepository.findAllByMember_Id(member.getId());
