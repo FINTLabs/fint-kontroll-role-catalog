@@ -7,6 +7,7 @@ import no.fintlabs.membership.Membership;
 import no.fintlabs.membership.MembershipId;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.OpaService;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,8 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
     private OpaService opaService;
     @MockBean
     private RoleCatalogPublishingComponent roleCatalogPublishingComponent;
+    @MockBean
+    private RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
 
     @Test
     public void shouldSaveRoleMemberRelationship() {
@@ -97,6 +100,7 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
         roleChanged.setOrganisationUnitName("DIGIT2 Digitaliseringsavdeling");
         roleChanged.setRoleSource("fint");
         roleChanged.setAggregatedRole(false);
+        roleChanged.setRoleStatus("ACTIVE");
         roleChanged.setNoOfMembers(100);
         roleChanged.setMemberships(Set.of());
 
@@ -160,6 +164,7 @@ public class RoleServiceIntegrationTest extends DatabaseIntegrationTest {
         role.setOrganisationUnitName("DIGIT Digitaliseringsavdeling");
         role.setRoleSource("fint");
         role.setAggregatedRole(false);
+        role.setRoleStatus("ACTIVE");
         role.setNoOfMembers(1);
         role = roleRepository.save(role);
         return role;

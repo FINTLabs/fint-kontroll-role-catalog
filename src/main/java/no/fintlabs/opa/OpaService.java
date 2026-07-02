@@ -21,7 +21,7 @@ public class OpaService {
     ) {
 
         List<Scope> userScopes = authorizationClient.getUserScopesList();
-        log.info("User scopes from api: {}", userScopes);
+        log.debug("Loaded {} authorization scopes for objectType={}", userScopes.size(), objectType);
 
         return userScopes.stream()
                 .filter(scope -> scope.getObjectType().equals(objectType))

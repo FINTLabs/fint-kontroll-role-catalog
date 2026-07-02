@@ -3,18 +3,20 @@ package no.fintlabs.role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.OrgUnitType;
+import no.fintlabs.maintenance.MaintenanceStatusUpdateResult;
+import no.fintlabs.membership.Membership;
+import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.OpaService;
+import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
-import no.fintlabs.roleCatalogRole.RoleCatalogRoleEntityProducerService;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +28,10 @@ public class RoleService {
     private final OpaService opaService;
     private final RoleSyncWorker worker;
     private final RoleCatalogPublishingComponent roleCatalogPublishingComponent;
+    private final MembershipRepository membershipRepository;
+    private final RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
+
+    private static final String INACTIVE = "INACTIVE";
 
     public Page<Role> findBySearchCriteria(
             String searchString,
@@ -36,7 +42,7 @@ public class RoleService {
             Pageable pageable
     ) {
         List<String> orgUnitsInScope = opaService.getOrgUnitsInScope("role");
-        log.info("Org units returned from scope: {}", orgUnitsInScope);
+        log.debug("Loaded {} org units from role scope", orgUnitsInScope.size());
 
         List<String> validOrgUnitsInScope = getOrgUnitsValidAndInScope(orgUnitsInScope, validOrgUnits);
 
@@ -61,28 +67,31 @@ public class RoleService {
         Role persistedRole;
 
         if (existingRole.isEmpty()) {
-            log.info("Role {} not found. Saving new role", roleId);
+            log.debug("Creating role. roleId={}, status={}", roleId, role.getRoleStatus());
             role.setNoOfMembers(0);
+            role.setRoleStatusChanged(Date.from(Instant.now()));
             persistedRole = roleRepository.save(role);
             roleCatalogPublishingComponent.publishRole(role);
         } else {
-            log.info("Role {} already exists", roleId);
             role.setId(existingRole.get().getId());
             Role mappedRole = mapChangesToExistingRole(role, existingRole.get());
-            log.info("Updating existing role {}", roleId);
+            log.debug("Updating role. roleId={}, status={} -> {}", roleId, existingRole.get().getRoleStatus(), role.getRoleStatus());
             persistedRole = roleRepository.save(mappedRole);
         }
-
-        log.info("Save/update role {} finished", roleId);
 
         return persistedRole;
     }
 
     private Role mapChangesToExistingRole(Role incomingRole, Role existingRole) {
+        Date roleStatusChanged = getStatusChangedDate(
+                existingRole.getRoleStatus(),
+                incomingRole.getRoleStatus(),
+                existingRole.getRoleStatusChanged()
+        );
         existingRole.setResourceId(incomingRole.getResourceId());
         existingRole.setRoleId(incomingRole.getRoleId());
         existingRole.setRoleStatus(incomingRole.getRoleStatus());
-        existingRole.setRoleStatusChanged(incomingRole.getRoleStatusChanged());
+        existingRole.setRoleStatusChanged(roleStatusChanged);
         existingRole.setRoleName(incomingRole.getRoleName());
         existingRole.setRoleType(incomingRole.getRoleType());
         existingRole.setRoleSubType(incomingRole.getRoleSubType());
@@ -90,12 +99,22 @@ public class RoleService {
         existingRole.setRoleSource(incomingRole.getRoleSource());
         existingRole.setOrganisationUnitId(incomingRole.getOrganisationUnitId());
         existingRole.setOrganisationUnitName(incomingRole.getOrganisationUnitName());
+        existingRole.setStartDate(incomingRole.getStartDate());
+        existingRole.setEndDate(incomingRole.getEndDate());
         return existingRole;
     }
 
-    public List<Role> getAllRoles() {
-        return new ArrayList<>(roleRepository.findAll());
+    private Date getStatusChangedDate(String currentStatus, String newStatus, Date currentStatusChanged) {
+        if (!isSameStatus(currentStatus, newStatus)) {
+            return Date.from(Instant.now());
+        }
+        return currentStatusChanged;
     }
+
+    private boolean isSameStatus(String firstStatus, String secondStatus) {
+        return firstStatus.equalsIgnoreCase(secondStatus);
+    }
+
 
     public DetailedRole getDetailedRoleById(Long id) {
         return roleRepository.findById(id)
@@ -140,10 +159,10 @@ public class RoleService {
     public List<String> getOrgUnitsInSearch(List<String> orgUnits, List<String> orgUnitsInScope) {
 
         if (orgUnits == null) {
-            log.info("OrgUnits parameter is empty, using orgunits from scope {} in search", orgUnitsInScope);
+            log.debug("No org unit filter supplied; using {} scoped org units", orgUnitsInScope.size());
             return orgUnitsInScope;
         }
-        log.info("OrgUnits parameter list: {}", orgUnits);
+        log.debug("Filtering roles by {} requested org units", orgUnits.size());
 
         if (orgUnitsInScope.contains(OrgUnitType.ALLORGUNITS.name())) {
             return orgUnits;
@@ -152,7 +171,7 @@ public class RoleService {
                 .filter(orgUnitsInScope::contains)
                 .collect(Collectors.toList());
 
-        log.info("OrgUnits in search: {}", filteredOrgUnits);
+        log.debug("Role search org unit filter reduced to {} scoped org units", filteredOrgUnits.size());
         return filteredOrgUnits;
     }
 
@@ -181,5 +200,75 @@ public class RoleService {
     public Role getRoleByRoleId(Long id) {
         return roleRepository.findById(id).orElseThrow(()
                 -> new ResourceNotFoundException("No role with id " + id + " found"));
+    }
+
+    @Transactional
+    public MaintenanceStatusUpdateResult expireRolesAndMemberships(
+            boolean dryRun
+    ) {
+        Date referenceDate = Date.from(Instant.now());
+        List<Role> expiredRoles = roleRepository.findExpiredRoles(referenceDate);
+        List<Role> rolesToUpdate = expiredRoles.stream()
+                .filter(role -> !INACTIVE.equalsIgnoreCase(role.getRoleStatus()) || hasActiveMemberCount(role))
+                .toList();
+        List<Membership> membershipsToUpdate = expiredRoles.stream()
+                .map(Role::getMemberships)
+                .filter(Objects::nonNull)
+                .flatMap(Set::stream)
+                .filter(membership -> !INACTIVE.equalsIgnoreCase(membership.getMembershipStatus()))
+                .toList();
+
+        if (dryRun) {
+            log.info("Dry run for expired role maintenance. expiredRoles={}, rolesToUpdate={}, membershipsToUpdate={}",
+                    expiredRoles.size(), rolesToUpdate.size(), membershipsToUpdate.size());
+            return new MaintenanceStatusUpdateResult(
+                    true,
+                    referenceDate,
+                    "expired-roles-and-memberships",
+                    expiredRoles.size(),
+                    membershipsToUpdate.size(),
+                    0,
+                    0,
+                    0,
+                    0,
+                    "Dry run only. Set dryRun=false to update and republish."
+            );
+        }
+
+        rolesToUpdate.forEach(role -> {
+            if (!INACTIVE.equalsIgnoreCase(role.getRoleStatus())) {
+                role.setRoleStatus(INACTIVE);
+                role.setRoleStatusChanged(referenceDate);
+            }
+            role.setNoOfMembers(0);
+            roleRepository.save(role);
+            roleCatalogPublishingComponent.publishRole(role);
+        });
+
+        membershipsToUpdate.forEach(membership -> {
+            membership.setMembershipStatus(INACTIVE);
+            membership.setMembershipStatusChanged(referenceDate);
+            membershipRepository.save(membership);
+            roleCatalogMembershipPublishingComponent.publishMembership(membership);
+        });
+
+        log.info("Expired role maintenance completed. expiredRoles={}, rolesUpdated={}, membershipsUpdated={}",
+                expiredRoles.size(), rolesToUpdate.size(), membershipsToUpdate.size());
+        return new MaintenanceStatusUpdateResult(
+                false,
+                referenceDate,
+                "expired-roles-and-memberships",
+                expiredRoles.size(),
+                membershipsToUpdate.size(),
+                rolesToUpdate.size(),
+                membershipsToUpdate.size(),
+                rolesToUpdate.size(),
+                membershipsToUpdate.size(),
+                "Expired roles and their memberships were set to INACTIVE and republished."
+        );
+    }
+
+    private boolean hasActiveMemberCount(Role role) {
+        return role.getNoOfMembers() != null && role.getNoOfMembers() > 0;
     }
 }

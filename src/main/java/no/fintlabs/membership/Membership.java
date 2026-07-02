@@ -28,6 +28,9 @@ public class Membership {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    @Column(nullable = false)
     private String membershipStatus;
     private Date membershipStatusChanged;
+    private Date startDate;
+    private Date endDate;
 }

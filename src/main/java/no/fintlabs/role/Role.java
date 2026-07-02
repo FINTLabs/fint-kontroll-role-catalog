@@ -42,8 +42,11 @@ public class Role {
     private String organisationUnitName;
     private Integer noOfMembers;
 
+    @Column(nullable = false)
     private String roleStatus;
     private Date roleStatusChanged;
+    private Date startDate;
+    private Date endDate;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "role", cascade = CascadeType.MERGE, fetch = FetchType.LAZY)

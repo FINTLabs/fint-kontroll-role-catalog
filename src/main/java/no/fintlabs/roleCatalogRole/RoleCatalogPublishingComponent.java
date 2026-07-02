@@ -31,11 +31,12 @@ public class RoleCatalogPublishingComponent {
 
         log.info("Published {} of {} role catalog roles", publishedRoles.size(), allCatalogRoles.size());
         publishedRoles.forEach(roleCatalogRole ->
-                        log.info("Published role catalog role: id {} - name {} - no of members {}",
-                                roleCatalogRole.getId(),
-                                roleCatalogRole.getRoleName(),
-                                roleCatalogRole.getNoOfMembers()
-                        ));
+                log.debug("Published role catalog role. id={}, roleId={}, name={}, members={}",
+                        roleCatalogRole.getId(),
+                        roleCatalogRole.getRoleId(),
+                        roleCatalogRole.getRoleName(),
+                        roleCatalogRole.getNoOfMembers()
+                ));
     }
 
     public void publishRole(Role role) {

@@ -309,6 +309,7 @@ public class RoleControllerIntegrationTest extends DatabaseIntegrationTest {
         role.setOrganisationUnitName("VGMIDT Midtbyen videregående skole");
         role.setRoleSource("fint");
         role.setAggregatedRole(false);
+        role.setRoleStatus("ACTIVE");
         role.setNoOfMembers(1);
         role = roleRepository.save(role);
         return role;
