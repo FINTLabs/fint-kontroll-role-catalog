@@ -217,7 +217,6 @@ public class RoleService {
                 .filter(Objects::nonNull)
                 .flatMap(Set::stream)
                 .filter(membership -> isActive(membership.getMembershipStatus()))
-                .filter(membership -> isExpired(membership.getEndDate(), referenceDate))
                 .toList();
 
         if (dryRun) {
