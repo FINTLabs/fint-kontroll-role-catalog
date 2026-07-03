@@ -105,7 +105,7 @@ public class RoleService {
     }
 
     private Date getStatusChangedDate(String currentStatus, String newStatus, Date currentStatusChanged) {
-        if (!isSameStatus(currentStatus, newStatus)) {
+        if (currentStatusChanged == null || !isSameStatus(currentStatus, newStatus)) {
             return Date.from(Instant.now());
         }
         return currentStatusChanged;

@@ -135,6 +135,44 @@ public class MembershipServiceTests {
     }
 
     @Test
+    void shouldSetStatusChangedWhenStatusIsUnchangedAndExistingStatusChangedIsMissing() {
+        Role role = Role.builder().id(1L).resourceId("http://test.no").roleStatus("ACTIVE").noOfMembers(1).build();
+        Member member = Member.builder().id(2L).build();
+        MembershipId membershipId = new MembershipId(role.getId(), member.getId());
+        Date startDate = Date.from(Instant.parse("2026-01-01T00:00:00Z"));
+        Date endDate = Date.from(Instant.parse("2026-12-31T00:00:00Z"));
+        Membership existingMembership = Membership.builder()
+                .id(membershipId)
+                .role(role)
+                .member(member)
+                .membershipStatus("ACTIVE")
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+        KafkaMembership kafkaMembership = KafkaMembership.builder()
+                .roleId(role.getId())
+                .memberId(member.getId())
+                .memberStatus("ACTIVE")
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+
+        given(roleRepository.findById(role.getId())).willReturn(Optional.of(role));
+        given(memberRepository.findById(member.getId())).willReturn(Optional.of(member));
+        given(membershipRepository.findById(membershipId)).willReturn(Optional.of(existingMembership));
+
+        membershipService.processMembership(kafkaMembership);
+
+        ArgumentCaptor<Membership> membershipCaptor = ArgumentCaptor.forClass(Membership.class);
+        verify(membershipRepository).save(membershipCaptor.capture());
+        Membership savedMembership = membershipCaptor.getValue();
+        assertThat(savedMembership.getMembershipStatus()).isEqualTo("ACTIVE");
+        assertThat(savedMembership.getMembershipStatusChanged()).isNotNull();
+        assertThat(savedMembership.getStartDate()).isEqualTo(startDate);
+        assertThat(savedMembership.getEndDate()).isEqualTo(endDate);
+    }
+
+    @Test
     void shouldSkipSaveAndPublishWhenMembershipHasNoIncomingChanges() {
         Role role = Role.builder().id(1L).resourceId("http://test.no").roleStatus("ACTIVE").noOfMembers(1).build();
         Member member = Member.builder().id(2L).build();

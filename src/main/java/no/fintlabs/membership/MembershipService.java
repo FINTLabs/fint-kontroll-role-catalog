@@ -119,12 +119,13 @@ public class MembershipService {
 
     private boolean hasIncomingChanges(Membership membership, KafkaMembership kafkaMembership) {
         return !isSameStatus(membership.getMembershipStatus(), kafkaMembership.getMemberStatus())
+                || membership.getMembershipStatusChanged() == null
                 || !Objects.equals(membership.getStartDate(), kafkaMembership.getStartDate())
                 || !Objects.equals(membership.getEndDate(), kafkaMembership.getEndDate());
     }
 
     private Date getStatusChangedDate(String currentStatus, String newStatus, Date currentStatusChanged) {
-        if (!isSameStatus(currentStatus, newStatus)) {
+        if (currentStatusChanged == null || !isSameStatus(currentStatus, newStatus)) {
             return Date.from(Instant.now());
         }
         return currentStatusChanged;

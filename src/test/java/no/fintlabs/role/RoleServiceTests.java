@@ -184,6 +184,32 @@ public class RoleServiceTests {
         assertThat(savedRole.getStartDate()).isEqualTo(roleFromKafka.getStartDate());
     }
 
+    @DisplayName("Test for saveRole - status changed date is set when status is unchanged and existing date is missing")
+    @Test
+    public void givenExistingRoleWithSameStatusAndMissingChangedDate_whenSave_thenSetStatusChangedDate() {
+        Role roleFromKafka = Role.builder()
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleStatus("ACTIVE")
+                .startDate(Date.from(Instant.parse("2026-01-01T00:00:00Z")))
+                .build();
+
+        Role roleFromDb = Role.builder()
+                .id(3L)
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleStatus("ACTIVE")
+                .build();
+
+        given(roleRepository.findByRoleId("ansatt@digit-aggr")).willReturn(Optional.of(roleFromDb));
+        given(roleRepository.save(roleFromDb)).willReturn(roleFromDb);
+
+        Role savedRole = roleService.save(roleFromKafka);
+
+        assertThat(savedRole.getRoleStatusChanged()).isNotNull();
+        assertThat(savedRole.getStartDate()).isEqualTo(roleFromKafka.getStartDate());
+    }
+
     @DisplayName("Test for saveRole - save new role")
     @Test
     public void givenRoleObject_whenSaveNewRole_thenReturnNewSavedObject() {
