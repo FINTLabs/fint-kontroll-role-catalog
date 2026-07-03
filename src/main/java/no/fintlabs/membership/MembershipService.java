@@ -65,7 +65,7 @@ public class MembershipService {
         boolean wasActive = ACTIVE.equalsIgnoreCase(membership.getMembershipStatus());
         boolean nowActive = ACTIVE.equalsIgnoreCase(newStatus);
 
-        if (isNew || isMembershipChanged(membership, kafkaMembership, newStatus)) {
+        if (isNew || hasIncomingChanges(membership, kafkaMembership)) {
             Date newChangedDate = isNew
                     ? Date.from(Instant.now())
                     : getStatusChangedDate(
@@ -117,23 +117,21 @@ public class MembershipService {
         });
     }
 
-    private boolean isMembershipChanged(Membership membership, KafkaMembership kafkaMembership, String newStatus) {
-        String currentStatus = membership.getMembershipStatus();
-
-        return hasStatusChanged(newStatus, currentStatus)
+    private boolean hasIncomingChanges(Membership membership, KafkaMembership kafkaMembership) {
+        return !isSameStatus(membership.getMembershipStatus(), kafkaMembership.getMemberStatus())
                 || !Objects.equals(membership.getStartDate(), kafkaMembership.getStartDate())
                 || !Objects.equals(membership.getEndDate(), kafkaMembership.getEndDate());
     }
 
     private Date getStatusChangedDate(String currentStatus, String newStatus, Date currentStatusChanged) {
-        if (hasStatusChanged(currentStatus, newStatus)) {
+        if (!isSameStatus(currentStatus, newStatus)) {
             return Date.from(Instant.now());
         }
         return currentStatusChanged;
     }
 
-    private boolean hasStatusChanged(String firstStatus, String secondStatus) {
-        return !firstStatus.equalsIgnoreCase(secondStatus);
+    private boolean isSameStatus(String firstStatus, String secondStatus) {
+        return firstStatus.equalsIgnoreCase(secondStatus);
     }
 
     private void adjustRoleMemberCountIfNeeded(Role role, boolean isNew, boolean wasActive, boolean nowActive) {
