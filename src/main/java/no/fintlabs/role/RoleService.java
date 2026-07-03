@@ -31,6 +31,7 @@ public class RoleService {
     private final MembershipRepository membershipRepository;
     private final RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
 
+    private static final String ACTIVE = "ACTIVE";
     private static final String INACTIVE = "INACTIVE";
 
     public Page<Role> findBySearchCriteria(
@@ -207,25 +208,26 @@ public class RoleService {
             boolean dryRun
     ) {
         Date referenceDate = Date.from(Instant.now());
-        List<Role> expiredRoles = roleRepository.findExpiredRoles(referenceDate);
-        List<Role> rolesToUpdate = expiredRoles.stream()
-                .filter(role -> !INACTIVE.equalsIgnoreCase(role.getRoleStatus()) || hasActiveMemberCount(role))
+        List<Role> rolesToUpdate = roleRepository.findExpiredActiveRoles(referenceDate).stream()
+                .filter(role -> isActive(role.getRoleStatus()))
+                .filter(role -> isExpired(role.getEndDate(), referenceDate))
                 .toList();
-        List<Membership> membershipsToUpdate = expiredRoles.stream()
+        List<Membership> membershipsToUpdate = rolesToUpdate.stream()
                 .map(Role::getMemberships)
                 .filter(Objects::nonNull)
                 .flatMap(Set::stream)
-                .filter(membership -> !INACTIVE.equalsIgnoreCase(membership.getMembershipStatus()))
+                .filter(membership -> isActive(membership.getMembershipStatus()))
+                .filter(membership -> isExpired(membership.getEndDate(), referenceDate))
                 .toList();
 
         if (dryRun) {
-            log.info("Dry run for expired role maintenance. expiredRoles={}, rolesToUpdate={}, membershipsToUpdate={}",
-                    expiredRoles.size(), rolesToUpdate.size(), membershipsToUpdate.size());
+            log.info("Dry run for expired role maintenance. rolesToUpdate={}, membershipsToUpdate={}",
+                    rolesToUpdate.size(), membershipsToUpdate.size());
             return new MaintenanceStatusUpdateResult(
                     true,
                     referenceDate,
                     "expired-roles-and-memberships",
-                    expiredRoles.size(),
+                    rolesToUpdate.size(),
                     membershipsToUpdate.size(),
                     0,
                     0,
@@ -236,10 +238,8 @@ public class RoleService {
         }
 
         rolesToUpdate.forEach(role -> {
-            if (!INACTIVE.equalsIgnoreCase(role.getRoleStatus())) {
-                role.setRoleStatus(INACTIVE);
-                role.setRoleStatusChanged(referenceDate);
-            }
+            role.setRoleStatus(INACTIVE);
+            role.setRoleStatusChanged(referenceDate);
             role.setNoOfMembers(0);
             roleRepository.save(role);
             roleCatalogPublishingComponent.publishRole(role);
@@ -252,13 +252,13 @@ public class RoleService {
             roleCatalogMembershipPublishingComponent.publishMembership(membership);
         });
 
-        log.info("Expired role maintenance completed. expiredRoles={}, rolesUpdated={}, membershipsUpdated={}",
-                expiredRoles.size(), rolesToUpdate.size(), membershipsToUpdate.size());
+        log.info("Expired role maintenance completed. rolesUpdated={}, membershipsUpdated={}",
+                rolesToUpdate.size(), membershipsToUpdate.size());
         return new MaintenanceStatusUpdateResult(
                 false,
                 referenceDate,
                 "expired-roles-and-memberships",
-                expiredRoles.size(),
+                rolesToUpdate.size(),
                 membershipsToUpdate.size(),
                 rolesToUpdate.size(),
                 membershipsToUpdate.size(),
@@ -268,7 +268,11 @@ public class RoleService {
         );
     }
 
-    private boolean hasActiveMemberCount(Role role) {
-        return role.getNoOfMembers() != null && role.getNoOfMembers() > 0;
+    private boolean isActive(String status) {
+        return ACTIVE.equalsIgnoreCase(status);
+    }
+
+    private boolean isExpired(Date endDate, Date referenceDate) {
+        return endDate != null && endDate.before(referenceDate);
     }
 }

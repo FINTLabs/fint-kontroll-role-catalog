@@ -98,6 +98,7 @@ public interface RoleRepository extends JpaRepository<Role,Long>, JpaSpecificati
             left join fetch m.member
             where r.endDate is not null
             and r.endDate < :referenceDate
+            and upper(r.roleStatus) = 'ACTIVE'
             """)
-    List<Role> findExpiredRoles(@Param("referenceDate") Date referenceDate);
+    List<Role> findExpiredActiveRoles(@Param("referenceDate") Date referenceDate);
 }

@@ -383,10 +383,24 @@ public class RoleServiceTests {
                 .role(expiredRole)
                 .member(member)
                 .membershipStatus("ACTIVE")
+                .endDate(Date.from(Instant.parse("2025-01-01T00:00:00Z")))
                 .build();
-        expiredRole.setMemberships(Set.of(membership));
+        Membership membershipWithoutExpiredEndDate = Membership.builder()
+                .id(new MembershipId(expiredRole.getId(), 12L))
+                .role(expiredRole)
+                .member(Member.builder().id(12L).build())
+                .membershipStatus("ACTIVE")
+                .build();
+        Membership inactiveExpiredMembership = Membership.builder()
+                .id(new MembershipId(expiredRole.getId(), 13L))
+                .role(expiredRole)
+                .member(Member.builder().id(13L).build())
+                .membershipStatus("INACTIVE")
+                .endDate(Date.from(Instant.parse("2025-01-01T00:00:00Z")))
+                .build();
+        expiredRole.setMemberships(Set.of(membership, membershipWithoutExpiredEndDate, inactiveExpiredMembership));
 
-        given(roleRepository.findExpiredRoles(org.mockito.ArgumentMatchers.any(Date.class))).willReturn(List.of(expiredRole));
+        given(roleRepository.findExpiredActiveRoles(org.mockito.ArgumentMatchers.any(Date.class))).willReturn(List.of(expiredRole));
 
         var result = roleService.expireRolesAndMemberships(false);
 
@@ -397,6 +411,10 @@ public class RoleServiceTests {
         assertThat(expiredRole.getNoOfMembers()).isZero();
         assertThat(membership.getMembershipStatus()).isEqualTo("INACTIVE");
         assertThat(membership.getMembershipStatusChanged()).isNotNull();
+        assertThat(membershipWithoutExpiredEndDate.getMembershipStatus()).isEqualTo("ACTIVE");
+        assertThat(membershipWithoutExpiredEndDate.getMembershipStatusChanged()).isNull();
+        assertThat(inactiveExpiredMembership.getMembershipStatus()).isEqualTo("INACTIVE");
+        assertThat(inactiveExpiredMembership.getMembershipStatusChanged()).isNull();
         verify(roleRepository).save(expiredRole);
         verify(membershipRepository).save(membership);
         verify(roleCatalogPublishingComponent).publishRole(expiredRole);
