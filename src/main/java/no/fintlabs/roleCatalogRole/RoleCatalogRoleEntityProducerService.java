@@ -62,7 +62,7 @@ public class RoleCatalogRoleEntityProducerService {
 
     public void publishCatalogRole(RoleCatalogRole roleCatalogRole) {
         String key = roleCatalogRole.getRoleId();
-        log.info("Publish role-catalog-role : {}", key);
+        log.debug("Publishing role catalog role. key={}", key);
         parameterizedTemplate.send(
                 ParameterizedProducerRecord.<RoleCatalogRole>builder()
                         .topicNameParameters(entityTopicNameParameters)

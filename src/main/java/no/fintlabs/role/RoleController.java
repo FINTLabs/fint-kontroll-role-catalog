@@ -2,7 +2,9 @@ package no.fintlabs.role;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.fintlabs.maintenance.MaintenanceStatusUpdateResult;
 import no.fintlabs.member.Member;
+import no.fintlabs.membership.MembershipService;
 import no.fintlabs.membership.MembershipRepository;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.opa.model.Scope;
@@ -37,6 +39,7 @@ public class RoleController {
     private final RoleService roleService;
     private final AuthorizationClient authorizationClient;
     private final MembershipRepository membershipRepository;
+    private final MembershipService membershipService;
     private final RoleCatalogMembershipPublishingComponent roleCatalogMembershipPublishingComponent;
     private final RoleCatalogPublishingComponent roleCatalogPublishingComponent;
 
@@ -49,10 +52,9 @@ public class RoleController {
                                                         @RequestParam(defaultValue = "0") int page,
                                                         @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size) {
 
-        log.info("search: " + search + "showaggroles: " + aggRoles);
-
         List<String> orgUnitsInScope = getOrgUnitsInScope();
-        log.info("Org units returned from scope: {}", orgUnitsInScope);
+        log.debug("Legacy role search. search={}, roleType={}, requestedOrgUnits={}, scopedOrgUnits={}, aggregated={}",
+                search, roleType, orgUnits, orgUnitsInScope.size(), aggRoles);
 
         PageRequest pageRequest = PageRequest.of(page, size);
 
@@ -75,20 +77,22 @@ public class RoleController {
             @SortDefault(sort = {"roleName"}, direction = Sort.Direction.ASC)
             @ParameterObject @PageableDefault(size = 100) Pageable pageable
     ) {
-        log.info("Fetching all roles with params search: {} orgUnits: {} validOrgUnits: {} roleTypes: {} getAggRoles: {} " , searchName, requestedOrgUnits, validOrgUnits, roleTypes, aggRoles);
+        log.debug("Role search. search={}, requestedOrgUnits={}, validOrgUnits={}, roleTypes={}, aggregated={}, page={}, size={}",
+                searchName, requestedOrgUnits, validOrgUnits, roleTypes, aggRoles, pageable.getPageNumber(), pageable.getPageSize());
 
         try {
             Page<Role> rolesByParams = roleService.findBySearchCriteria(searchName, requestedOrgUnits, validOrgUnits, roleTypes, aggRoles, pageable);
             return ResponseEntity.ok(RoleMapper.toRoleDtoPage(rolesByParams));
         } catch (Exception e) {
-            log.error("Error fetching roles", e);
+            log.warn("Role search failed. search={}, requestedOrgUnits={}, validOrgUnits={}, roleTypes={}, aggregated={}",
+                    searchName, requestedOrgUnits, validOrgUnits, roleTypes, aggRoles, e);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Something went wrong when fetching roles");
         }
     }
 
     @GetMapping("{id}")
     public DetailedRole getRoleById(@PathVariable Long id) {
-        log.info("Fetching role info for : " + id.toString());
+        log.debug("Fetching role details. roleId={}", id);
         return roleService.getDetailedRoleById(id);
     }
 
@@ -98,7 +102,7 @@ public class RoleController {
                                                             @RequestParam(value = "name", required = false, defaultValue = "") String name,
                                                             @RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size) {
-        log.info("Fetching members for roleId: {}", id);
+        log.debug("Fetching role members. roleId={}, nameFilter={}, page={}, size={}", id, name, page, size);
 
         Pageable pageable = Pageable.ofSize(size).withPage(page);
 
@@ -118,7 +122,7 @@ public class RoleController {
     private List<String> getOrgUnitsInScope() {
 
         List<Scope> userScopes = authorizationClient.getUserScopesList();
-        log.info("User scopes from api: {}", userScopes);
+        log.debug("Loaded {} authorization scopes for role request", userScopes.size());
 
         return userScopes.stream()
                 .filter(scope -> scope.getObjectType().equals("role"))
@@ -130,44 +134,66 @@ public class RoleController {
     @OnlyDevelopers
     @GetMapping("/syncnoofmembers")
     public void syncNoOfMembers() {
-        log.info("Syncing number of members for all roles");
         roleService.syncNoOfMembers();
-        log.info("Syncing number of members for all roles done");
+        log.info("Triggered active member count sync for all roles");
     }
 
     @OnlyDevelopers
     @GetMapping("/publishallroles")
     public void publishallroles() {
-        log.info("Publishing all roles");
         roleCatalogPublishingComponent.publishRoles();
-        log.info("Publishing all roles done");
+        log.info("Triggered role catalog publish for all roles");
     }
 
     @OnlyDevelopers
     @GetMapping("/publishrole/{id}")
     public void publishrole(@PathVariable Long id) {
-        log.info("Publishing role with id: {}", id);
         Role roleToPublish = roleService.getRoleByRoleId(id);
         roleCatalogPublishingComponent.publishRole(roleToPublish);
-        log.info("Publishing role with id: {} done", id);
+        log.info("Triggered role catalog publish. id={}, roleId={}", id, roleToPublish.getRoleId());
     }
 
     @OnlyDevelopers
     @GetMapping("/publishallmemberships")
     public void publishallmemberships() {
-        log.info("Publishing all memberships");
         roleCatalogMembershipPublishingComponent.publishMemberships();
-        log.info("Publishing all memberships done");
+        log.info("Triggered role catalog membership publish for all roles");
     }
 
     @OnlyDevelopers
     @GetMapping("/publishmembershipsforrole/{id}")
     public void publishMembershipsForRole(@PathVariable Long id){
-        log.info("Publishing memberships for role with id: {}", id);
         Role roleToPublish = roleService.getRoleByRoleId(id);
 
         roleCatalogMembershipPublishingComponent.publishMembershipsForRole(roleToPublish);
-        log.info("Publishing memberships for role with id: {} done", id);
+        log.info("Triggered role catalog membership publish. id={}, roleId={}", id, roleToPublish.getRoleId());
+    }
+
+    @OnlyDevelopers
+    @PostMapping("/maintenance/expire-student-memberships")
+    public MaintenanceStatusUpdateResult expireStudentMemberships(
+            @RequestParam(defaultValue = "true") boolean dryRun
+    ) {
+        log.info("Triggered expired student membership maintenance. dryRun={}", dryRun);
+        return membershipService.expireMemberships("STUDENT", dryRun);
+    }
+
+    @OnlyDevelopers
+    @PostMapping("/maintenance/expire-memberships")
+    public MaintenanceStatusUpdateResult expireMemberships(
+            @RequestParam(defaultValue = "true") boolean dryRun
+    ) {
+        log.info("Triggered expired membership maintenance. dryRun={}", dryRun);
+        return membershipService.expireMemberships(null, dryRun);
+    }
+
+    @OnlyDevelopers
+    @PostMapping("/maintenance/expire-roles-and-memberships")
+    public MaintenanceStatusUpdateResult expireRolesAndMemberships(
+            @RequestParam(defaultValue = "true") boolean dryRun
+    ) {
+        log.info("Triggered expired role maintenance. dryRun={}", dryRun);
+        return roleService.expireRolesAndMemberships(dryRun);
     }
 
 }

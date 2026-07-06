@@ -26,7 +26,7 @@ public class MemberController {
                                                         @RequestParam(defaultValue = "0") int page,
                                                         @RequestParam(defaultValue = "${fint.kontroll.role-catalog.pagesize:20}") int size) {
 
-        log.info("Finding all members for role " + roleId + " with filter: " + filter + " at page: " + page + " (first page = 0)" );
+        log.debug("Fetching members by role. roleId={}, filter={}, page={}, size={}", roleId, filter, page, size);
 
         return memberResponseFactory.toResponseEntity(roleId, filter, page, size);
     }

@@ -22,11 +22,11 @@ public class RoleSyncWorker {
         int currentCount = role.getNoOfMembers() == null ? 0 : role.getNoOfMembers();
         int newCount   = membershipRepository.getActiveMembersCountByRoleId(roleId);
         if (currentCount != newCount) {
-            log.info("Role {}: {} -> {}", role.getRoleId(), currentCount, newCount);
+            log.info("Updated active member count. roleId={}, oldCount={}, newCount={}", role.getRoleId(), currentCount, newCount);
             role.setNoOfMembers(newCount);
             roleRepository.save(role);
         } else {
-            log.info("Role {}: unchanged ({})", role.getRoleId(), currentCount);
+            log.debug("Active member count unchanged. roleId={}, count={}", role.getRoleId(), currentCount);
         }
     }
 }

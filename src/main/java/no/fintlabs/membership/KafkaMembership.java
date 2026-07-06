@@ -19,5 +19,6 @@ public class KafkaMembership {
     private Long roleId;
     private Long memberId;
     private String memberStatus;
-    private Date memberStatusChanged;
+    private Date startDate;
+    private Date endDate;
 }

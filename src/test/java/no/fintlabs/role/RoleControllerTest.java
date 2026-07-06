@@ -5,6 +5,7 @@ import no.fintlabs.ProblemDetailFactory;
 import no.fintlabs.member.Member;
 import no.fintlabs.member.MemberResponseFactory;
 import no.fintlabs.membership.MembershipRepository;
+import no.fintlabs.membership.MembershipService;
 import no.fintlabs.opa.AuthorizationClient;
 import no.fintlabs.roleCatalogMembership.RoleCatalogMembershipPublishingComponent;
 import no.fintlabs.roleCatalogRole.RoleCatalogPublishingComponent;
@@ -44,6 +45,9 @@ public class RoleControllerTest {
 
     @MockBean
     private MembershipRepository membershipRepository;
+
+    @MockBean
+    private MembershipService membershipService;
 
     private MockMvc mockMvc;
 

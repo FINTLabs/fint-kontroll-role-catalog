@@ -38,12 +38,18 @@ public class RoleConsumerConfiguration {
 
     private void processRecord(ConsumerRecord<String, Role> record) {
         Role role = record.value();
-        log.info("Consumed Role from Kafka. offset={}, roleId={}, name={}, status={}, resourceId={}",
+
+        if (role.getRoleStatus() == null) {
+            log.warn("Not saving because role has a status null. roleId={}, resourceId={}", role.getRoleId(), role.getResourceId());
+            return;
+        }
+
+        log.debug("Processing role event. offset={}, roleId={}, name={}, status={}, resourceId={}",
                 record.offset(), role.getRoleId(), role.getRoleName(), role.getRoleStatus(), role.getResourceId());
 
         roleService.save(role);
 
-        log.info("Saved Role to DB. roleId={}, name={}, status={}, resourceId={}",
+        log.debug("Processed role event. roleId={}, name={}, status={}, resourceId={}",
                 role.getRoleId(), role.getRoleName(), role.getRoleStatus(), role.getResourceId());
     }
 }
