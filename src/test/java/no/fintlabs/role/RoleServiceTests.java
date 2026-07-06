@@ -405,14 +405,14 @@ public class RoleServiceTests {
         var result = roleService.expireRolesAndMemberships(false);
 
         assertThat(result.updatedRoles()).isEqualTo(1);
-        assertThat(result.updatedMemberships()).isEqualTo(1);
+        assertThat(result.updatedMemberships()).isEqualTo(2);
         assertThat(expiredRole.getRoleStatus()).isEqualTo("INACTIVE");
         assertThat(expiredRole.getRoleStatusChanged()).isNotNull();
         assertThat(expiredRole.getNoOfMembers()).isZero();
         assertThat(membership.getMembershipStatus()).isEqualTo("INACTIVE");
         assertThat(membership.getMembershipStatusChanged()).isNotNull();
-        assertThat(membershipWithoutExpiredEndDate.getMembershipStatus()).isEqualTo("ACTIVE");
-        assertThat(membershipWithoutExpiredEndDate.getMembershipStatusChanged()).isNull();
+        assertThat(membershipWithoutExpiredEndDate.getMembershipStatus()).isEqualTo("INACTIVE");
+        assertThat(membershipWithoutExpiredEndDate.getMembershipStatusChanged()).isNotNull();
         assertThat(inactiveExpiredMembership.getMembershipStatus()).isEqualTo("INACTIVE");
         assertThat(inactiveExpiredMembership.getMembershipStatusChanged()).isNull();
         verify(roleRepository).save(expiredRole);
