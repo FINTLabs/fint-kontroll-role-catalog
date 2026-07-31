@@ -135,6 +135,7 @@ public class RoleController {
 
     @OnlyDevelopers
     @Operation(
+            tags = {"Maintenance endpoints"},
             summary = "Synchronize role member counts",
             description = "Developer-only operation that recalculates and stores the active member count for every role."
     )
@@ -146,6 +147,7 @@ public class RoleController {
 
     @OnlyDevelopers
     @Operation(
+            tags = {"Maintenance endpoints"},
             summary = "Publish all roles",
             description = "Developer-only operation that publishes every role from the role catalog to the downstream role catalog topic."
     )
@@ -157,6 +159,7 @@ public class RoleController {
 
     @OnlyDevelopers
     @Operation(
+            tags = {"Maintenance endpoints"},
             summary = "Publish one role",
             description = "Developer-only operation that publishes a single role from the role catalog to the downstream role catalog topic."
     )
@@ -172,6 +175,7 @@ public class RoleController {
 
     @OnlyDevelopers
     @Operation(
+            tags = {"Maintenance endpoints"},
             summary = "Publish all memberships",
             description = "Developer-only operation that publishes all role memberships to the downstream role catalog membership topic."
     )
@@ -183,6 +187,7 @@ public class RoleController {
 
     @OnlyDevelopers
     @Operation(
+            tags = {"Maintenance endpoints"},
             summary = "Publish memberships for one role",
             description = "Developer-only operation that publishes all memberships connected to a single role to the downstream role catalog membership topic."
     )
@@ -199,6 +204,7 @@ public class RoleController {
 
     @OnlyDevelopers
     @Operation(
+            tags = {"Maintenance endpoints"},
             summary = "Expire student memberships",
             description = "Developer-only maintenance operation that finds expired student memberships and marks them inactive. Run with dryRun=true to preview the impact without saving changes or publishing updates."
     )
@@ -213,6 +219,7 @@ public class RoleController {
 
     @OnlyDevelopers
     @Operation(
+            tags = {"Maintenance endpoints"},
             summary = "Expire memberships",
             description = "Developer-only maintenance operation that finds expired memberships for all member types and marks them inactive. Run with dryRun=true to preview the impact without saving changes or publishing updates."
     )
@@ -227,6 +234,7 @@ public class RoleController {
 
     @OnlyDevelopers
     @Operation(
+            tags = {"Maintenance endpoints"},
             summary = "Expire roles and memberships",
             description = "Developer-only maintenance operation that finds expired roles, marks them inactive, expires their memberships, and republishes affected data. Run with dryRun=true to preview the impact without saving changes or publishing updates."
     )
