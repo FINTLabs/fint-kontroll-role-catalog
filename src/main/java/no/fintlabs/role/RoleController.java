@@ -1,5 +1,7 @@
 package no.fintlabs.role;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.fintlabs.maintenance.MaintenanceStatusUpdateResult;
@@ -132,6 +134,11 @@ public class RoleController {
     }
 
     @OnlyDevelopers
+    @Operation(
+            tags = {"Maintenance endpoints"},
+            summary = "Synchronize role member counts",
+            description = "Developer-only operation that recalculates and stores the active member count for every role."
+    )
     @GetMapping("/syncnoofmembers")
     public void syncNoOfMembers() {
         roleService.syncNoOfMembers();
@@ -139,6 +146,11 @@ public class RoleController {
     }
 
     @OnlyDevelopers
+    @Operation(
+            tags = {"Maintenance endpoints"},
+            summary = "Publish all roles",
+            description = "Developer-only operation that publishes every role from the role catalog to the downstream role catalog topic."
+    )
     @GetMapping("/publishallroles")
     public void publishallroles() {
         roleCatalogPublishingComponent.publishRoles();
@@ -146,14 +158,27 @@ public class RoleController {
     }
 
     @OnlyDevelopers
+    @Operation(
+            tags = {"Maintenance endpoints"},
+            summary = "Publish one role",
+            description = "Developer-only operation that publishes a single role from the role catalog to the downstream role catalog topic."
+    )
     @GetMapping("/publishrole/{id}")
-    public void publishrole(@PathVariable Long id) {
+    public void publishrole(
+            @Parameter(description = "Internal database id of the role to publish.", required = true)
+            @PathVariable Long id
+    ) {
         Role roleToPublish = roleService.getRoleByRoleId(id);
         roleCatalogPublishingComponent.publishRole(roleToPublish);
         log.info("Triggered role catalog publish. id={}, roleId={}", id, roleToPublish.getRoleId());
     }
 
     @OnlyDevelopers
+    @Operation(
+            tags = {"Maintenance endpoints"},
+            summary = "Publish all memberships",
+            description = "Developer-only operation that publishes all role memberships to the downstream role catalog membership topic."
+    )
     @GetMapping("/publishallmemberships")
     public void publishallmemberships() {
         roleCatalogMembershipPublishingComponent.publishMemberships();
@@ -161,8 +186,16 @@ public class RoleController {
     }
 
     @OnlyDevelopers
+    @Operation(
+            tags = {"Maintenance endpoints"},
+            summary = "Publish memberships for one role",
+            description = "Developer-only operation that publishes all memberships connected to a single role to the downstream role catalog membership topic."
+    )
     @GetMapping("/publishmembershipsforrole/{id}")
-    public void publishMembershipsForRole(@PathVariable Long id){
+    public void publishMembershipsForRole(
+            @Parameter(description = "Internal database id of the role whose memberships should be published.", required = true)
+            @PathVariable Long id
+    ){
         Role roleToPublish = roleService.getRoleByRoleId(id);
 
         roleCatalogMembershipPublishingComponent.publishMembershipsForRole(roleToPublish);
@@ -170,8 +203,14 @@ public class RoleController {
     }
 
     @OnlyDevelopers
+    @Operation(
+            tags = {"Maintenance endpoints"},
+            summary = "Expire student memberships",
+            description = "Developer-only maintenance operation that finds expired student memberships and marks them inactive. Run with dryRun=true to preview the impact without saving changes or publishing updates."
+    )
     @PostMapping("/maintenance/expire-student-memberships")
     public MaintenanceStatusUpdateResult expireStudentMemberships(
+            @Parameter(description = "When true, calculate and return the expected changes without persisting or publishing them.", example = "true")
             @RequestParam(defaultValue = "true") boolean dryRun
     ) {
         log.info("Triggered expired student membership maintenance. dryRun={}", dryRun);
@@ -179,8 +218,14 @@ public class RoleController {
     }
 
     @OnlyDevelopers
+    @Operation(
+            tags = {"Maintenance endpoints"},
+            summary = "Expire memberships",
+            description = "Developer-only maintenance operation that finds expired memberships for all member types and marks them inactive. Run with dryRun=true to preview the impact without saving changes or publishing updates."
+    )
     @PostMapping("/maintenance/expire-memberships")
     public MaintenanceStatusUpdateResult expireMemberships(
+            @Parameter(description = "When true, calculate and return the expected changes without persisting or publishing them.", example = "true")
             @RequestParam(defaultValue = "true") boolean dryRun
     ) {
         log.info("Triggered expired membership maintenance. dryRun={}", dryRun);
@@ -188,8 +233,14 @@ public class RoleController {
     }
 
     @OnlyDevelopers
+    @Operation(
+            tags = {"Maintenance endpoints"},
+            summary = "Expire roles and memberships",
+            description = "Developer-only maintenance operation that finds expired roles, marks them inactive, expires their memberships, and republishes affected data. Run with dryRun=true to preview the impact without saving changes or publishing updates."
+    )
     @PostMapping("/maintenance/expire-roles-and-memberships")
     public MaintenanceStatusUpdateResult expireRolesAndMemberships(
+            @Parameter(description = "When true, calculate and return the expected changes without persisting or publishing them.", example = "true")
             @RequestParam(defaultValue = "true") boolean dryRun
     ) {
         log.info("Triggered expired role maintenance. dryRun={}", dryRun);
