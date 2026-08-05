@@ -103,11 +103,18 @@ jobs:
           kustomizationPath: 'kustomize/overlays/${{ steps.environment.outputs.result }}/${{ env.ORG}}'
         id: bake
 
-      - name: Copy baked manifest into workspace
+      - name: Substitute image into baked YAML
+        id: substitute
+        uses: Azure/k8s-artifact-substitute@v2
+        with:
+          manifests: ${{ steps.bake.outputs.manifestsBundle }}
+          images: ${{ steps.meta.outputs.tags }}
+
+      - name: Copy substituted manifest into workspace
         id: bake-in-workspace
         run: |
           mkdir -p "$GITHUB_WORKSPACE/.baked"
-          cp "${{ steps.bake.outputs.manifestsBundle }}" "$GITHUB_WORKSPACE/.baked/manifest.yaml"
+          cp "${{ steps.substitute.outputs.manifests }}" "$GITHUB_WORKSPACE/.baked/manifest.yaml"
           echo "manifest=$GITHUB_WORKSPACE/.baked/manifest.yaml" >> "$GITHUB_OUTPUT"
 
       - uses: azure/login@v3
@@ -130,7 +137,6 @@ jobs:
         uses: azure/k8s-deploy@v7.0.0
         with:
           manifests: ${{ steps.bake-in-workspace.outputs.manifest }}
-          images: |
-            ${{ steps.meta.outputs.tags }}
           namespace: ${{ env.ORG }}
           action: deploy
+          pull-images: false
