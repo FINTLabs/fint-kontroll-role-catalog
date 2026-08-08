@@ -219,10 +219,13 @@ public class MembershipServiceTests {
                 .endDate(Date.from(Instant.parse("2025-01-01T00:00:00Z")))
                 .build();
 
-        given(membershipRepository.findExpiredActiveMemberships(org.mockito.ArgumentMatchers.any(Date.class), org.mockito.ArgumentMatchers.eq("STUDENT")))
+        given(membershipRepository.findExpiredActiveMembershipsByMemberUserType(
+                org.mockito.ArgumentMatchers.any(Date.class),
+                org.mockito.ArgumentMatchers.eq("STUDENT"),
+                org.mockito.ArgumentMatchers.eq(false)))
                 .willReturn(List.of(membership));
 
-        var result = membershipService.expireMemberships("STUDENT", true);
+        var result = membershipService.expireMemberships("STUDENT", true, false);
 
         assertThat(result.dryRun()).isTrue();
         assertThat(result.matchedMemberships()).isEqualTo(1);
@@ -242,10 +245,12 @@ public class MembershipServiceTests {
                 .endDate(Date.from(Instant.parse("2025-01-01T00:00:00Z")))
                 .build();
 
-        given(membershipRepository.findExpiredActiveMemberships(org.mockito.ArgumentMatchers.any(Date.class), org.mockito.ArgumentMatchers.isNull()))
+        given(membershipRepository.findExpiredActiveMemberships(
+                org.mockito.ArgumentMatchers.any(Date.class),
+                org.mockito.ArgumentMatchers.eq(false)))
                 .willReturn(List.of(membership));
 
-        var result = membershipService.expireMemberships(null, false);
+        var result = membershipService.expireMemberships(null, false, false);
 
         assertThat(result.updatedMemberships()).isEqualTo(1);
         assertThat(result.republishedRoles()).isEqualTo(1);
@@ -256,5 +261,31 @@ public class MembershipServiceTests {
         verify(roleRepository).save(role);
         verify(roleCatalogMembershipPublishingComponent).publishMembership(membership);
         verify(roleCatalogPublishingComponent).publishRole(role);
+    }
+
+    @Test
+    void shouldExpireMembershipWithMissingDatesWhenRequested() {
+        Role role = Role.builder().id(1L).roleId("student-role").resourceId("http://test.no").roleStatus("ACTIVE").noOfMembers(1).build();
+        Member member = Member.builder().id(2L).userType("STUDENT").build();
+        Membership membership = Membership.builder()
+                .id(new MembershipId(role.getId(), member.getId()))
+                .role(role)
+                .member(member)
+                .membershipStatus("ACTIVE")
+                .build();
+
+        given(membershipRepository.findExpiredActiveMembershipsByMemberUserType(
+                org.mockito.ArgumentMatchers.any(Date.class),
+                org.mockito.ArgumentMatchers.eq("STUDENT"),
+                org.mockito.ArgumentMatchers.eq(true)))
+                .willReturn(List.of(membership));
+
+        var result = membershipService.expireMemberships("STUDENT", false, true);
+
+        assertThat(result.updatedMemberships()).isEqualTo(1);
+        assertThat(membership.getMembershipStatus()).isEqualTo("INACTIVE");
+        assertThat(role.getNoOfMembers()).isZero();
+        verify(membershipRepository).save(membership);
+        verify(roleCatalogMembershipPublishingComponent).publishMembership(membership);
     }
 }
