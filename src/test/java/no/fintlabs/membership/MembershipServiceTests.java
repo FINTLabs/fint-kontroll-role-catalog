@@ -219,7 +219,7 @@ public class MembershipServiceTests {
                 .endDate(Date.from(Instant.parse("2025-01-01T00:00:00Z")))
                 .build();
 
-        given(membershipRepository.findExpiredActiveMemberships(
+        given(membershipRepository.findExpiredActiveMembershipsByMemberUserType(
                 org.mockito.ArgumentMatchers.any(Date.class),
                 org.mockito.ArgumentMatchers.eq("STUDENT"),
                 org.mockito.ArgumentMatchers.eq(false)))
@@ -247,7 +247,6 @@ public class MembershipServiceTests {
 
         given(membershipRepository.findExpiredActiveMemberships(
                 org.mockito.ArgumentMatchers.any(Date.class),
-                org.mockito.ArgumentMatchers.isNull(),
                 org.mockito.ArgumentMatchers.eq(false)))
                 .willReturn(List.of(membership));
 
@@ -275,7 +274,7 @@ public class MembershipServiceTests {
                 .membershipStatus("ACTIVE")
                 .build();
 
-        given(membershipRepository.findExpiredActiveMemberships(
+        given(membershipRepository.findExpiredActiveMembershipsByMemberUserType(
                 org.mockito.ArgumentMatchers.any(Date.class),
                 org.mockito.ArgumentMatchers.eq("STUDENT"),
                 org.mockito.ArgumentMatchers.eq(true)))

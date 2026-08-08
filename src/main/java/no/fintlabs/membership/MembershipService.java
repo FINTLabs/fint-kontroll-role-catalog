@@ -156,11 +156,7 @@ public class MembershipService {
             boolean expireMissingDates
     ) {
         Date referenceDate = Date.from(Instant.now());
-        List<Membership> expiredMemberships = membershipRepository.findExpiredActiveMemberships(
-                referenceDate,
-                memberUserType,
-                expireMissingDates
-        );
+        List<Membership> expiredMemberships = findExpiredMemberships(referenceDate, memberUserType, expireMissingDates);
         Set<Role> affectedRoles = expiredMemberships.stream()
                 .map(Membership::getRole)
                 .collect(Collectors.toSet());
@@ -212,6 +208,18 @@ public class MembershipService {
                 affectedRoles.size(),
                 expiredMemberships.size(),
                 "Expired memberships were set to INACTIVE and republished."
+        );
+    }
+
+    private List<Membership> findExpiredMemberships(Date referenceDate, String memberUserType, boolean expireMissingDates) {
+        if (memberUserType == null) {
+            return membershipRepository.findExpiredActiveMemberships(referenceDate, expireMissingDates);
+        }
+
+        return membershipRepository.findExpiredActiveMembershipsByMemberUserType(
+                referenceDate,
+                memberUserType.toUpperCase(),
+                expireMissingDates
         );
     }
 
