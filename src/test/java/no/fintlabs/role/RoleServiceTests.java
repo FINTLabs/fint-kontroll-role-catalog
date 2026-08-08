@@ -400,9 +400,12 @@ public class RoleServiceTests {
                 .build();
         expiredRole.setMemberships(Set.of(membership, membershipWithoutExpiredEndDate, inactiveExpiredMembership));
 
-        given(roleRepository.findExpiredActiveRoles(org.mockito.ArgumentMatchers.any(Date.class))).willReturn(List.of(expiredRole));
+        given(roleRepository.findExpiredActiveRoles(
+                org.mockito.ArgumentMatchers.any(Date.class),
+                org.mockito.ArgumentMatchers.eq(false)))
+                .willReturn(List.of(expiredRole));
 
-        var result = roleService.expireRolesAndMemberships(false);
+        var result = roleService.expireRolesAndMemberships(false, false);
 
         assertThat(result.updatedRoles()).isEqualTo(1);
         assertThat(result.updatedMemberships()).isEqualTo(2);
@@ -419,5 +422,30 @@ public class RoleServiceTests {
         verify(membershipRepository).save(membership);
         verify(roleCatalogPublishingComponent).publishRole(expiredRole);
         verify(roleCatalogMembershipPublishingComponent).publishMembership(membership);
+    }
+
+    @Test
+    void shouldExpireRoleWithMissingDatesWhenRequested() {
+        Role roleWithMissingDates = Role.builder()
+                .id(10L)
+                .roleId("missing-dates-role")
+                .resourceId("http://test.no/missing-dates-role")
+                .roleStatus("ACTIVE")
+                .noOfMembers(0)
+                .memberships(Set.of())
+                .build();
+
+        given(roleRepository.findExpiredActiveRoles(
+                org.mockito.ArgumentMatchers.any(Date.class),
+                org.mockito.ArgumentMatchers.eq(true)))
+                .willReturn(List.of(roleWithMissingDates));
+
+        var result = roleService.expireRolesAndMemberships(false, true);
+
+        assertThat(result.updatedRoles()).isEqualTo(1);
+        assertThat(roleWithMissingDates.getRoleStatus()).isEqualTo("INACTIVE");
+        assertThat(roleWithMissingDates.getRoleStatusChanged()).isNotNull();
+        verify(roleRepository).save(roleWithMissingDates);
+        verify(roleCatalogPublishingComponent).publishRole(roleWithMissingDates);
     }
 }

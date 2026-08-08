@@ -38,13 +38,17 @@ public interface MembershipRepository extends JpaRepository<Membership, Membersh
             select m from Membership m
             join fetch m.role
             join fetch m.member
-            where m.endDate is not null
-            and m.endDate < :referenceDate
+            where (
+                (m.endDate is not null and m.endDate < :referenceDate)
+                or (:expireMissingDates = true and m.startDate is null and m.endDate is null)
+            )
             and upper(m.membershipStatus) = 'ACTIVE'
             and (:memberUserType is null or upper(m.member.userType) = upper(:memberUserType))
             """)
     List<Membership> findExpiredActiveMemberships(
             @Param("referenceDate") Date referenceDate,
-            @Param("memberUserType") String memberUserType
+            @Param("memberUserType") String memberUserType,
+            @Param("expireMissingDates") boolean expireMissingDates
     );
+
 }

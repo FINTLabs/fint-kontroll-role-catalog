@@ -152,10 +152,15 @@ public class MembershipService {
     @Transactional
     public MaintenanceStatusUpdateResult expireMemberships(
             String memberUserType,
-            boolean dryRun
+            boolean dryRun,
+            boolean expireMissingDates
     ) {
         Date referenceDate = Date.from(Instant.now());
-        List<Membership> expiredMemberships = membershipRepository.findExpiredActiveMemberships(referenceDate, memberUserType);
+        List<Membership> expiredMemberships = membershipRepository.findExpiredActiveMemberships(
+                referenceDate,
+                memberUserType,
+                expireMissingDates
+        );
         Set<Role> affectedRoles = expiredMemberships.stream()
                 .map(Membership::getRole)
                 .collect(Collectors.toSet());

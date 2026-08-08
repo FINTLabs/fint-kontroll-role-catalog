@@ -205,12 +205,13 @@ public class RoleService {
 
     @Transactional
     public MaintenanceStatusUpdateResult expireRolesAndMemberships(
-            boolean dryRun
+            boolean dryRun,
+            boolean expireMissingDates
     ) {
         Date referenceDate = Date.from(Instant.now());
-        List<Role> rolesToUpdate = roleRepository.findExpiredActiveRoles(referenceDate).stream()
+        List<Role> rolesToUpdate = roleRepository.findExpiredActiveRoles(referenceDate, expireMissingDates).stream()
                 .filter(role -> isActive(role.getRoleStatus()))
-                .filter(role -> isExpired(role.getEndDate(), referenceDate))
+                .filter(role -> shouldExpireRole(role, referenceDate, expireMissingDates))
                 .toList();
         List<Membership> membershipsToUpdate = rolesToUpdate.stream()
                 .map(Role::getMemberships)
@@ -274,4 +275,10 @@ public class RoleService {
     private boolean isExpired(Date endDate, Date referenceDate) {
         return endDate != null && endDate.before(referenceDate);
     }
+
+    private boolean shouldExpireRole(Role role, Date referenceDate, boolean expireMissingDates) {
+        return isExpired(role.getEndDate(), referenceDate)
+                || (expireMissingDates && role.getStartDate() == null && role.getEndDate() == null);
+    }
+
 }

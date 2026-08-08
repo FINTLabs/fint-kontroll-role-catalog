@@ -211,25 +211,29 @@ public class RoleController {
     @PostMapping("/maintenance/expire-student-memberships")
     public MaintenanceStatusUpdateResult expireStudentMemberships(
             @Parameter(description = "When true, calculate and return the expected changes without persisting or publishing them.", example = "true")
-            @RequestParam(defaultValue = "true") boolean dryRun
+            @RequestParam(defaultValue = "true") boolean dryRun,
+            @Parameter(description = "When true, also expire active records where both startDate and endDate are empty.", example = "false")
+            @RequestParam(defaultValue = "false") boolean expireMissingDates
     ) {
-        log.info("Triggered expired student membership maintenance. dryRun={}", dryRun);
-        return membershipService.expireMemberships("STUDENT", dryRun);
+        log.info("Triggered expired student membership maintenance. dryRun={}, expireMissingDates={}", dryRun, expireMissingDates);
+        return membershipService.expireMemberships("STUDENT", dryRun, expireMissingDates);
     }
 
     @OnlyDevelopers
     @Operation(
             tags = {"Maintenance endpoints"},
-            summary = "Expire memberships",
+            summary = "Expire all memberships",
             description = "Developer-only maintenance operation that finds expired memberships for all member types and marks them inactive. Run with dryRun=true to preview the impact without saving changes or publishing updates."
     )
     @PostMapping("/maintenance/expire-memberships")
     public MaintenanceStatusUpdateResult expireMemberships(
             @Parameter(description = "When true, calculate and return the expected changes without persisting or publishing them.", example = "true")
-            @RequestParam(defaultValue = "true") boolean dryRun
+            @RequestParam(defaultValue = "true") boolean dryRun,
+            @Parameter(description = "When true, also expire active records where both startDate and endDate are empty.", example = "false")
+            @RequestParam(defaultValue = "false") boolean expireMissingDates
     ) {
-        log.info("Triggered expired membership maintenance. dryRun={}", dryRun);
-        return membershipService.expireMemberships(null, dryRun);
+        log.info("Triggered expired membership maintenance. dryRun={}, expireMissingDates={}", dryRun, expireMissingDates);
+        return membershipService.expireMemberships(null, dryRun, expireMissingDates);
     }
 
     @OnlyDevelopers
@@ -241,10 +245,12 @@ public class RoleController {
     @PostMapping("/maintenance/expire-roles-and-memberships")
     public MaintenanceStatusUpdateResult expireRolesAndMemberships(
             @Parameter(description = "When true, calculate and return the expected changes without persisting or publishing them.", example = "true")
-            @RequestParam(defaultValue = "true") boolean dryRun
+            @RequestParam(defaultValue = "true") boolean dryRun,
+            @Parameter(description = "When true, also expire active roles where both startDate and endDate are empty.", example = "false")
+            @RequestParam(defaultValue = "false") boolean expireMissingDates
     ) {
-        log.info("Triggered expired role maintenance. dryRun={}", dryRun);
-        return roleService.expireRolesAndMemberships(dryRun);
+        log.info("Triggered expired role maintenance. dryRun={}, expireMissingDates={}", dryRun, expireMissingDates);
+        return roleService.expireRolesAndMemberships(dryRun, expireMissingDates);
     }
 
 }
