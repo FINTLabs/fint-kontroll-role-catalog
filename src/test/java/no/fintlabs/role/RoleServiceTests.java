@@ -22,6 +22,7 @@ import java.util.*;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -182,6 +183,54 @@ public class RoleServiceTests {
 
         assertThat(savedRole.getRoleStatusChanged()).isEqualTo(oldStatusChanged);
         assertThat(savedRole.getStartDate()).isEqualTo(roleFromKafka.getStartDate());
+    }
+
+    @DisplayName("Test for saveRole - identical existing role is not saved")
+    @Test
+    public void givenExistingRoleWithNoChanges_whenSave_thenSkipSave() {
+        Date oldStatusChanged = Date.from(Instant.parse("2025-01-01T00:00:00Z"));
+        Date startDate = Date.from(Instant.parse("2026-01-01T00:00:00Z"));
+        Date endDate = Date.from(Instant.parse("2026-12-31T00:00:00Z"));
+
+        Role roleFromKafka = Role.builder()
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleName("Ansatt - DIGIT Digitaliseringsavdeling -inkludert underenheter")
+                .roleSource("fint")
+                .roleType("ansatt")
+                .roleSubType("fast")
+                .roleStatus("ACTIVE")
+                .roleStatusChanged(oldStatusChanged)
+                .aggregatedRole(false)
+                .organisationUnitId("36")
+                .organisationUnitName("DIGIT Digitaliseringsavdeling")
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+
+        Role roleFromDb = Role.builder()
+                .id(3L)
+                .roleId("ansatt@digit-aggr")
+                .resourceId("https://beta.felleskomponent.no/administrasjon/organisasjon/organisasjonselement/organisasjonsid/36")
+                .roleName("Ansatt - DIGIT Digitaliseringsavdeling -inkludert underenheter")
+                .roleSource("fint")
+                .roleType("ansatt")
+                .roleSubType("fast")
+                .roleStatus("ACTIVE")
+                .roleStatusChanged(oldStatusChanged)
+                .aggregatedRole(false)
+                .organisationUnitId("36")
+                .organisationUnitName("DIGIT Digitaliseringsavdeling")
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+
+        given(roleRepository.findByRoleId("ansatt@digit-aggr")).willReturn(Optional.of(roleFromDb));
+
+        Role savedRole = roleService.save(roleFromKafka);
+
+        verify(roleRepository, never()).save(roleFromDb);
+        assertThat(savedRole).isEqualTo(roleFromDb);
     }
 
     @DisplayName("Test for saveRole - status changed date is set when status is unchanged and existing date is missing")

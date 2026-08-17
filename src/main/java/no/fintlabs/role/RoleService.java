@@ -74,6 +74,10 @@ public class RoleService {
             persistedRole = roleRepository.save(role);
             roleCatalogPublishingComponent.publishRole(role);
         } else {
+            if (hasNoRoleChanges(role, existingRole.get())) {
+                log.debug("Skipping unchanged role. roleId={}, status={}", roleId, role.getRoleStatus());
+                return existingRole.get();
+            }
             role.setId(existingRole.get().getId());
             Role mappedRole = mapChangesToExistingRole(role, existingRole.get());
             log.debug("Updating role. roleId={}, status={} -> {}", roleId, existingRole.get().getRoleStatus(), role.getRoleStatus());
@@ -81,6 +85,25 @@ public class RoleService {
         }
 
         return persistedRole;
+    }
+
+    private boolean hasNoRoleChanges(Role incomingRole, Role existingRole) {
+        if (existingRole.getRoleStatusChanged() == null) {
+            return false;
+        }
+
+        return Objects.equals(existingRole.getResourceId(), incomingRole.getResourceId())
+                && Objects.equals(existingRole.getRoleId(), incomingRole.getRoleId())
+                && Objects.equals(existingRole.getRoleStatus(), incomingRole.getRoleStatus())
+                && Objects.equals(existingRole.getRoleName(), incomingRole.getRoleName())
+                && Objects.equals(existingRole.getRoleType(), incomingRole.getRoleType())
+                && Objects.equals(existingRole.getRoleSubType(), incomingRole.getRoleSubType())
+                && existingRole.isAggregatedRole() == incomingRole.isAggregatedRole()
+                && Objects.equals(existingRole.getRoleSource(), incomingRole.getRoleSource())
+                && Objects.equals(existingRole.getOrganisationUnitId(), incomingRole.getOrganisationUnitId())
+                && Objects.equals(existingRole.getOrganisationUnitName(), incomingRole.getOrganisationUnitName())
+                && Objects.equals(existingRole.getStartDate(), incomingRole.getStartDate())
+                && Objects.equals(existingRole.getEndDate(), incomingRole.getEndDate());
     }
 
     private Role mapChangesToExistingRole(Role incomingRole, Role existingRole) {

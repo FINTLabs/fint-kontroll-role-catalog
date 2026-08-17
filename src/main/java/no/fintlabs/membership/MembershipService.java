@@ -73,7 +73,7 @@ public class MembershipService {
                             newStatus,
                             membership.getMembershipStatusChanged()
                     );
-            log.debug("Saving membership. isNew={}, roleId={}, memberId={}, status={} -> {}, statusChanged={}",
+            log.info("Saving membership. isNew={}, roleId={}, memberId={}, status={} -> {}, statusChanged={}",
                     isNew, roleId, memberId, membership.getMembershipStatus(), newStatus, newChangedDate);
 
             membership.setMembershipStatus(newStatus);

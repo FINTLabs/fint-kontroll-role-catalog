@@ -44,7 +44,7 @@ public class RoleConsumerConfiguration {
             return;
         }
 
-        log.debug("Processing role event. offset={}, roleId={}, name={}, status={}, resourceId={}",
+        log.info("Processing role event. offset={}, roleId={}, name={}, status={}, resourceId={}",
                 record.offset(), role.getRoleId(), role.getRoleName(), role.getRoleStatus(), role.getResourceId());
 
         roleService.save(role);
