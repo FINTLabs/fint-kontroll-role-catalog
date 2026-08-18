@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -120,8 +119,8 @@ public class MembershipService {
     private boolean hasIncomingChanges(Membership membership, KafkaMembership kafkaMembership) {
         return !isSameStatus(membership.getMembershipStatus(), kafkaMembership.getMemberStatus())
                 || membership.getMembershipStatusChanged() == null
-                || !Objects.equals(membership.getStartDate(), kafkaMembership.getStartDate())
-                || !Objects.equals(membership.getEndDate(), kafkaMembership.getEndDate());
+                || !isSameDate(membership.getStartDate(), kafkaMembership.getStartDate())
+                || !isSameDate(membership.getEndDate(), kafkaMembership.getEndDate());
     }
 
     private Date getStatusChangedDate(String currentStatus, String newStatus, Date currentStatusChanged) {
@@ -133,6 +132,13 @@ public class MembershipService {
 
     private boolean isSameStatus(String firstStatus, String secondStatus) {
         return firstStatus.equalsIgnoreCase(secondStatus);
+    }
+
+    private boolean isSameDate(Date firstDate, Date secondDate) {
+        if (firstDate == null || secondDate == null) {
+            return firstDate == secondDate;
+        }
+        return firstDate.getTime() == secondDate.getTime();
     }
 
     private void adjustRoleMemberCountIfNeeded(Role role, boolean isNew, boolean wasActive, boolean nowActive) {

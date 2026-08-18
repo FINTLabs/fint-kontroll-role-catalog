@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -195,6 +196,41 @@ public class MembershipServiceTests {
                 .memberStatus("ACTIVE")
                 .startDate(startDate)
                 .endDate(endDate)
+                .build();
+
+        given(roleRepository.findById(role.getId())).willReturn(Optional.of(role));
+        given(memberRepository.findById(member.getId())).willReturn(Optional.of(member));
+        given(membershipRepository.findById(membershipId)).willReturn(Optional.of(existingMembership));
+
+        membershipService.processMembership(kafkaMembership);
+
+        verify(membershipRepository, never()).save(existingMembership);
+        verifyNoInteractions(roleCatalogMembershipPublishingComponent, roleCatalogPublishingComponent);
+    }
+
+    @Test
+    void shouldSkipSaveWhenPersistedTimestampDatesMatchIncomingDateValues() {
+        Role role = Role.builder().id(69L).resourceId("http://test.no").roleStatus("ACTIVE").noOfMembers(1).build();
+        Member member = Member.builder().id(218L).build();
+        MembershipId membershipId = new MembershipId(role.getId(), member.getId());
+        Date statusChanged = Date.from(Instant.parse("2023-01-01T01:00:00Z"));
+        Instant startInstant = Instant.parse("2023-01-01T01:00:00Z");
+        Instant endInstant = Instant.parse("2030-12-31T01:00:00Z");
+        Membership existingMembership = Membership.builder()
+                .id(membershipId)
+                .role(role)
+                .member(member)
+                .membershipStatus("ACTIVE")
+                .membershipStatusChanged(statusChanged)
+                .startDate(Timestamp.from(startInstant))
+                .endDate(Timestamp.from(endInstant))
+                .build();
+        KafkaMembership kafkaMembership = KafkaMembership.builder()
+                .roleId(role.getId())
+                .memberId(member.getId())
+                .memberStatus("ACTIVE")
+                .startDate(Date.from(startInstant))
+                .endDate(Date.from(endInstant))
                 .build();
 
         given(roleRepository.findById(role.getId())).willReturn(Optional.of(role));
