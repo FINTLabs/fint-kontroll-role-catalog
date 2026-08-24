@@ -110,6 +110,20 @@ jobs:
           renderEngine: 'kustomize'
           kustomizationPath: 'kustomize/overlays/${{ steps.environment.outputs.result }}/${{ matrix.org }}'
 
+      - name: Substitute image into baked YAML
+        id: substitute
+        uses: Azure/k8s-artifact-substitute@v2
+        with:
+          manifests: ${{ steps.bake.outputs.manifestsBundle }}
+          images: ${{ needs.build-and-push.outputs.tags }}
+
+      - name: Copy substituted manifest into workspace
+        id: bake-in-workspace
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/.baked"
+          cp "${{ steps.substitute.outputs.manifests }}" "$GITHUB_WORKSPACE/.baked/manifest.yaml"
+          echo "manifest=$GITHUB_WORKSPACE/.baked/manifest.yaml" >> "$GITHUB_OUTPUT"
+
       - uses: azure/login@v3
         with:
           creds: "${{ secrets[format('AKS_{0}_FINT_GITHUB', steps.environment.outputs.result)] }}"
@@ -127,9 +141,9 @@ jobs:
           use-kubelogin: 'true'
 
       - name: Deploy
-        uses: azure/k8s-deploy@v5.0.3
+        uses: azure/k8s-deploy@v7.0.0
         with:
           action: deploy
-          manifests: ${{ steps.bake.outputs.manifestsBundle }}
-          images: ${{ needs.build-and-push.outputs.tags }}
+          manifests: ${{ steps.bake-in-workspace.outputs.manifest }}
           namespace: ${{ matrix.org }}
+          pull-images: false
